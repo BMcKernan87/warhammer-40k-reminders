@@ -39,6 +39,16 @@ export function changeRosterWounds(army: ArmySelection,battle: BattleState,squad
   }
   return next;
 }
+/** Record an explicitly identified enemy attack and update squad health in one transaction.
+ * Nearby aura distances remain unverified until measured; do not invent them. */
+export function recordEnemyAttackDamage(army:ArmySelection,battle:BattleState,squad:RosterInstance,damage:number):BattleState {
+ if(battle.player===(battle.rosterPlayer??'A'))throw Error('Enemy attacks can only be recorded during the opponent turn.');
+ if(!Number.isInteger(damage)||damage<1||!onTable(battle,squad))throw Error('Select an active squad and a positive damage amount.');
+ const {wounds}=rosterHealth(army,battle,squad);
+ if(damage>wounds)throw Error('Damage exceeds remaining wounds.');
+ return observe(army,battle,{action:'enemyAttacked',squadId:squad.id,damage});
+}
+
 export function moveRosterSquad(army:ArmySelection,battle:BattleState,squad:RosterInstance,to:TablePosition): BattleState {
   if(to==='destroyed')return changeRosterWounds(army,battle,squad,0);
   const next=positionOf(battle,squad.id)==='destroyed'
