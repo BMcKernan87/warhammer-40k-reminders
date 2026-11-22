@@ -29,7 +29,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  ],
  Necrons:[
  {name:'Hand of the Dynasty',disposition:'Take and Hold',dp:1},
- {name:'Skyshroud Spearhead',disposition:'Reconnaissance',dp:1},
+ {name:'Skysword Spearhead',disposition:'Reconnaissance',dp:1},
  {name:"The Phaeron's Armoury",disposition:'Priority Assets',dp:1},
  {name:'Annihilation Legion',disposition:'Purge the Foe',dp:2},
  {name:'Awakened Dynasty',disposition:'Take and Hold',dp:3},
