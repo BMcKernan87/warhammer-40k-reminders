@@ -3,10 +3,14 @@ import {detachmentBudget,DETACHMENTS_2026,EDITION_2026_SOURCE} from './edition-2
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {REMINDER_WINDOWS} from './generated-reminders';
 /** 11th-edition reminders ONLY. Legacy 10e datasheet/stratagem rules are never included. */
+const CORE_SOURCE='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
+const CORE_11TH:readonly GeneratedReminder[]=[
+ {id:'11e-core-cp',title:'Gain Core CP',window:'Command',timing:'during',summary:'In the Gain Core CP step, both players gain 1 Command Point.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-battle-shock',title:'Battle-shock rolls',window:'Command',timing:'during',summary:'During the Battle-shock step, roll for each of your units that is already battle-shocked or at or below half-strength. A successful roll clears existing battle-shock.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-move-every-unit',title:'Select every unit to move',window:'Movement',timing:'during',summary:'Select each of your units once in the Move Units step, including units in Strategic Reserves or embarked in Transports. Remaining stationary counts as a selection.',source:CORE_SOURCE,origin:'army'}
+];
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
- // No 11e phase-triggered ability has yet been imported and source-verified.
- // Never substitute a 10e reminder merely because its name is unchanged.
- return [];
+ return CORE_11TH.map(rule=>({...rule}));
 }
 export function grouped11thReminders(army:ArmySelection):{window:ReminderWindow;reminders:GeneratedReminder[]}[]{
  const all=generate11thReminders(army);
