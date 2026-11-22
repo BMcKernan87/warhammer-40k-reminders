@@ -16,6 +16,14 @@ describe('11th-edition-only application pipeline',()=>{
    expect(grouped11thReminders(army).reduce((sum,g)=>sum+g.reminders.length,0)).toBe(generate11thReminders(army).length);
   }
  });
+ it('adds 11th-edition Orks rules only for an Orks roster and Meganobz only when selected',()=>{
+  const orks=addSelectionUnit(newSelection('Orks'),'Boyz');
+  expect(generate11thReminders(orks).some(r=>r.id==='11e-orks-war-cry')).toBe(true);
+  expect(generate11thReminders(orks).some(r=>r.id==='11e-orks-meganobz-krumpin')).toBe(false);
+  const withMeganobz=addSelectionUnit(orks,'Meganobz');
+  expect(generate11thReminders(withMeganobz).some(r=>r.id==='11e-orks-meganobz-krumpin')).toBe(true);
+  expect(generate11thReminders(addSelectionUnit(newSelection('Necrons'),'Immortals')).some(r=>r.id.startsWith('11e-orks'))).toBe(false);
+ });
  it('preserves an 11th-edition Space Marine detachment selection in validated armies',()=>{
   const army={...newSelection('Space Marines'),detachments2026:['Fulguris Task Force','Vanguard Spearhead'],battleSize2026:'Strike Force' as const};
   expect(validateSelection(army)).toBe(true);
