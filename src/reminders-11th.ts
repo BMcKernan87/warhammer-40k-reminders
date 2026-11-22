@@ -1,3 +1,4 @@
+import {expandRoster} from './roster-instances';
 import {necronDatasheetReminders2026} from './necron-datasheet-reminders-2026';
 import {matching11thRules,type Rule11th} from './rules-11th-registry';
 import type {ArmySelection} from './catalog';
@@ -27,14 +28,28 @@ const DETACHMENT_RULES:readonly Rule11th[]=[
  {id:'11e-necron-hod-nanosaturation',title:'Nanosaturation · 1CP',window:'Shooting',timing:'during',summary:'In your opponent’s Shooting phase, after an enemy unit has shot at your Necron Warriors or Immortals, that unit may snap shoot at the attacker.',source:'https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf',origin:'detachment',faction:'Necrons',detachments:['Hand of the Dynasty'],anyUnits:['Necron Warriors','Immortals'],units:['Necron Warriors','Immortals']},
  {id:'11e-necron-hod-dominance',title:'Dominance Protocols · 1CP',window:'Command',timing:'during',summary:'Select a friendly Immortals unit in your Command phase; it gains +1 OC until the end of the turn.',source:'https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf',origin:'detachment',faction:'Necrons',detachments:['Hand of the Dynasty'],anyUnits:['Immortals'],units:['Immortals']}
 ,
- {"id":"11e-necron-hod-enlivened","title":"Enlivened Sentinels · Scouts 5\"","window":"Movement","timing":"start","summary":"Necron Warriors with the Enlivened Sentinels upgrade have Scouts 5\"; resolve the Scout move at the appropriate pre-battle step.","origin":"detachment","detachments":["Hand of the Dynasty"],"anyUnits":["Necron Warriors"],"enhancements":["Enlivened Sentinels"],"units":["Necron Warriors"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"},
+ {"id":"11e-necron-hod-enlivened","title":"Enlivened Sentinels · Scouts 5\"","window":"Pre-battle","timing":"start","summary":"Necron Warriors with the Enlivened Sentinels upgrade have Scouts 5\"; resolve the Scout move at the appropriate pre-battle step.","origin":"detachment","detachments":["Hand of the Dynasty"],"anyUnits":["Necron Warriors"],"enhancements":["Enlivened Sentinels"],"units":["Necron Warriors"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"},
  {"id":"11e-necron-hod-tools","title":"Tools of Dominion · Rapid Fire 1","window":"Shooting","timing":"during","summary":"Immortals with the Tools of Dominion upgrade have Rapid Fire 1 on their ranged attacks.","origin":"detachment","detachments":["Hand of the Dynasty"],"anyUnits":["Immortals"],"enhancements":["Tools of Dominion"],"units":["Immortals"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"},
  {"id":"11e-necron-skyshroud-deepstrike","title":"Transdimensional Deployment · Tomb Blades","window":"Movement","timing":"during","summary":"Tomb Blades have Deep Strike while Skysword Spearhead is selected. Check arrival and ingress positioning.","origin":"detachment","detachments":["Skysword Spearhead"],"anyUnits":["Tomb Blades"],"units":["Tomb Blades"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"},
  {"id":"11e-necron-skyshroud-ingress","title":"Transdimensional Deployment · Ingress fire","window":"Shooting","timing":"during","summary":"Tomb Blades that made an ingress move this turn gain +1 to hit rolls with ranged attacks.","origin":"detachment","detachments":["Skysword Spearhead"],"anyUnits":["Tomb Blades"],"units":["Tomb Blades"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"}
 ];
+
+/** Fail closed: only verified 11e Scout grants are emitted, by actual roster instance. */
+export function eligibleScoutReminders(army:ArmySelection):GeneratedReminder[]{
+ const instances=expandRoster(army);
+ const source='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
+ if(army.faction!=='Necrons'||!(army.detachments2026||[]).includes('Hand of the Dynasty'))return [];
+ return instances.filter(s=>s.unit==='Necron Warriors'&&(army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit])==='Enlivened Sentinels').filter(s=>!instances.some(leader=>leader.attachedTo===s.id)).map(s=>({
+  id:'11e-scout-'+s.id,title:s.id+' · Scouts 5"',window:'Pre-battle' as const,timing:'during' as const,
+  summary:'During Resolve Pre-battle Abilities, this upgraded unit has Scouts 5". If wholly within your deployment zone it may make a Scout move of up to 5", ending more than 8" horizontally from enemy units. If in Strategic Reserves it may instead set up wholly within your deployment zone. Check battlefield geometry before resolving.',
+  source,origin:'unit' as const,units:[s.id]
+ }));
+}
+
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
- result.push(...matching11thRules(_army,DETACHMENT_RULES));
+ result.push(...matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened'));
+ result.push(...eligibleScoutReminders(_army));
  result.push(...necronDatasheetReminders2026(_army));
  if(_army.faction==='Necrons'&&Object.values(_army.units).some(n=>n>0)){
   result.push({id:'11e-necron-reanimation',title:'Reanimation Protocols · D3 wounds',window:'Command',timing:'end',summary:'At the end of your Command phase, each friendly unit on the battlefield with Reanimation Protocols activates and heals D3 wounds. Restore damaged models before returning destroyed models.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'army'});
