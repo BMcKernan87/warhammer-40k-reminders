@@ -48,7 +48,7 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
    for(const effect of effects[leader]||[])result.push({...effect,id:'attached-'+leader+'-'+bodyguard+'-'+effect.id,title:leader+' + '+bodyguard+' · '+effect.title,source:attachmentSource,origin:'unit',units:[leader,bodyguard]});
   }
  }
- for(const [id,unit,choice] of army.instances?army.instances.map(x=>[x.id,x.unit,x.equipment||selectedEquipment(army,x.unit)]):Object.keys(army.units).map(unit=>[unit,unit,selectedEquipment(army,unit)])){if(choice)result.push({id:'equipment-'+id+'-'+choice,title:id+' · '+choice,window:'Shooting',timing:'during',summary:'Selected weapon loadout: '+choice+'. Consult its weapon profile when shooting.',source,origin:'unit',units:[id]});}
+ for(const [id,unit,choice] of army.instances?army.instances.map(x=>[x.id,x.unit,x.equipment||selectedEquipment(army,x.unit)]):Object.keys(army.units).map(unit=>[unit,unit,selectedEquipment(army,unit)])){if(choice)result.push({id:'equipment-'+id+'-'+choice,title:id+' · '+choice,window:'Shooting',timing:'during',summary:'Selected weapon loadout: '+choice+'. Consult its weapon profile when shooting.',source,origin:'unit',units:[id!]});}
  if(army.faction==='Orks')result.push({id:'orks-waaagh',title:'Waaagh!',window:'Command',timing:'start',summary:'Review Waaagh! declaration timing, effects and eligible Orks units in current faction rules.',source,origin:'army'});
  if(army.faction==='Tyranids')result.push({id:'tyranids-shadow',title:'Shadow in the Warp',window:'Command',timing:'during',summary:'Review Shadow in the Warp declaration timing and Battle-shock effects in current faction rules.',source,origin:'army'});
 
