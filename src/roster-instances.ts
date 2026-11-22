@@ -38,7 +38,13 @@ export function setInstanceModelCount(army:ArmySelection,id:string,models:number
  const legal=target.unit==='Lokhust Heavy Destroyers'?[1,2,3]:target.unit==='Immortals'||target.unit==='Lychguard'?[5,10]:null;
  if(!legal||!legal.includes(models))throw Error('Unsupported unit size');
  target.models=models;
- delete target.weaponCounts;
+ if(target.weaponCounts){
+  const choices=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===target.unit)?.choices;
+  const current=Object.entries(target.weaponCounts);
+  const first=choices?.find(w=>current.some(([key,count])=>key===w&&count>0))||choices?.[0];
+  if(first)target.weaponCounts={[first]:models};
+  else delete target.weaponCounts;
+ }
  const updated={...army,instances};
  if(!validateRosterInstances(updated))throw Error('Invalid model count');
  return updated;
