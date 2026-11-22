@@ -12,6 +12,18 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
  }
  return result;
 }
+export function setInstanceEquipment(army:ArmySelection,id:string,equipment:string):ArmySelection{
+ const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
+ if(!target)throw Error('Unknown squad');
+ target.equipment=equipment;
+ return {...army,instances};
+}
+export function setInstanceEnhancement(army:ArmySelection,id:string,enhancement:string|null):ArmySelection{
+ const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
+ if(!target)throw Error('Unknown Character');
+ if(enhancement===null)delete target.enhancement;else target.enhancement=enhancement;
+ return {...army,instances};
+}
 export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodyguardId:string|null):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));
  const leader=instances.find(x=>x.id===leaderId);
@@ -34,6 +46,8 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
+  if(x.equipment!==undefined&&typeof x.equipment!=='string')return false;
+  if(x.enhancement!==undefined&&typeof x.enhancement!=='string')return false;
   seen.add(x.id);counts[x.unit]=(counts[x.unit]||0)+1;
  }
  if(Object.entries(army.units).some(([unit,count])=>counts[unit]!==count))return false;
