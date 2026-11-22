@@ -4,11 +4,11 @@ import {addSelectionUnit,newSelection} from '../src/catalog';
 import {setInstanceModelCount} from '../src/roster-instances';
 const source='https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html';
 describe('Necron 11e expanded Wahapedia import',()=>{
- it('imports at least 51 datasheets while keeping unknown costs unresolved',()=>{
+ it('imports 51 priced Necron datasheets',()=>{
   expect(DATASHEETS_2026.filter(d=>d.faction==='Necrons').length).toBeGreaterThanOrEqual(51);
-  expect(DATASHEETS_2026.find(d=>d.unit==='Royal Warden')?.pointsBySize).toBeUndefined();
+  expect(DATASHEETS_2026.find(d=>d.unit==='Royal Warden')?.pointsBySize?.[1]).toBe(50);
   const imported=DATASHEETS_2026.filter(d=>d.faction==='Necrons'&&d.pointsBySize);
-  expect(imported.length).toBeGreaterThanOrEqual(35);
+  expect(imported.length).toBe(51);
   expect(imported.filter(d=>d.pointsSource===source).length).toBeGreaterThanOrEqual(20);
  });
  it('uses third-copy Destroyer pricing, not second-copy pricing',()=>{
