@@ -6,7 +6,7 @@ type Entry=Omit<GeneratedReminder,'source'|'origin'> & {unit?:string;detachment?
 const nobleLeaders=new Set(['Overlord','Overlord with Translocation Shroud','Imotekh the Stormlord','Trazyn the Infinite','Lord','Nemesor Zahndrekh','Vargard Obyron']);
 const rules:Entry[]=[
  {id:'necron-reanimation',title:'Reanimation Protocols',window:'Command',timing:'end',summary:'At the end of your Command phase, each unit on the battlefield with Reanimation Protocols reanimates D3 wounds: heal damaged models first, then return destroyed models one wound at a time, up to Starting Strength.',},
- {id:'necron-warriors-their-number-is-legion',unit:'Necron Warriors',sourceUnit:'Necron-Warriors',title:'Necron Warriors · Their Number is Legion',window:'Command',timing:'end',summary:'Each time this unit’s Reanimation Protocols activate, you can re-roll the dice used to determine how many wounds are reanimated. This also applies when another rule activates Reanimation Protocols outside your Command phase; it is not limited to the normal Command-phase activation.'},
+ {id:'necron-warriors-their-number-is-legion',unit:'Necron Warriors',sourceUnit:'Necron-Warriors',title:'Necron Warriors · Their Number is Legion',window:'Command',timing:'end',summary:'Whenever this unit’s Reanimation Protocols activate, you can re-roll the dice used to determine how many wounds are reanimated. This also applies when another rule activates Reanimation Protocols outside your Command phase; it is not limited to the normal Command-phase activation.'},
  {id:'lychguard-guardian-protocols',unit:'Lychguard',sourceUnit:'Lychguard',title:'Lychguard · Guardian Protocols',window:'Fight',timing:'during',summary:'While a NOBLE model leads this unit, each time an attack targets it, if the attack Strength exceeds this unit’s Toughness, subtract 1 from the Wound roll. Applies to attacks in any phase.'},
  {id:'doomsday-ark-overwhelming-obliteration',unit:'Doomsday Ark',sourceUnit:'Doomsday-Ark',title:'Doomsday Ark · Overwhelming Obliteration',window:'Movement',timing:'during',summary:'If this model Remains Stationary in your Movement phase, its doomsday cannon gains DEVASTATING WOUNDS until the end of the turn.'},
  {id:'doomstalker-sentinel-construct',unit:'Canoptek Doomstalker',sourceUnit:'Canoptek-Doomstalker',title:'Canoptek Doomstalker · Sentinel Construct',window:'Shooting',timing:'during',summary:'When this unit is selected for Fire Overwatch, unmodified Hit rolls of 5+ score hits while resolving that Stratagem.'},
@@ -26,7 +26,11 @@ const rules:Entry[]=[
 export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
  const instances=army.instances?expandRoster(army):null;
- return rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('lychguard-guardian-')||!!(instances?instances.some(x=>x.unit==='Lychguard'&&instances.some(y=>y.attachedTo===x.id&&nobleLeaders.has(y.unit))):Object.entries(army.attachments||{}).some(([leader,bodyguard])=>bodyguard==='Lychguard'&&nobleLeaders.has(leader))))&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
+ const contextual:GeneratedReminder[]=[];
+ if(army.detachment==='Awakened Dynasty'&&army.units['Necron Warriors']){
+  for(const squad of (instances?instances.filter(x=>x.unit==='Necron Warriors').map(x=>x.id):['Necron Warriors']))contextual.push({id:'warriors-undying-legions-'+squad,title:'Necron Warriors · Undying Legions reanimation re-roll · '+squad,window:'Fight',timing:'during',summary:'If this squad is selected for Protocol of the Undying Legions after an eligible enemy attack, activate Reanimation Protocols as specified by the Stratagem. Their Number is Legion permits re-rolling the dice determining how many wounds are reanimated. This does not allow a second activation or bypass the Stratagem’s targeting requirements.',source:faction+'Necron-Warriors',origin:'unit',units:[squad]});
+ }
+ return [...contextual,...rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('lychguard-guardian-')||!!(instances?instances.some(x=>x.unit==='Lychguard'&&instances.some(y=>y.attachedTo===x.id&&nobleLeaders.has(y.unit))):Object.entries(army.attachments||{}).some(([leader,bodyguard])=>bodyguard==='Lychguard'&&nobleLeaders.has(leader))))&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
   if(r.unit&&instances&&!r.id.startsWith('attached-')){
    return instances.filter(x=>x.unit===r.unit&&(!r.id.startsWith('lychguard-guardian-')||instances.some(y=>y.attachedTo===x.id&&nobleLeaders.has(y.unit)))).map(x=>({
     id:r.id+'-'+x.id,title:r.title+' · '+x.id,
@@ -48,5 +52,5 @@ export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
    origin:(r.detachment?'detachment':r.unit?'unit':'army') as GeneratedReminder['origin'],
    units:r.unit?[r.unit,...(r.id.startsWith('attached-')&&army.attachments?.[r.unit]?[army.attachments[r.unit]]:[])]:undefined
   }];
- });
+ })];
 }
