@@ -10,6 +10,13 @@ describe('11th edition datasheet and points registry',()=>{
   expect(cost.unknownUnits).toEqual(['Immortals#1']);
   expect(verifiedUnitSizes2026(army,'Immortals')).toBeUndefined();
  });
+ it('uses separately attributed point values only for sourced Ctan units',()=>{
+  const army={...newSelection('Necrons'),units:{'C’tan Shard of the Nightbringer':1,'C’tan Shard of the Void Dragon':1}};
+  const cost=rosterCost2026(army);
+  expect(cost.total).toBe(705);
+  expect(cost.unknownUnits).toEqual([]);
+  expect(verifiedUnitSizes2026(army,'C’tan Shard of the Void Dragon')).toEqual([1]);
+ });
  it('requires a verifiable source and explicitly supported sizes for imported entries',()=>{
   for(const sheet of DATASHEETS_2026){
    expect(sheet.source).toMatch(/^https:\/\//);
