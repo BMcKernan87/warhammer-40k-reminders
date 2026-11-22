@@ -12,12 +12,13 @@ describe('weapon configuration transitions',()=>{
   expect(validateSelection(a)).toBe(true);
  });
  it('switches mixed weapons back to uniform without contradictory fields',()=>{
-  let a=addSelectionUnit(newSelection(),'Immortals');
+  let a=addSelectionUnit(newSelection(),'Lokhust Heavy Destroyers');
   a={...a,instances:expandRoster(a)};
-  a=setInstanceWeaponCounts(a,'Immortals#1',{'Gauss blaster':3,'Tesla carbine':2});
-  a=setInstanceEquipment(a,'Immortals#1','Tesla carbine');
+  a=setInstanceModelCount(a,'Lokhust Heavy Destroyers#1',3);
+  a=setInstanceWeaponCounts(a,'Lokhust Heavy Destroyers#1',{'Gauss destructor':2,'Enmitic exterminator':1});
+  a=setInstanceEquipment(a,'Lokhust Heavy Destroyers#1','Gauss destructor');
   expect(a.instances?.[0].weaponCounts).toBeUndefined();
-  expect(a.instances?.[0].equipment).toBe('Tesla carbine');
+  expect(a.instances?.[0].equipment).toBe('Gauss destructor');
   expect(validateSelection(a)).toBe(true);
  });
  it('rejects stored configurations specifying both modes',()=>{
