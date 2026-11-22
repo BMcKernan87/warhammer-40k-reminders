@@ -25,6 +25,25 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  for(const unit of Object.keys(army.units)){
   if(army.faction==='Necrons')for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source,origin:'unit',units:[unit]});
  }
+ if(army.faction==='Necrons'){
+  const abilities:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
+   'Plasmancer':[{id:'plasmancer-lightning',title:'Living Lightning',window:'Shooting',timing:'during',summary:'In your Shooting phase, choose a visible enemy within 18 inches (subject to Lone Operative restrictions), then roll four D6; each 4+ inflicts one mortal wound.'}],
+   'Chronomancer':[{id:'chronomancer-chronometron',title:'Chronometron',window:'Shooting',timing:'end',summary:'After this model’s unit shoots, if it is outside Engagement Range it can make a Normal move up to 5 inches; that unit cannot declare a charge this turn.'}],
+   'Overlord':[{id:'overlord-my-will',title:'My Will Be Done',window:'Command',timing:'during',summary:'Once per battle round, when an eligible unit with this ability is targeted by a Stratagem, you can reduce that Stratagem’s CP cost by 1.'}],
+   'Imotekh the Stormlord':[{id:'imotekh-command',title:'Imotekh · command abilities',window:'Command',timing:'during',summary:'Check Imotekh’s current datasheet for Command phase CP generation and once-per-battle effects before resolving.'}],
+   'Orikan the Diviner':[{id:'orikan-abilities',title:'Orikan · special abilities',window:'Fight',timing:'during',summary:'Review Orikan’s current invulnerable-save support and once-per-battle transformation conditions.'}],
+  };
+  for(const unit of Object.keys(army.units))for(const rule of abilities[unit]||[])result.push({...rule,source,origin:'unit',units:[unit]});
+  for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
+   const attachmentSource='https://wahapedia.ru/wh40k10ed/factions/necrons/'+encodeURIComponent(leader).replace(/%20/g,'-');
+   const effects:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
+    'Technomancer':[{id:'technomancer-fnp',title:'Rites of Reanimation · Feel No Pain 5+',window:'Shooting',timing:'during',summary:'While the Technomancer leads this unit, its models have Feel No Pain 5+. Apply it when models would lose wounds, including in melee.'}],
+    'Plasmancer':[{id:'plasmancer-critical',title:'Harbinger of Destruction · Critical Hits 5+',window:'Shooting',timing:'during',summary:'While the Plasmancer leads this unit, its models score Critical Hits on unmodified ranged Hit rolls of 5+.'}],
+    'Chronomancer':[{id:'chronomancer-mantle',title:'Timesplinter Mantle · -1 to Hit',window:'Shooting',timing:'during',summary:'While the Chronomancer leads this unit, subtract 1 from Hit rolls for attacks targeting the attached unit, including melee attacks.'}]
+   };
+   for(const effect of effects[leader]||[])result.push({...effect,id:'attached-'+leader+'-'+bodyguard+'-'+effect.id,title:leader+' + '+bodyguard+' · '+effect.title,source:attachmentSource,origin:'unit',units:[leader,bodyguard]});
+  }
+ }
  for(const unit of Object.keys(army.units)){const choice=selectedEquipment(army,unit);if(choice)result.push({id:'equipment-'+unit+'-'+choice,title:unit+' · '+choice,window:'Shooting',timing:'during',summary:'Check the selected '+choice+' weapon profile, range and weapon abilities when this unit shoots. Other loadouts are not included in this reminder.',source,origin:'unit',units:[unit]});}
  if(army.faction==='Orks')result.push({id:'orks-waaagh',title:'Waaagh!',window:'Command',timing:'start',summary:'Review Waaagh! declaration timing, effects and eligible Orks units in current faction rules.',source,origin:'army'});
  if(army.faction==='Tyranids')result.push({id:'tyranids-shadow',title:'Shadow in the Warp',window:'Command',timing:'during',summary:'Review Shadow in the Warp declaration timing and Battle-shock effects in current faction rules.',source,origin:'army'});
