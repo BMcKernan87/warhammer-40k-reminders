@@ -20,7 +20,7 @@ describe('2026 Detachment Points and Force Dispositions',()=>{
   expect(validateSelection({...newSelection('Necrons'),detachments2026:['Made Up']})).toBe(false);
  });
  it('includes new 2026 detachment choices for priority xenos',()=>{
-  expect(DETACHMENTS_2026.Necrons?.some(d=>d.name==='Skysword Spearhead')).toBe(true);
+  expect(DETACHMENTS_2026.Necrons?.some(d=>d.name==='Skyshroud Spearhead')).toBe(true);
   expect(DETACHMENTS_2026.Orks?.some(d=>d.name==='Taktikal Brigade')).toBe(true);
   expect(DETACHMENTS_2026.Tyranids?.some(d=>d.name==='Talons of the Norn Queen')).toBe(true);
  });
