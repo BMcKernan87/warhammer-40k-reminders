@@ -5,11 +5,11 @@ test('mobile builder equipment choices change reminders and profiles stay isolat
  await page.getByLabel('Select unit').selectOption('Immortals');
  await page.getByRole('button',{name:'Add',exact:true}).click();
  await page.getByRole('button',{name:'Play reminders'}).click();
- await expect(page.getByText('Immortals · Gauss blaster')).toBeVisible();
+ await expect(page.locator('.panel').getByText('Immortals · Gauss blaster')).toBeVisible();
  await page.getByRole('button',{name:'Edit army'}).click();
  await page.getByLabel('Equipment for Immortals').selectOption('Tesla carbine');
  await page.getByRole('button',{name:'Play reminders'}).click();
- await expect(page.getByText('Immortals · Tesla carbine')).toBeVisible();
+ await expect(page.locator('.panel').getByText('Immortals · Tesla carbine')).toBeVisible();
  await page.getByRole('button',{name:'Edit army'}).click();
  page.once('dialog',dialog=>dialog.accept('Orks army'));
  await page.getByRole('button',{name:'New army'}).click();
