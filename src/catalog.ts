@@ -1,3 +1,4 @@
+import {BATTLE_SIZES_2026,detachmentBudget,type BattleSize2026} from './edition-2026';
 import {expandRoster,appendRosterInstances,validateRosterInstances,type RosterInstance} from './roster-instances';
 import {validateEnhancements} from './enhancements';
 import {validateAttachments} from './attachments';
@@ -40,7 +41,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[]}
+export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];battleSize2026?:BattleSize2026;detachments2026?:string[]}
 export function newSelection(faction:Faction='Necrons'):ArmySelection{return {faction,detachment:CATALOG[faction].detachments[0],units:{}}}
 export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelection{
  if(!CATALOG[s.faction].units.includes(name)||!Number.isInteger(count)||count<1)throw Error('Invalid unit selection');
@@ -53,5 +54,5 @@ export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
 export function validateSelection(x:unknown):x is ArmySelection{
  if(!x||typeof x!=='object')return false;
  const s=x as Partial<ArmySelection>;
- return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>CATALOG[s.faction!].units.includes(name)&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&!!EQUIPMENT_OPTIONS[s.faction!]?.find(option=>option.unit===name&&option.choices.includes(choice)))))&&validateAttachments(s as ArmySelection)&&validateEnhancements(s as ArmySelection)&&validateRosterInstances(s as ArmySelection);
+ return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>CATALOG[s.faction!].units.includes(name)&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&!!EQUIPMENT_OPTIONS[s.faction!]?.find(option=>option.unit===name&&option.choices.includes(choice)))))&&(!s.battleSize2026||Object.prototype.hasOwnProperty.call(BATTLE_SIZES_2026,s.battleSize2026))&&(!s.detachments2026||(Array.isArray(s.detachments2026)&&s.detachments2026.every(d=>typeof d==='string')&&detachmentBudget(s.faction!,s.detachments2026,s.battleSize2026||'Strike Force').valid))&&validateAttachments(s as ArmySelection)&&validateEnhancements(s as ArmySelection)&&validateRosterInstances(s as ArmySelection);
 }
