@@ -24,6 +24,16 @@ describe('11th-edition-only application pipeline',()=>{
   expect(generate11thReminders(withMeganobz).some(r=>r.id==='11e-orks-meganobz-krumpin')).toBe(true);
   expect(generate11thReminders(addSelectionUnit(newSelection('Necrons'),'Immortals')).some(r=>r.id.startsWith('11e-orks'))).toBe(false);
  });
+ it('generates 11e Necron Hand of the Dynasty rules only with the selected detachment and eligible units',()=>{
+  const base=addSelectionUnit(newSelection('Necrons'),'Immortals');
+  expect(generate11thReminders(base).some(r=>r.id==='11e-necron-hod-dominance')).toBe(false);
+  const selected={...base,detachments2026:['Hand of the Dynasty']};
+  const ids=generate11thReminders(selected).map(r=>r.id);
+  expect(ids).toEqual(expect.arrayContaining(['11e-necron-hod-dominance','11e-necron-hod-will','11e-necron-hod-nanosaturation']));
+  const warriors={...addSelectionUnit(newSelection('Necrons'),'Necron Warriors'),detachments2026:['Hand of the Dynasty']};
+  expect(generate11thReminders(warriors).some(r=>r.id==='11e-necron-hod-dominance')).toBe(false);
+  expect(generate11thReminders(warriors).some(r=>r.id==='11e-necron-hod-will')).toBe(true);
+ });
  it('preserves an 11th-edition Space Marine detachment selection in validated armies',()=>{
   const army={...newSelection('Space Marines'),detachments2026:['Fulguris Task Force','Vanguard Spearhead'],battleSize2026:'Strike Force' as const};
   expect(validateSelection(army)).toBe(true);
