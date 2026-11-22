@@ -21,6 +21,14 @@ export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
  const instances=army.instances?expandRoster(army):null;
  return rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
+  if(r.unit&&instances&&!r.id.startsWith('attached-')){
+   return instances.filter(x=>x.unit===r.unit).map(x=>({
+    id:r.id+'-'+x.id,title:r.title+' · '+x.id,
+    window:r.window,timing:r.timing,summary:r.summary,
+    source:r.sourceUnit?faction+r.sourceUnit.replaceAll(' ','-'):faction,
+    origin:'unit' as const,units:[x.id]
+   }));
+  }
   if(r.id.startsWith('attached-')&&instances){
    return instances.filter(x=>x.unit===r.unit&&x.attachedTo).map(x=>({
     id:r.id+'-'+x.id,title:r.title+' · '+x.id+' → '+x.attachedTo,
