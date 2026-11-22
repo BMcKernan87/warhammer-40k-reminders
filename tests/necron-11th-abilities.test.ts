@@ -12,7 +12,7 @@ describe('11e Necron source-backed rules',()=>{
  it('filters Skyshroud Tomb Blade rules by detachment and squad',()=>{
   const base=addSelectionUnit(newSelection('Necrons'),'Tomb Blades');
   expect(ids(base)).not.toContain('11e-necron-skyshroud-ingress');
-  const selected={...base,detachments2026:['Skyshroud Spearhead']};
+  const selected={...base,detachments2026:['Skysword Spearhead']};
   expect(ids(selected)).toEqual(expect.arrayContaining(['11e-necron-skyshroud-deepstrike','11e-necron-skyshroud-ingress']));
   expect(ids({...selected,units:{}})).not.toContain('11e-necron-skyshroud-ingress');
  });
