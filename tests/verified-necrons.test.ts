@@ -4,7 +4,7 @@ import {attachLeader} from '../src/attachments';
 import {generateReminders} from '../src/generated-reminders';
 describe('source-checked Necron reminder coverage',()=>{
  it('explains Reanimation rather than asking player to verify it',()=>{
-  const rule=generateReminders(newSelection()).find(r=>r.id==='necron-reanimation-verified');
+  const rule=generateReminders(newSelection()).find(r=>r.id==='necron-reanimation');
   expect(rule?.summary).toContain('heal damaged models first');
   expect(rule?.source).toContain('/wh40k10ed/');
  });
