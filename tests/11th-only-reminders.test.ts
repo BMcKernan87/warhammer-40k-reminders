@@ -12,8 +12,8 @@ describe('11th-edition-only application pipeline',()=>{
   for(const faction of ['Necrons','Orks','Tyranids','Space Marines'] as const){
    const unit=faction==='Necrons'?'Immortals':faction==='Orks'?'Boyz':faction==='Tyranids'?'Termagants':'Aggressor Squad';
    const army=addSelectionUnit(newSelection(faction),unit);
-   expect(generate11thReminders(army).map(r=>r.id)).toEqual(['11e-core-cp','11e-battle-shock','11e-move-every-unit']);
-   expect(grouped11thReminders(army).reduce((sum,g)=>sum+g.reminders.length,0)).toBe(3);
+   expect(generate11thReminders(army).map(r=>r.id)).toEqual(expect.arrayContaining(['11e-core-cp','11e-battle-shock','11e-move-every-unit','11e-shoot','11e-charge','11e-fight']));
+   expect(grouped11thReminders(army).reduce((sum,g)=>sum+g.reminders.length,0)).toBe(generate11thReminders(army).length);
   }
  });
  it('preserves an 11th-edition Space Marine detachment selection in validated armies',()=>{
