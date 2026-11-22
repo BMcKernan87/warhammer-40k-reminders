@@ -4,7 +4,7 @@ import type {BattleState,Player} from './engine';
 import {expandRoster,type RosterInstance} from './roster-instances';
 import {ACTIONS,actionAvailable,isEnemyAction,tablePositions,type Action,type Observation,type Signal,type TablePosition} from './battlefield-events';
 import {BATTLEFIELD_RULES} from './necron-battlefield-rules';
-import {battlefieldReminders,changeRosterWounds,latestObservation,measuringSquads,moveRosterSquad,observe,onTable,positionOf,rosterHealth,setRosterPlayer,useBattlefieldAbility,type LiveReminder} from './necron-battlefield';
+import {battlefieldReminders,changeRosterWounds,recordEnemyAttackDamage,latestObservation,measuringSquads,moveRosterSquad,observe,onTable,positionOf,rosterHealth,setRosterPlayer,useBattlefieldAbility,type LiveReminder} from './necron-battlefield';
 
 type Change = (fn:(b:BattleState)=>BattleState)=>void;
 interface Props {army:ArmySelection;battle:BattleState;change:Change;completed:readonly string[]}
@@ -88,7 +88,7 @@ function Tracker({army,battle,change,squad}:{army:ArmySelection;battle:BattleSta
     <label>Position <select aria-label={'Position of '+squad.id} value={position} onChange={e=>change(b=>moveRosterSquad(army,b,squad,e.target.value as TablePosition))}>
       {tablePositions.map(p=><option key={p} value={p}>{p[0].toUpperCase()+p.slice(1)}</option>)}</select></label>
     <button className="secondary" aria-label={'Lose one wound '+squad.id} disabled={wounds===0} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds-1))}>−</button>
-    <span>{wounds}/{maxWounds} W</span><button className="secondary" aria-label={'Restore one wound '+squad.id} disabled={wounds===maxWounds} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds+1))}>+</button>
+    <span>{wounds}/{maxWounds} W</span>{battle.player!==(battle.rosterPlayer??'A')&&position==='battlefield'&&wounds>0&&<button className="secondary" aria-label={'Record enemy attack damage to '+squad.id} onClick={()=>change(b=>recordEnemyAttackDamage(army,b,squad,1))}>Enemy attack −1 W · trigger rules</button>}<button className="secondary" aria-label={'Restore one wound '+squad.id} disabled={wounds===maxWounds} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds+1))}>+</button>
   </div></div>;
 }
 export function NecronBattlefield({army,battle,change,completed}:Props){

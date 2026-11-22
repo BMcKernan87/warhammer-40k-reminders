@@ -3,7 +3,7 @@ import {CATALOG,addSelectionUnit,newSelection,type ArmySelection} from '../src/c
 import {createBattle as createFreshBattle,advancePhase,validateBattleState,type Phase,type Player} from '../src/engine';
 // These tests exercise in-battle mechanics after pre-battle resolution.
 const createBattle=()=>({...createFreshBattle(),prebattle:{resolved:true,decisions:{}}});
-import {battlefieldReminders,latestObservation,measuringSquads,observe,useBattlefieldAbility,rosterHealth} from '../src/necron-battlefield';
+import {battlefieldReminders,recordEnemyAttackDamage,latestObservation,measuringSquads,observe,useBattlefieldAbility,rosterHealth} from '../src/necron-battlefield';
 import {expandRoster,setInstanceAttachment,setInstanceEquipment,setInstanceResurrectionOrb,setInstanceModelCount,setInstanceWargear} from '../src/roster-instances';
 import type {Observation,Signal} from '../src/battlefield-events';
 import {generate11thReminders} from '../src/reminders-11th';
@@ -192,5 +192,24 @@ describe('weapon keywords follow the actual weapons being used',()=>{
    expect(shoot(base,id)).not.toContain('Particle caster');
    expect(shoot(setInstanceWargear(base,id,'Particle caster',1),id)).toContain('Particle caster');
    expect(shoot(roster('Tesseract Vault'),'Tesseract Vault#1')).not.toContain('Antimatter Meteor');
+ });
+});
+
+describe('one-click enemy damage triggers',()=>{
+ it('updates wounds and creates a battlefield trigger on the opponent turn',()=>{
+  const army=roster('Necron Warriors');
+  const squad=expandRoster(army)[0];
+  const before=at('Shooting','B');
+  const after=recordEnemyAttackDamage(army,before,squad,1);
+  expect(rosterHealth(army,after,squad).wounds).toBe(rosterHealth(army,before,squad).wounds-1);
+  expect(latestObservation(after)).toMatchObject({action:'enemyWounded',squadId:squad.id,damage:1});
+  expect(validateBattleState(after)).toBe(true);
+ });
+ it('rejects own-turn damage, invalid amounts and repeat damage after destruction',()=>{
+  const army=roster('Necron Warriors');const squad=expandRoster(army)[0];
+  expect(()=>recordEnemyAttackDamage(army,at('Shooting','A'),squad,1)).toThrow();
+  expect(()=>recordEnemyAttackDamage(army,at('Shooting','B'),squad,0)).toThrow();
+  const wounded=recordEnemyAttackDamage(army,at('Shooting','B'),squad,1);
+  expect(()=>recordEnemyAttackDamage(army,wounded,squad,999)).toThrow();
  });
 });
