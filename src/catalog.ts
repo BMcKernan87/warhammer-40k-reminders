@@ -1,3 +1,4 @@
+import {EQUIPMENT_OPTIONS} from './equipment';
 export type Faction='Necrons'|'Space Marines'|'Orks'|'Tyranids'|'Adepta Sororitas'|'Adeptus Custodes'|'Adeptus Mechanicus'|'Aeldari'|'Astra Militarum'|'Black Templars'|'Blood Angels'|'Chaos Daemons'|'Chaos Knights'|'Chaos Space Marines'|'Dark Angels'|'Death Guard'|'Drukhari'|'Emperor’s Children'|'Genestealer Cults'|'Grey Knights'|'Imperial Agents'|'Imperial Knights'|'Leagues of Votann'|'Space Wolves'|'T’au Empire'|'Thousand Sons'|'World Eaters';
 export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonly string[];enhancements:readonly string[]}> = {
  'Necrons':{
@@ -48,5 +49,5 @@ export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
 export function validateSelection(x:unknown):x is ArmySelection{
  if(!x||typeof x!=='object')return false;
  const s=x as Partial<ArmySelection>;
- return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>CATALOG[s.faction!].units.includes(name)&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&choice.length<100)));
+ return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>CATALOG[s.faction!].units.includes(name)&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&!!EQUIPMENT_OPTIONS[s.faction!]?.find(option=>option.unit===name&&option.choices.includes(choice)))));
 }
