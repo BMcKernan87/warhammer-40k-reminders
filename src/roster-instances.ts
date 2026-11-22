@@ -141,3 +141,19 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
  for(let i=0;i<count;i++){let n=1;while(existing.has(unit+'#'+n))n++;const id=unit+'#'+n;existing.add(id);next.push({id,unit,models:verifiedUnitSizes2026(army,unit)?.[0]??legalUnitSizes(army.faction,unit)?.[0],equipment:EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===unit)?.defaultChoice});}
  return next;
 }
+
+/** Resolve only unambiguous 11e Necron instance attachments. Never guess between squads. */
+export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
+ if(army.faction!=='Necrons'||!army.instances)return army;
+ let current=army;
+ for(const leader of expandRoster(current)){
+  if(leader.attachedTo||!necronAttachmentRole(leader.unit))continue;
+  const candidates=expandRoster(current).filter(body=>
+   leaderBodyguards(current.faction,leader.unit).includes(body.unit)&&
+   !expandRoster(current).some(other=>other.attachedTo===body.id&&necronAttachmentRole(other.unit)===necronAttachmentRole(leader.unit))&&
+   expandRoster(current).filter(other=>other.attachedTo===body.id).length<2
+  );
+  if(candidates.length===1)current=setInstanceAttachment(current,leader.id,candidates[0].id);
+ }
+ return current;
+}
