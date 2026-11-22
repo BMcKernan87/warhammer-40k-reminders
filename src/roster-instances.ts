@@ -1,3 +1,4 @@
+import {verifiedUnitSizes2026} from './datasheets-2026';
 import {leaderBodyguards,isModeledLeader} from './leader-eligibility';
 import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
@@ -39,7 +40,7 @@ export function setInstanceModelCount(army:ArmySelection,id:string,models:number
  const instances=expandRoster(army).map(x=>({...x}));
  const target=instances.find(x=>x.id===id);
  if(!target)throw Error('Unknown squad');
- const legal=legalUnitSizes(army.faction,target.unit);
+ const legal=verifiedUnitSizes2026(army,target.unit)||legalUnitSizes(army.faction,target.unit);
  if(!legal||!legal.includes(models))throw Error('Unsupported unit size');
  target.models=models;
  if(target.weaponCounts){
