@@ -11,7 +11,7 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
   if(army.detachment==='Awakened Dynasty')result.push({id:'awakened-command-protocols',title:'Command Protocols',window:'Shooting',timing:'during',summary:'When a unit attacks, check whether it is being led by a Necron Character for its detachment Hit roll bonus. Also applies to melee attacks.',source,origin:'detachment'});
   if(army.detachment==='Hypercrypt Legion')result.push({id:'hypercrypt-hyperphasing',title:'Hyperphasing',window:'End of opponent turn',timing:'end',summary:'At the end of the opponent’s turn, eligible units outside Engagement Range can be placed into Strategic Reserves. Limit depends on battle size: Incursion 1, Strike Force 2, Onslaught 3.',source,origin:'detachment'});
   if(army.detachment==='Canoptek Court')result.push({id:'canoptek-power-matrix',title:'Power Matrix',window:'Shooting',timing:'during',summary:'Check whether the attacking Cryptek or Canoptek unit benefits from the current Power Matrix rule and battlefield control conditions.',source,origin:'detachment'});
- }else{
+ }else if(army.faction==='Space Marines'){
   result.push({id:'marine-oath',title:'Oath of Moment',window:'Command',timing:'start',summary:'At the start of your Command phase, select an enemy unit as your Oath target. Attacks against it can re-roll Hit rolls; check the additional Wound bonus conditions.',source,origin:'army'});
   if(army.detachment==='Gladius Task Force')result.push({id:'gladius-doctrines',title:'Combat Doctrines',window:'Command',timing:'during',summary:'Review the available Combat Doctrine selection, its timing, and whether a doctrine was already used this battle.',source,origin:'detachment'});
  }
@@ -23,6 +23,8 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  for(const unit of Object.keys(army.units)){
   for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source:source.replace(/\/$/,'')+'/'+encodeURIComponent(unit).replace(/%20/g,'-'),origin:'unit',units:[unit]});
  }
+ if(army.faction==='Orks')result.push({id:'orks-waaagh',title:'Waaagh!',window:'Command',timing:'start',summary:'Review Waaagh! declaration timing, effects and eligible Orks units in current faction rules.',source,origin:'army'});
+ if(army.faction==='Tyranids')result.push({id:'tyranids-shadow',title:'Shadow in the Warp',window:'Command',timing:'during',summary:'Review Shadow in the Warp declaration timing and Battle-shock effects in current faction rules.',source,origin:'army'});
  for(const [unit,count] of Object.entries(army.units)){
   result.push({id:'datasheet-'+unit,title:unit+' datasheet',window:'Command',timing:'during',summary:count+' selected. Review this unit’s datasheet abilities, wargear, keywords and any conditional triggers before play. Detailed unit triggers are not yet encoded.',source,origin:'unit',units:[unit]});
  }
