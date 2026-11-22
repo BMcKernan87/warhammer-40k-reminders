@@ -17,7 +17,7 @@ describe('army-wide roster findings',()=>{
  });
  it('discloses unverified detachments and unit sizes',()=>{
   const findings=rosterFindings(addSelectionUnit(newSelection('Aeldari'),'Farseer'));
-  expect(findings.some(x=>x.code==='detachment-unverified')).toBe(true);
+  expect(findings.some(x=>x.code==='no-11e-detachment')).toBe(true);
   expect(findings.some(x=>x.code==='size-unverified'&&x.unit==='Farseer')).toBe(true);
  });
 });
