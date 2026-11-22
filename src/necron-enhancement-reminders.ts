@@ -9,8 +9,9 @@ const records:Record<string,{window:GeneratedReminder['window'];timing:Generated
 };
 export function necronEnhancementReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons'||army.detachment!=='Awakened Dynasty')return [];
- return Object.entries(army.enhancements||{}).flatMap(([bearer,enhancement])=>{
+ const assignments=army.instances?army.instances.filter(x=>x.enhancement).map(x=>[x.id,x.enhancement!] as const):Object.entries(army.enhancements||{});
+ return assignments.flatMap(([bearer,enhancement])=>{
  const rule=records[enhancement];if(!rule)return [];
- return [{id:'enhancement-'+bearer+'-'+enhancement,title:bearer+' · '+enhancement,window:rule.window,timing:rule.timing,summary:rule.summary,source,origin:'unit' as const,units:[bearer,...(army.attachments?.[bearer]?[army.attachments[bearer]]:[])]}];
+ return [{id:'enhancement-'+bearer+'-'+enhancement,title:bearer+' · '+enhancement,window:rule.window,timing:rule.timing,summary:rule.summary,source,origin:'unit' as const,units:[bearer,...(army.instances?.find(x=>x.id===bearer)?.attachedTo?[army.instances.find(x=>x.id===bearer)!.attachedTo!]:army.attachments?.[bearer]?[army.attachments[bearer]]:[])]}];
  });
 }
