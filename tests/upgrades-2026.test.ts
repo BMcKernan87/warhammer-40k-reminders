@@ -18,7 +18,7 @@ describe('11e squad upgrades in army builder',()=>{
   const base=addSelectionUnit(newSelection('Necrons'),'Necron Warriors');
   const army={...base,detachments2026:['Hand of the Dynasty'],instances:[{id:'warriors-1',unit:'Necron Warriors'}]};
   const selected=selectUpgrade2026(army,'warriors-1','Enlivened Sentinels');
-  expect(generate11thReminders(selected).some(x=>x.id==='11e-necron-hod-enlivened')).toBe(true);
+  expect(generate11thReminders(selected).some(x=>x.id==='11e-scout-warriors-1'&&x.window==='Pre-battle')).toBe(true);
   expect(selectUpgrade2026(selected,'warriors-1',null).upgrades2026).toEqual({});
  });
 });
