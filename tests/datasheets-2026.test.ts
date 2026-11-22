@@ -1,0 +1,21 @@
+import {describe,it,expect} from 'vitest';
+import {newSelection,addSelectionUnit} from '../src/catalog';
+import {DATASHEETS_2026,rosterCost2026,verifiedUnitSizes2026} from '../src/datasheets-2026';
+describe('11th edition datasheet and points registry',()=>{
+ it('never fabricates points or sizes for unverified datasheets',()=>{
+  const army=addSelectionUnit(newSelection('Necrons'),'Immortals');
+  const cost=rosterCost2026(army);
+  expect(cost.total).toBeNull();
+  expect(cost.knownPoints).toBe(0);
+  expect(cost.unknownUnits).toEqual(['Immortals#1']);
+  expect(verifiedUnitSizes2026(army,'Immortals')).toBeUndefined();
+ });
+ it('requires a verifiable source and explicitly supported sizes for imported entries',()=>{
+  for(const sheet of DATASHEETS_2026){
+   expect(sheet.source).toMatch(/^https:\/\//);
+   expect(sheet.sizes.length).toBeGreaterThan(0);
+   expect(sheet.sizes.every(x=>Number.isInteger(x)&&x>0)).toBe(true);
+   if(sheet.verified==='sizes-and-points')expect(sheet.sizes.every(size=>Number.isFinite(sheet.pointsBySize?.[size]))).toBe(true);
+  }
+ });
+});
