@@ -3,6 +3,7 @@ import {expandRoster} from './roster-instances';
 import type {GeneratedReminder} from './generated-reminders';
 const faction='https://wahapedia.ru/wh40k10ed/factions/necrons/';
 type Entry=Omit<GeneratedReminder,'source'|'origin'> & {unit?:string;detachment?:string;sourceUnit?:string};
+const nobleLeaders=new Set(['Overlord','Overlord with Translocation Shroud','Imotekh the Stormlord','Trazyn the Infinite','Lord','Nemesor Zahndrekh','Vargard Obyron']);
 const rules:Entry[]=[
  {id:'necron-reanimation',title:'Reanimation Protocols',window:'Command',timing:'end',summary:'At the end of your Command phase, each unit on the battlefield with Reanimation Protocols reanimates D3 wounds: heal damaged models first, then return destroyed models one wound at a time, up to Starting Strength.',},
  {id:'lychguard-guardian-protocols',unit:'Lychguard',sourceUnit:'Lychguard',title:'Lychguard · Guardian Protocols',window:'Fight',timing:'during',summary:'While a NOBLE model leads this unit, each time an attack targets it, if the attack Strength exceeds this unit’s Toughness, subtract 1 from the Wound roll. Applies to attacks in any phase.'},
@@ -24,9 +25,9 @@ const rules:Entry[]=[
 export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
  const instances=army.instances?expandRoster(army):null;
- return rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
+ return rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('lychguard-guardian-')||!!(instances?instances.some(x=>x.unit==='Lychguard'&&instances.some(y=>y.attachedTo===x.id&&nobleLeaders.has(y.unit))):Object.entries(army.attachments||{}).some(([leader,bodyguard])=>bodyguard==='Lychguard'&&nobleLeaders.has(leader))))&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
   if(r.unit&&instances&&!r.id.startsWith('attached-')){
-   return instances.filter(x=>x.unit===r.unit).map(x=>({
+   return instances.filter(x=>x.unit===r.unit&&(!r.id.startsWith('lychguard-guardian-')||instances.some(y=>y.attachedTo===x.id&&nobleLeaders.has(y.unit)))).map(x=>({
     id:r.id+'-'+x.id,title:r.title+' · '+x.id,
     window:r.window,timing:r.timing,summary:r.summary,
     source:r.sourceUnit?faction+r.sourceUnit.replaceAll(' ','-'):faction,
