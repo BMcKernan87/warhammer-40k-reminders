@@ -26,8 +26,8 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  'Canoptek Wraiths':[{id:'wraith-form',title:'Canoptek Wraiths · Wraith Form',window:'Movement',timing:'during',summary:'After a Normal move over an enemy unit, you may roll one D6 per Wraith model; each 4+ inflicts a mortal wound on that enemy unit.'}],
  'Immortals':[{id:'immortals-eradication',title:'Immortals · Implacable Eradication',window:'Shooting',timing:'during',summary:'Re-roll Wound rolls of 1; against enemies within range of an objective marker, you can instead re-roll the Wound roll.'}],
  };
- for(const unit of Object.keys(army.units)){
-  if(army.faction==='Necrons')for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source,origin:'unit',units:[unit]});
+ for(const item of army.instances||Object.keys(army.units).map(unit=>({id:unit,unit}))){
+  if(army.faction==='Necrons')for(const rule of unitRules[item.unit]||[])result.push({...rule,id:army.instances?rule.id+'-'+item.id:rule.id,title:army.instances?rule.title+' · '+item.id:rule.title,source,origin:'unit',units:[item.id]});
  }
  if(army.faction==='Necrons'){
   const abilities:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
@@ -37,15 +37,15 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
 
 
   };
-  for(const unit of Object.keys(army.units))for(const rule of abilities[unit]||[])result.push({...rule,source,origin:'unit',units:[unit]});
-  for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
+  for(const item of army.instances||Object.keys(army.units).map(unit=>({id:unit,unit})))for(const rule of abilities[item.unit]||[])result.push({...rule,id:army.instances?rule.id+'-'+item.id:rule.id,title:army.instances?rule.title+' · '+item.id:rule.title,source,origin:'unit',units:[item.id]});
+  for(const [leader,bodyguard] of (army.instances?army.instances.filter(x=>x.attachedTo).map(x=>[x.id,x.attachedTo!] as const):Object.entries(army.attachments||{}))){
    const attachmentSource='https://wahapedia.ru/wh40k10ed/factions/necrons/'+encodeURIComponent(leader).replace(/%20/g,'-');
    const effects:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
 
 
     'Chronomancer':[{id:'chronomancer-mantle',title:'Timesplinter Mantle · -1 to Hit',window:'Shooting',timing:'during',summary:'While the Chronomancer leads this unit, subtract 1 from Hit rolls for attacks targeting the attached unit, including melee attacks.'}]
    };
-   for(const effect of effects[leader]||[])result.push({...effect,id:'attached-'+leader+'-'+bodyguard+'-'+effect.id,title:leader+' + '+bodyguard+' · '+effect.title,source:attachmentSource,origin:'unit',units:[leader,bodyguard]});
+   for(const effect of effects[army.instances?army.instances.find(x=>x.id===leader)?.unit||leader:leader]||[])result.push({...effect,id:'attached-'+leader+'-'+bodyguard+'-'+effect.id,title:leader+' + '+bodyguard+' · '+effect.title,source:attachmentSource,origin:'unit',units:[leader,bodyguard]});
   }
  }
  for(const [id,unit,choice] of army.instances?army.instances.map(x=>[x.id,x.unit,x.equipment||selectedEquipment(army,x.unit)]):Object.keys(army.units).map(unit=>[unit,unit,selectedEquipment(army,unit)])){if(choice)result.push({id:'equipment-'+id+'-'+choice,title:id+' · '+choice,window:'Shooting',timing:'during',summary:'Selected weapon loadout: '+choice+'. Consult its weapon profile when shooting.',source,origin:'unit',units:[id!]});}
