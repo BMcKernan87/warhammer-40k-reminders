@@ -1,3 +1,4 @@
+import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
@@ -19,7 +20,7 @@ export function setInstanceWeaponCounts(army:ArmySelection,id:string,weaponCount
  const instances=expandRoster(army).map(x=>({...x}));
  const target=instances.find(x=>x.id===id);
  if(!target)throw Error('Unknown squad');
- if(!['Lokhust Heavy Destroyers','Necron Warriors'].includes(target.unit))throw Error('This datasheet requires the same primary weapon on every model');
+ if(!supportsMixedPrimaryWeapons(army.faction,target.unit))throw Error('This datasheet requires the same primary weapon on every model');
  const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===target.unit);
  if(!options)throw Error('No supported weapon configurations for this squad');
  const models=target.models??defaultUnitSize(army.faction,target.unit)??1;
@@ -105,7 +106,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!legalUnitSizes(army.faction,x.unit)?.includes(x.models)))return false;
-  if(x.weaponCounts!==undefined){if(!['Lokhust Heavy Destroyers','Necron Warriors'].includes(x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??defaultUnitSize(army.faction,x.unit)??1))return false;}
+  if(x.weaponCounts!==undefined){if(!supportsMixedPrimaryWeapons(army.faction,x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??defaultUnitSize(army.faction,x.unit)??1))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&o.choices.includes(x.equipment!)))return false;
   if(x.enhancement!==undefined&&(!NECRON_CHARACTERS.has(x.unit)||NECRON_EPIC_HEROES.has(x.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(x.enhancement)))return false;
   seen.add(x.id);counts[x.unit]=(counts[x.unit]||0)+1;
