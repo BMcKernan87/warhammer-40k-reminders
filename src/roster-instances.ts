@@ -2,7 +2,7 @@ import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS} from './attachments';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string;resurrectionOrb?:boolean}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances;
  const result:RosterInstance[]=[];
@@ -58,6 +58,14 @@ export function setInstanceEquipment(army:ArmySelection,id:string,equipment:stri
  delete target.weaponCounts;
  return {...army,instances};
 }
+export function setInstanceResurrectionOrb(army:ArmySelection,id:string,equipped:boolean):ArmySelection{
+ const instances=expandRoster(army).map(x=>({...x}));
+ const target=instances.find(x=>x.id===id);
+ if(!target||target.unit!=='Overlord')throw Error('Resurrection Orb selection requires a supported Overlord');
+ if(typeof equipped!=='boolean')throw Error('Invalid Resurrection Orb selection');
+ target.resurrectionOrb=equipped;
+ return {...army,instances};
+}
 export function setInstanceEnhancement(army:ArmySelection,id:string,enhancement:string|null):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
  if(!target)throw Error('Unknown Character');
@@ -91,6 +99,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
+  if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(x.unit==='Lokhust Heavy Destroyers'?[1,2,3]:x.unit==='Necron Warriors'?[10,20]:x.unit==='Immortals'||x.unit==='Lychguard'?[5,10]:[]).includes(x.models)))return false;
   if(x.weaponCounts!==undefined){if(!['Lokhust Heavy Destroyers','Necron Warriors'].includes(x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??(x.unit==='Lokhust Heavy Destroyers'?1:x.unit==='Necron Warriors'?10:5)))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&o.choices.includes(x.equipment!)))return false;
