@@ -1,3 +1,4 @@
+import {BATTLE_SIZES_2026,DETACHMENTS_2026,detachmentBudget} from './edition-2026';
 import type {ArmySelection} from './catalog';
 import {CATALOG} from './catalog';
 import {expandRoster} from './roster-instances';
@@ -11,12 +12,13 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
  const byUnit=new Map<string,typeof instances>();
  for(const instance of instances)byUnit.set(instance.unit,[...(byUnit.get(instance.unit)||[]),instance]);
  for(const [unit,group] of byUnit){
-  if(group.length>3&&!isBattleline(unit)&&!isDedicatedTransport(unit))
-   findings.push({code:'rule-of-three',severity:'warning',unit,message:unit+': '+group.length+' units selected. Check the current datasheet limits, exceptions and mission pack.'});
+  if(group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(unit)?2:1)&&!isDedicatedTransport(unit))
+   findings.push({code:'rule-of-three',severity:'warning',unit,message:unit+': '+group.length+' units exceed the selected 2026 battle-size copy limit (before datasheet-specific exceptions).'});
   const sizes=legalUnitSizes(army.faction,unit);
   if(!sizes)findings.push({code:'size-unverified',severity:'info',unit,message:unit+': model-count legality has not been configured for this datasheet.'});
   for(const x of group)if(sizes&&!x.models&&sizes.length>1)findings.push({code:'size-default',severity:'info',unit,message:x.id+': using assumed minimum '+sizes[0]+' models until you select the squad size.'});
  }
+ if(army.detachments2026?.length&&DETACHMENTS_2026[army.faction]){const budget=detachmentBudget(army.faction,army.detachments2026,army.battleSize2026||'Strike Force');if(!budget.valid)findings.push({code:'detachment-points',severity:'error',message:'Selected 2026 detachments exceed their DP budget or are invalid.'});else findings.push({code:'detachment-points',severity:'info',message:'2026 detachments: '+budget.spent+' of '+budget.limit+' DP used; Force Dispositions: '+budget.dispositions.join(', ')+'.'});}
  const attached=instances.filter(x=>x.attachedTo);
  if(attached.length&&army.faction!=='Necrons')findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
  if(CATALOG[army.faction].detachments.some(x=>x.includes('(unverified)')))findings.push({code:'detachment-unverified',severity:'warning',message:'This faction’s detachment catalog is not yet verified.'});
