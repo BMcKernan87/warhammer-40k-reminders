@@ -1,3 +1,4 @@
+import {necronDatasheetReminders2026} from './necron-datasheet-reminders-2026';
 import {matching11thRules,type Rule11th} from './rules-11th-registry';
 import type {ArmySelection} from './catalog';
 import {detachmentBudget,DETACHMENTS_2026,EDITION_2026_SOURCE} from './edition-2026';
@@ -31,6 +32,7 @@ const DETACHMENT_RULES:readonly Rule11th[]=[
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
  result.push(...matching11thRules(_army,DETACHMENT_RULES));
+ result.push(...necronDatasheetReminders2026(_army));
  if(_army.faction==='Orks'&&Object.keys(_army.units).length){
   const source='https://www.warhammer-community.com/en-gb/articles/ckwgwgyx/new-codex-orks-army-rules-to-get-you-riled-up/';
   result.push({id:'11e-orks-war-cry',title:'Waaagh! · War Cry (once per battle)',window:'Command',timing:'start',summary:'At the start of your Command phase, you may use War Cry once per battle. Friendly ORKS units with Waaagh! become riled up until the end of the next turn.',source,origin:'army'});
