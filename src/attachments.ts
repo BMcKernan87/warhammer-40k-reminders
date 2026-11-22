@@ -48,8 +48,12 @@ export const NECRON_LEADERS:Record<string,readonly string[]>={
   "Necron Warriors"
  ]
 };
-const CRYPTEKS=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner','Geomancer','Psychomancer']);
-const NOBLES=new Set(['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite']);
+/** 11e attachment slots: a Bodyguard can have one Leader and one Support. */
+export const NECRON_SUPPORTS=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner','Geomancer','Psychomancer']);
+export function necronAttachmentRole(unit:string):'leader'|'support'|null{
+ if(NECRON_SUPPORTS.has(unit))return 'support';
+ return Object.prototype.hasOwnProperty.call(NECRON_LEADERS,unit)?'leader':null;
+}
 export function eligibleBodyguards(army:ArmySelection,leader:string):string[]{
  if(army.faction!=='Necrons')return [];
  return (NECRON_LEADERS[leader]||[]).filter(unit=>(army.units[unit]||0)>0);
@@ -58,9 +62,12 @@ export function attachmentError(army:ArmySelection,leader:string,bodyguard:strin
  if(army.faction!=='Necrons'||!NECRON_LEADERS[leader]?.includes(bodyguard))return 'This Leader cannot join that unit';
  if(!(army.units[leader]>0)||!(army.units[bodyguard]>0))return 'Both units must be in the roster';
  const attachments=army.attachments||{};
- const leaders=Object.entries(attachments).filter(([l,b])=>l!==leader&&b===bodyguard).map(([l])=>l);
- if(leaders.length>=2)return 'A Bodyguard unit cannot have more than two Leaders';
- if(leaders.length===1&&!(CRYPTEKS.has(leader)&&NOBLES.has(leaders[0])||NOBLES.has(leader)&&CRYPTEKS.has(leaders[0])))return 'A second Leader must be a compatible Cryptek and Noble pairing';
+ const role=necronAttachmentRole(leader);
+ if(!role)return 'Unsupported Necron Leader or Support';
+ const sameSlot=Object.entries(attachments).some(([other,body])=>other!==leader&&body===bodyguard&&necronAttachmentRole(other)===role);
+ if(sameSlot)return 'Only one '+(role==='leader'?'Leader':'Support')+' may join each Bodyguard';
+ const attached=Object.entries(attachments).filter(([other,body])=>other!==leader&&body===bodyguard);
+ if(attached.length>=2)return 'A Bodyguard can have at most one Leader and one Support';
  return null;
 }
 export function attachLeader(army:ArmySelection,leader:string,bodyguard:string|null):ArmySelection{
