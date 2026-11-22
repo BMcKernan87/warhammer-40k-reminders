@@ -2,6 +2,7 @@ import type {ArmySelection} from './catalog';
 import type {Phase} from './engine';
 import {factionSource} from './sources';
 export type ReminderWindow=Phase|'End of opponent turn';
+export const REMINDER_WINDOWS:readonly ReminderWindow[]=['Command','Movement','Shooting','Charge','Fight','End of opponent turn'];
 export interface GeneratedReminder {id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string;source:string;origin:'army'|'detachment'|'unit';units?:string[]}
 export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  const source=factionSource(army).url;
@@ -21,13 +22,13 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  'Immortals':[{id:'immortals-eradication',title:'Immortals · Implacable Eradication',window:'Shooting',timing:'during',summary:'Re-roll Wound rolls of 1; against enemies within range of an objective marker, you can instead re-roll the Wound roll.'}],
  };
  for(const unit of Object.keys(army.units)){
-  for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source:source.replace(/\/$/,'')+'/'+encodeURIComponent(unit).replace(/%20/g,'-'),origin:'unit',units:[unit]});
+  if(army.faction==='Necrons')for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source,origin:'unit',units:[unit]});
  }
  if(army.faction==='Orks')result.push({id:'orks-waaagh',title:'Waaagh!',window:'Command',timing:'start',summary:'Review Waaagh! declaration timing, effects and eligible Orks units in current faction rules.',source,origin:'army'});
  if(army.faction==='Tyranids')result.push({id:'tyranids-shadow',title:'Shadow in the Warp',window:'Command',timing:'during',summary:'Review Shadow in the Warp declaration timing and Battle-shock effects in current faction rules.',source,origin:'army'});
- for(const [unit,count] of Object.entries(army.units)){
-  result.push({id:'datasheet-'+unit,title:unit+' datasheet',window:'Command',timing:'during',summary:count+' selected. Review this unit’s datasheet abilities, wargear, keywords and any conditional triggers before play. Detailed unit triggers are not yet encoded.',source,origin:'unit',units:[unit]});
- }
+
  return result;
 }
 export function remindersForWindow(army:ArmySelection,window:ReminderWindow):GeneratedReminder[]{return generateReminders(army).filter(r=>r.window===window);}
+
+export function groupedReminders(army:ArmySelection):Array<{window:ReminderWindow;reminders:GeneratedReminder[]}>{return REMINDER_WINDOWS.map(window=>({window,reminders:remindersForWindow(army,window)}));}
