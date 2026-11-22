@@ -31,9 +31,9 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
   const abilities:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
 
    'Chronomancer':[{id:'chronomancer-chronometron',title:'Chronometron',window:'Shooting',timing:'end',summary:'After this model’s unit shoots, if it is outside Engagement Range it can make a Normal move up to 5 inches; that unit cannot declare a charge this turn.'}],
-   'Overlord':[{id:'overlord-my-will',title:'My Will Be Done',window:'Command',timing:'during',summary:'Once per battle round, when an eligible unit with this ability is targeted by a Stratagem, you can reduce that Stratagem’s CP cost by 1.'}],
-   'Imotekh the Stormlord':[{id:'imotekh-command',title:'Imotekh · command abilities',window:'Command',timing:'during',summary:'Check Imotekh’s current datasheet for Command phase CP generation and once-per-battle effects before resolving.'}],
-   'Orikan the Diviner':[{id:'orikan-abilities',title:'Orikan · special abilities',window:'Fight',timing:'during',summary:'Review Orikan’s current invulnerable-save support and once-per-battle transformation conditions.'}],
+
+
+
   };
   for(const unit of Object.keys(army.units))for(const rule of abilities[unit]||[])result.push({...rule,source,origin:'unit',units:[unit]});
   for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
