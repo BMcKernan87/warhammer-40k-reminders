@@ -7,6 +7,7 @@ export interface Rule11th extends GeneratedReminder{
  anyUnits?:readonly string[];
  allUnits?:readonly string[];
  equipment?:Readonly<Record<string,string>>;
+ enhancements?:readonly string[];
 }
 export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):GeneratedReminder[]{
  const units=new Set([...Object.entries(army.units).filter(([,count])=>count>0).map(([name])=>name),...(army.instances||[]).map(x=>x.unit)]);
@@ -16,7 +17,8 @@ export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):
   if(rule.detachments&&!rule.detachments.some(d=>detachments.has(d)))return false;
   if(rule.anyUnits&&!rule.anyUnits.some(u=>units.has(u)))return false;
   if(rule.allUnits&&!rule.allUnits.every(u=>units.has(u)))return false;
+  if(rule.enhancements&&!rule.enhancements.some(name=>Object.values(army.enhancements||{}).includes(name)||army.instances?.some(x=>x.enhancement===name)))return false;
   if(rule.equipment&&!Object.entries(rule.equipment).every(([unit,choice])=>army.equipment?.[unit]===choice||army.instances?.some(x=>x.unit===unit&&x.equipment===choice)))return false;
   return true;
- }).map(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,...reminder})=>({...reminder,units:reminder.units?.filter(u=>units.has(u))}));
+ }).map(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,...reminder})=>({...reminder,units:reminder.units?.filter(u=>units.has(u))}));
 }
