@@ -16,7 +16,7 @@ describe('2026 Imperial Faction Pack detachments',()=>{
   expect(detachmentBudget('Imperial Agents',['Imperialis Fleet'],'Strike Force').valid).toBe(true);
   expect(detachmentBudget('Imperial Agents',['Imperialis Fleet'],'Incursion').valid).toBe(false);
  });
- it('uses the official Skyshroud Spearhead spelling',()=>{
-  expect(DETACHMENTS_2026.Necrons?.some(d=>d.name==='Skyshroud Spearhead')).toBe(true);
+ it('uses the official Skysword Spearhead spelling',()=>{
+  expect(DETACHMENTS_2026.Necrons?.some(d=>d.name==='Skysword Spearhead')).toBe(true);
  });
 });
