@@ -1,6 +1,8 @@
 import {describe,it,expect} from 'vitest';
 import {CATALOG,addSelectionUnit,newSelection,type ArmySelection} from '../src/catalog';
-import {createBattle,advancePhase,validateBattleState,type Phase,type Player} from '../src/engine';
+import {createBattle as createFreshBattle,advancePhase,validateBattleState,type Phase,type Player} from '../src/engine';
+// These tests exercise in-battle mechanics after pre-battle resolution.
+const createBattle=()=>({...createFreshBattle(),prebattle:{resolved:true,decisions:{}}});
 import {battlefieldReminders,latestObservation,measuringSquads,observe,useBattlefieldAbility,rosterHealth} from '../src/necron-battlefield';
 import {expandRoster,setInstanceAttachment,setInstanceEquipment,setInstanceResurrectionOrb,setInstanceModelCount,setInstanceWargear} from '../src/roster-instances';
 import type {Observation,Signal} from '../src/battlefield-events';
