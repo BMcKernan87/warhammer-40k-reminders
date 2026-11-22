@@ -1,3 +1,4 @@
+import {priorityFactionUnitReminders} from './priority-faction-rules';
 import {necronEnhancementReminders} from './necron-enhancement-reminders';
 import {necronStratagemReminders} from './necron-stratagems';
 import {verifiedNecronReminders} from './verified-necrons';
@@ -10,7 +11,7 @@ export const REMINDER_WINDOWS:readonly ReminderWindow[]=['Command','Movement','S
 export interface GeneratedReminder {id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string;source:string;origin:'army'|'detachment'|'unit';units?:string[]}
 export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  const source=factionSource(army).url;
- const result:GeneratedReminder[]=[];
+ const result:GeneratedReminder[]=[...priorityFactionUnitReminders(army)];
  if(army.faction==='Necrons'){result.push(...verifiedNecronReminders(army));result.push(...necronStratagemReminders(army));result.push(...necronEnhancementReminders(army));}
  if(army.faction==='Necrons'){
 
