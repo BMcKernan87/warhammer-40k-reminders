@@ -12,3 +12,8 @@ export function datasheetReferences(army:ArmySelection):DatasheetReference[]{
  return Object.keys(army.units).map(unit=>({unit,faction:army.faction,url:ROOT+path+'/datasheets.html',status:'reference'}));
 }
 export function detachmentSource(army:ArmySelection):RuleSource{return factionSource(army);}
+
+/** Links used by the 11th-edition builder. The older registry belongs to legacy saved-rule readers. */
+export function currentFactionUrl(army:ArmySelection):string {
+ return factionSource(army).url.replace('/wh40k10ed/', '/wh40k11ed/');
+}

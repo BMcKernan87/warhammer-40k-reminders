@@ -1,90 +1,101 @@
 import type {ArmySelection} from './catalog';
-import type {GeneratedReminder} from './generated-reminders';
-/** Rules checked against the June 2026 Necron 11th-edition Faction Pack. */
-export const NECRON_DATASHEET_REMINDERS_2026:readonly GeneratedReminder[]=[
-  {
-    "id": "11e-necron-macrocytes-accelerator",
-    "title": "Canoptek Macrocytes · Accelerator Mandible",
-    "window": "Fight",
-    "timing": "start",
-    "summary": "At the start of the Fight phase, if equipped with an accelerator mandible, select a friendly CANOPTEK unit within 3 inches; improve its melee Weapon Skill by 1 until the end of the phase.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Canoptek Macrocytes"
-    ]
-  },
-  {
-    "id": "11e-necron-tomb-crawlers-sentinels",
-    "title": "Canoptek Tomb Crawlers · Weapon Sentinels",
-    "window": "Shooting",
-    "timing": "during",
-    "summary": "When shooting a target within 12 inches, this unit can ignore modifiers to its Ballistic Skill, Hit rolls and Wound rolls.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Canoptek Tomb Crawlers"
-    ]
-  },
-  {
-    "id": "11e-necron-geomancer-tectonic",
-    "title": "Geomancer · Tectonic Reverberations",
-    "window": "Movement",
-    "timing": "during",
-    "summary": "In your Movement phase, select a visible enemy unit within 18 inches. It is pinned until your next Movement phase: -2 Move and -2 to Charge rolls.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Geomancer"
-    ]
-  },
-  {
-    "id": "11e-necron-geomancer-obelisk",
-    "title": "Geomancer · Obelisk Node Control",
-    "window": "Movement",
-    "timing": "during",
-    "summary": "While this model is within range of an objective you control, enemy units arriving from Reserves cannot be set up within 12 inches of it.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Geomancer"
-    ]
-  },
-  {
-    "id": "11e-necron-transcendent-displacement",
-    "title": "Transcendent C'tan · Transdimensional Displacement",
-    "window": "Movement",
-    "timing": "during",
-    "summary": "When this model is selected to Advance, you may remove and set it up anywhere more than 8 inches horizontally from all enemy units.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Transcendent C’tan"
-    ]
-  }
-,
-{"id":"11e-necron-nekrosor-ranged-aura","title":"Nekrosor Ammentar · Infectious Murder-madness","window":"Shooting","timing":"during","summary":"Friendly NECRONS units within 6 inches (excluding MONSTER and TITANIC) gain Sustained Hits 1 when attacking if they have DESTROYER CULT or target the closest eligible enemy.","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","origin":"unit","units":["Nekrosor Ammentar"]},
-{"id":"11e-necron-nekrosor-fight-aura","title":"Nekrosor Ammentar · Infectious Murder-madness","window":"Fight","timing":"during","summary":"Friendly NECRONS units within 6 inches (excluding MONSTER and TITANIC) gain Sustained Hits 1 when attacking if they have DESTROYER CULT or target the closest eligible enemy.","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","origin":"unit","units":["Nekrosor Ammentar"]}
+import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
+import {expandRoster, type RosterInstance} from './roster-instances';
+import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
+import {ACTIONS,type Signal} from './battlefield-events';
+import {PHASES,createBattle,type Phase} from './engine';
+import {necronSource} from './necron-wargear';
 
-,{"id":"11e-necron-overlord-my-will","title":"Overlord · My Will Be Done","window":"Command","timing":"during","summary":"Once per battle round, one eligible Overlord-led unit can reduce the CP cost of a Stratagem targeting it by 1.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Overlord","Overlord with translocation shroud"]},
-{"id":"11e-necron-overlord-orb","title":"Overlord · Resurrection Orb","window":"Command","timing":"end","summary":"At the end of any phase, if this unit has a Resurrection Orb, you may use it once per battle per unit to activate Reanimation Protocols with D6 wounds instead of D3; only one unit may resurrect per turn.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Overlord","Overlord with translocation shroud"]},
-{"id":"11e-necron-plasmancer-lightning","title":"Plasmancer · Living Lightning","window":"Shooting","timing":"during","summary":"Select a visible enemy within 18 inches (respect Lone Operative restriction), roll four D6; each 4+ causes one mortal wound.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Plasmancer"]},
-{"id":"11e-necron-warriors-legion","title":"Necron Warriors · Their Number is Legion","window":"Command","timing":"during","summary":"When this unit's Reanimation Protocols activate, you may re-roll the dice for wounds reanimated.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Necron Warriors"]},
-{"id":"11e-necron-ghost-ark-repair","title":"Ghost Ark · Repair Barge","window":"Shooting","timing":"during","summary":"Check Repair Barge trigger, distance and target eligibility before resolving an out-of-sequence Reanimation Protocols activation.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Ghost Ark"]},
-{"id":"11e-necron-spyder-swarm","title":"Canoptek Spyders · Canoptek Swarm","window":"Command","timing":"during","summary":"In your Command phase, return one destroyed Scarab Swarm model per Spyder model to a friendly Scarab unit within 6 inches.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Canoptek Spyders"]},
-{"id":"11e-necron-obelisks-pulse","title":"Obelisk · Gravitic Pulse","window":"Movement","timing":"start","summary":"At the start of your opponent's Movement phase, choose a visible enemy within 18 inches; halve its Move and Advance/Charge rolls this turn, with an additional anti-FLY effect.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Obelisk"]},
-{"id":"11e-necron-tomb-blades-reanimation","title":"Tomb Blades · Reanimation Protocols","window":"Command","timing":"during","summary":"Resolve this unit's Reanimation Protocols when eligible, accounting for any applicable detachment and unit modifiers.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Tomb Blades"]},
-{"id":"11e-necron-trazyn-hosts","title":"Trazyn · Surrogate Hosts","window":"Command","timing":"start","summary":"Check Trazyn’s Surrogate Hosts ability and its eligible target and replacement restrictions before resolving.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Trazyn the Infinite"]},
-{"id":"11e-necron-silent-king-triarch","title":"The Silent King · Triarch Abilities","window":"Command","timing":"start","summary":"At the start of each battle round, select Phaeron of the Stars, Phaeron of the Blades or Relentless March. Its aura lasts until the next battle round.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["The Silent King"]},
-{"id":"11e-necron-immortals-eradication","title":"Immortals · Implacable Eradication","window":"Shooting","timing":"during","summary":"Re-roll Wound rolls of 1; against an enemy on an objective marker, you can re-roll the Wound roll instead.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Immortals"]}
-
-,{"id":"11e-necron-deathmarks-hunters","title":"Deathmarks · Hyperspace Hunters","window":"Movement","timing":"during","summary":"Once per turn in the opponent's Reinforcements step, when a visible enemy arrives from Reserves within 18 inches, this unit can shoot that eligible target.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Deathmarks"]},
-{"id":"11e-necron-cryptothralls-bound","title":"Cryptothralls · Bound Creation","window":"Shooting","timing":"during","summary":"While this unit is joined to a unit containing a Cryptek, that Cryptek model has Feel No Pain 4+.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Cryptothralls"]},
-{"id":"11e-necron-cryptothralls-vigour","title":"Cryptothralls · Systematic Vigour","window":"Fight","timing":"during","summary":"When a Cryptothrall is destroyed by a melee attack before fighting this phase, roll a D6; on 2+ it fights after the attacking unit finishes, then is removed.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Cryptothralls"]},
-{"id":"11e-necron-flayed-flesh","title":"Flayed Ones · Flesh Hunger","window":"Fight","timing":"during","summary":"Against a target Below Half-strength, successful melee Hit rolls score Critical Hits.","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","origin":"unit","units":["Flayed Ones"]}
-] as readonly GeneratedReminder[];
+// Stable IDs keep previously saved references to the first squad working.
+const existingIds:Record<string,string>={
+  'obelisk-node':'geomancer-obelisk','nekrosor-aura':'nekrosor-ranged-aura','macro-mandible':'macrocytes-accelerator',crawlers:'tomb-crawlers-sentinels',geomancer:'geomancer-tectonic',
+  displace:'transcendent-displacement',will:'overlord-my-will',orb:'overlord-orb',lightning:'plasmancer-lightning',
+  legion:'warriors-legion','ghost-repair':'ghost-ark-repair','spyder-swarm':'spyder-swarm',gravitic:'obelisks-pulse',
+  trazyn:'trazyn-hosts','command-king':'silent-king-triarch','implacable-eradication':'immortals-eradication',
+  hunters:'deathmarks-hunters','thrall-fight':'cryptothralls-vigour','flesh-hunger':'flayed-flesh',
+  drain:'nightbringer-drain',matter:'void-dragon-absorption',
+};
+const actionPhase:Partial<Record<Signal,Phase>>={
+  normal:'Movement',crossed:'Movement',advance:'Movement',fallback:'Movement',stationary:'Movement',arrival:'Movement',
+  shoot:'Shooting',shot:'Shooting',shotHit:'Shooting',deathRay:'Shooting',tesla:'Shooting',
+  chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',reanimate:'Command',
+};
+function referenceWindows(rule:TriggerRule):ReminderWindow[]{
+  if(rule.id==='tunnelling')return ['End of opponent turn'];
+  if(rule.phase)return [rule.phase];
+  const signals=typeof rule.signal==='string'?[rule.signal]:rule.signal;
+  if(signals.some(s=>s==='phaseStart'||s==='phaseEnd'||s==='stratagem'))return [...PHASES];
+  if(signals.includes('shoot')&&signals.includes('overwatch'))return ['Shooting'];
+  if(signals.includes('overwatch'))return ['Movement','Charge'];
+  return [...new Set(signals.flatMap(s=>actionPhase[s]?[actionPhase[s]!]:['Shooting','Fight'] as Phase[]))];
+}
+const circumstances:Record<string,string>={
+  hunters:'During the opponent’s Reinforcements step, after a visible enemy arrives within 18″.',
+  'wraith-form':'After a Normal move over an enemy.',
+  'ghost-repair':'After enemy attacks cost a Warriors squad within 3″ one or more wounds. Each Warriors squad can be selected once per turn.',
+  'reanimation-beam':'When friendly Reanimation Protocols activate within 3″.',
+  'macro-projector':'When friendly Reanimation Protocols activate within 3″ of the bearer.',
+  'hex-return':'In the opponent’s Shooting phase, after the attacker shoots a Necrons unit within 3″.',
+  'flesh-hunger':'When attacking a below-half-strength enemy in melee.',
+  'crawlers':'When shooting an enemy within 12″.',
+  'doomsday-shoot':'If the Ark remained stationary in your Movement phase.',
+  'guardian':'While a Noble leads the unit and the attack’s Strength exceeds the unit’s Toughness.',
+  'hard-wired':'When shooting the nearest eligible target.',
+  'szeras':'When a Necrons Battleline unit within the augmentation aura attacks or is targeted.',
+  'harassment':'When a non-Monster, non-Vehicle enemy within 3″ makes attacks.',
+  'gloom':'When a friendly unit within 6″ suffers mortal wounds or a Psychic attack.',
+  'chronometron':'After this unit shoots in your Shooting phase while unengaged.',
+  'hatred':'Against an enemy below half-strength.',
+  'monolith':'From the second battle round.',
+  'nekrosor-aura':'When a friendly non-Monster, non-Titanic Necrons unit within 6″ attacks the closest eligible target or attacks with Destroyer Cult models.',
+  'nodes':'When a Necrons Infantry unit within 6″ would lose a wound.',
+  'fabricator':'When a Necrons Vehicle within 6″ of the bearer would lose a wound.',
+  'nullstone':'When a friendly Necrons unit within 6″ suffers mortal wounds or a Psychic attack.',
+  'atomic':'If Szeras destroyed one or more enemy models during this Fight phase.',
+  'command-king':'At the start of the battle round.',
+  'overlord':'When an attack is allocated to this model.',
+  'command-shield':'When the attack’s Strength is greater than the Barge’s Toughness.',
+};
+function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstance[]):string{
+  const signals=typeof rule.signal==='string'?[rule.signal]:rule.signal;
+  const trigger=signals[0];
+  const intro=circumstances[rule.id]??(trigger==='phaseStart'||trigger==='phaseEnd'?'':ACTIONS[trigger]+'.');
+  const side=rule.turn==='own'?'Your turn. ':rule.turn==='opponent'?'Opponent’s turn. ':'';
+  const limit=rule.limit==='plasmacytes'?'One use per equipped Plasmacyte. ':rule.limit?'Once per '+rule.limit+'. ':'';
+  let text=typeof rule.text==='string'?rule.text:rule.text({bearer:squad,roster,eligibleRoster:roster,battle:createBattle(),actedThisTurn:()=>false});
+  if(rule.id==='optimised')text='Re-roll Wound rolls of 1 for gauss destructors against Monsters and Vehicles, and for enmitic exterminators against other targets.';
+  if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
+  if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
+  if(rule.id==='orb')text+=' Only one unit can resurrect in a turn.';
+  return [side+limit+intro,text].filter(Boolean).join(' ').trim();
+}
 export function necronDatasheetReminders2026(army:ArmySelection):GeneratedReminder[]{
- if(army.faction!=='Necrons')return [];
- const selected=new Set([...Object.entries(army.units).filter(([,count])=>count>0).map(([unit])=>unit),...(army.instances||[]).map(x=>x.unit)]);
- return NECRON_DATASHEET_REMINDERS_2026.filter(rule=>rule.units?.some(unit=>selected.has(unit))).map(rule=>({...rule}));
+  if(army.faction!=='Necrons')return [];
+  const roster=expandRoster(army);
+  const output:GeneratedReminder[]=[];
+  const ids=new Set<string>();
+  for(const squad of roster){
+    for(const rule of BATTLEFIELD_RULES){
+      if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
+      const body=roster.find(s=>s.id===squad.attachedTo);
+      let suffix=existingIds[rule.id]??rule.id;
+      if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
+      if(rule.id==='rites'&&body?.unit==='Canoptek Wraiths')suffix='technomancer-wraiths';
+      for(const window of referenceWindows(rule)){
+        const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
+        const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
+        ids.add(id);
+        output.push({id,title:squad.id+' · '+rule.title+(rule.scope==='leading'&&body?' → '+body.id:''),
+          window,timing:rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
+          summary:referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
+          units:rule.scope==='leading'&&body?[squad.id,body.id]:[squad.id]});
+      }
+    }
+  }
+  for(const s of roster.filter(s=>s.unit==='Cryptothralls')){
+    output.push({id:'11e-necron-cryptothralls-bound-'+s.id,title:s.id+' · Bound Creation',window:'Shooting',timing:'during',
+      summary:'A Cryptek model in the same unit as these Cryptothralls has Feel No Pain 4+.',
+      source:necronSource(s.unit),origin:'unit',units:[s.id]});
+  }
+  return output;
 }
