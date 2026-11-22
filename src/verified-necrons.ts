@@ -28,7 +28,17 @@ export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
  const instances=army.instances?expandRoster(army):null;
  const contextual:GeneratedReminder[]=[];
  if(army.detachment==='Awakened Dynasty'&&army.units['Necron Warriors']){
-  for(const squad of (instances?instances.filter(x=>x.unit==='Necron Warriors').map(x=>x.id):['Necron Warriors']))contextual.push({id:'warriors-undying-legions-'+squad,title:'Necron Warriors · Undying Legions reanimation re-roll · '+squad,window:'Fight',timing:'during',summary:'If this squad is selected for Protocol of the Undying Legions after an eligible enemy attack, activate Reanimation Protocols as specified by the Stratagem. Their Number is Legion permits re-rolling the dice determining how many wounds are reanimated. This does not allow a second activation or bypass the Stratagem’s targeting requirements.',source:faction+'Necron-Warriors',origin:'unit',units:[squad]});
+  const squads=instances?instances.filter(x=>x.unit==='Necron Warriors').map(x=>x.id):['Necron Warriors'];
+  for(const squad of squads){
+   const isLed=instances?instances.some(x=>x.attachedTo===squad):Object.values(army.attachments||{}).includes('Necron Warriors');
+   for(const window of ['Shooting','Fight'] as const)contextual.push({
+    id:'warriors-undying-legions-'+squad+'-'+window,
+    title:'Necron Warriors · Undying Legions reanimation re-roll · '+squad,
+    window,timing:'during',
+    summary:'Opponent’s Shooting phase or the Fight phase: immediately after an enemy unit finishes attacks that destroyed at least one model in this squad, you may use Protocol of the Undying Legions (1 CP) on this eligible unit. Reanimate '+(isLed?'D3+1 wounds because a NECRONS CHARACTER leads this squad':'D3 wounds (D3+1 only while led by a NECRONS CHARACTER)')+'. Their Number is Legion allows you to re-roll the reanimation dice. Check the Stratagem’s restrictions before spending CP; this does not permit an extra activation.',
+    source:faction+'Necron-Warriors',origin:'unit',units:[squad]
+   });
+  }
  }
  return [...contextual,...rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('lychguard-guardian-')||!!(instances?instances.some(x=>x.unit==='Lychguard'&&instances.some(y=>y.attachedTo===x.id&&nobleLeaders.has(y.unit))):Object.entries(army.attachments||{}).some(([leader,bodyguard])=>bodyguard==='Lychguard'&&nobleLeaders.has(leader))))&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
   if(r.unit&&instances&&!r.id.startsWith('attached-')){
