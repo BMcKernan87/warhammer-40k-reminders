@@ -4,7 +4,9 @@ import {addSelectionUnit,newSelection} from '../src/catalog';
 import {setInstanceModelCount} from '../src/roster-instances';
 const source='https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html';
 describe('Necron 11e expanded Wahapedia import',()=>{
- it('imports at least 35 priced datasheets with direct source attribution',()=>{
+ it('imports at least 51 datasheets while keeping unknown costs unresolved',()=>{
+  expect(DATASHEETS_2026.filter(d=>d.faction==='Necrons').length).toBeGreaterThanOrEqual(51);
+  expect(DATASHEETS_2026.find(d=>d.unit==='Royal Warden')?.pointsBySize).toBeUndefined();
   const imported=DATASHEETS_2026.filter(d=>d.faction==='Necrons'&&d.pointsBySize);
   expect(imported.length).toBeGreaterThanOrEqual(35);
   expect(imported.filter(d=>d.pointsSource===source).length).toBeGreaterThanOrEqual(20);
