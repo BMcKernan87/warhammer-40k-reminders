@@ -64,7 +64,7 @@ export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet202
   const copy=(copies.get(instance.unit)||0)+1;
   copies.set(instance.unit,copy);
   const sheet=registry.find(d=>d.faction===army.faction&&d.unit===instance.unit);
-  const models=instance.models??(sheet?.sizes.length===1?sheet.sizes[0]:null);
+  const models=instance.models??sheet?.sizes[0]??null;
   const applicableTier=Object.keys(sheet?.laterCopyPointsBySize||{}).map(Number).filter(tier=>tier<=copy).sort((a,b)=>b-a)[0];
   const priceTable=applicableTier?sheet?.laterCopyPointsBySize?.[applicableTier]:sheet?.pointsBySize;
   const points=models===null?null:priceTable?.[models]??null;
