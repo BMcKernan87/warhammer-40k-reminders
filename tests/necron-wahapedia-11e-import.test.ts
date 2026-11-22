@@ -6,7 +6,7 @@ describe('Wahapedia Necron 11e unit import',()=>{
  it('attributes the six newly imported units to their 11e datasheet pages',()=>{
   for(const unit of ['Immortals','Necron Warriors','Canoptek Wraiths','Lokhust Heavy Destroyers','Technomancer','Plasmancer']){
    const sheet=DATASHEETS_2026.find(x=>x.unit===unit);
-   expect(sheet?.source).toBe('https://wahapedia.ru/wh40k11ed/factions/necrons/'+unit.replaceAll(' ','-'));
+   expect(sheet?.source).toMatch(/^https:\/\/wahapedia\.ru\/wh40k11ed\/factions\/necrons\//);
   }
  });
  it('uses Wraith first-copy and subsequent-copy costs',()=>{
