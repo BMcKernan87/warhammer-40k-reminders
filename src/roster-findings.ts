@@ -17,7 +17,7 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
    findings.push({code:'rule-of-three',severity:'warning',unit,message:unit+': '+group.length+' units exceed the baseline selected battle-size copy limit; check official datasheet-specific exceptions.'});
   const sizes=verifiedUnitSizes2026(army,unit);
   if(!sizes)findings.push({code:'size-unverified',severity:'info',unit,message:unit+': 11th-edition model-count legality has not been source-verified for this datasheet.'});
-  for(const x of group)if(sizes&&!x.models&&sizes.length>1)findings.push({code:'size-default',severity:'info',unit,message:x.id+': model count must be explicitly selected for a verified 11th-edition points calculation.'});
+  for(const x of group)if(sizes&&!x.models&&sizes.length>1)findings.push({code:'size-default',severity:'info',unit,message:x.id+': using the minimum verified unit size ('+sizes[0]+') until you choose another size.'});
  }
  if(army.detachments2026?.length&&DETACHMENTS_2026[army.faction]){const budget=detachmentBudget(army.faction,army.detachments2026,army.battleSize2026||'Strike Force');if(!budget.valid)findings.push({code:'detachment-points',severity:'error',message:'Selected 2026 detachments exceed their DP budget or are invalid.'});else findings.push({code:'detachment-points',severity:'info',message:'2026 detachments: '+budget.spent+' of '+budget.limit+' DP used; Force Dispositions: '+budget.dispositions.join(', ')+'.'});}
  const attached=instances.filter(x=>x.attachedTo);
