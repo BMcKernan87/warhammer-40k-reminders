@@ -1,3 +1,4 @@
+import {leaderBodyguards,isModeledLeader} from './leader-eligibility';
 import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
@@ -84,10 +85,10 @@ export function setInstanceEnhancement(army:ArmySelection,id:string,enhancement:
 export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodyguardId:string|null):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));
  const leader=instances.find(x=>x.id===leaderId);
- if(!leader||!NECRON_LEADERS[leader.unit])throw Error('Selected model is not a supported Leader');
+ if(!leader||!isModeledLeader(army.faction,leader.unit))throw Error('Selected model is not a supported Leader');
  if(bodyguardId!==null){
   const body=instances.find(x=>x.id===bodyguardId);
-  if(!body||!NECRON_LEADERS[leader.unit].includes(body.unit))throw Error('Leader cannot join this Bodyguard');
+  if(!body||!leaderBodyguards(army.faction,leader.unit).includes(body.unit))throw Error('Leader cannot join this Bodyguard');
   if(leader.id===body.id)throw Error('A Leader cannot attach to itself');
   leader.attachedTo=bodyguardId;
  }else delete leader.attachedTo;
@@ -118,10 +119,10 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  for(const x of army.instances){
   if(x.attachedTo===undefined)continue;
   const body=army.instances.find(b=>b.id===x.attachedTo);
-  if(!body||!NECRON_LEADERS[x.unit]?.includes(body.unit))return false;
+  if(!body||!leaderBodyguards(army.faction,x.unit).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
   if(leaders.length>2)return false;
-  if(leaders.length===2&&!((crypteks.has(leaders[0].unit)&&nobles.has(leaders[1].unit))||(nobles.has(leaders[0].unit)&&crypteks.has(leaders[1].unit))))return false;
+  if(leaders.length===2&&(army.faction!=='Necrons'||!((crypteks.has(leaders[0].unit)&&nobles.has(leaders[1].unit))||(nobles.has(leaders[0].unit)&&crypteks.has(leaders[1].unit)))))return false;
  }
  return true;
 }
