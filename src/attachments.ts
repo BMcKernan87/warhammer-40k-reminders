@@ -1,6 +1,9 @@
 import type {ArmySelection} from './catalog';
 /** Current Necron Leader permissions, updated for 11e Necron Support and Leader eligibility. */
 export const NECRON_LEADERS:Record<string,readonly string[]>={
+ "Royal Warden": ["Immortals","Necron Warriors"],
+ "Lokhust Lord": ["Lokhust Destroyers","Lokhust Heavy Destroyers"],
+ "Skorpekh Lord": ["Skorpekh Destroyers"],
  "Technomancer": [
   "Canoptek Wraiths",
   "Immortals",
