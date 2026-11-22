@@ -4,9 +4,9 @@ import {setInstanceModelCount} from '../src/roster-instances';
 import {rosterCost2026,type Datasheet2026} from '../src/datasheets-2026';
 const source='https://www.warhammer-community.com/en-gb/downloads/warhammer-40000/';
 describe('11th-edition size and copy-dependent pricing',()=>{
- it('prices explicit Immortal squad sizes, not guessed defaults',()=>{
+ it('defaults Immortals to their verified minimum and permits explicit sizes',()=>{
   const army=addSelectionUnit(newSelection('Necrons'),'Immortals');
-  expect(rosterCost2026(army).total).toBeNull();
+  expect(rosterCost2026(army).total).toBe(65);
   expect(rosterCost2026(setInstanceModelCount(army,'Immortals#1',5)).total).toBe(65);
   expect(rosterCost2026(setInstanceModelCount(army,'Immortals#1',10)).total).toBe(130);
  });
