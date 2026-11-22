@@ -5,7 +5,7 @@ describe('army-wide roster findings',()=>{
  it('reports unsupported points without fabricating a total',()=>{
   const findings=rosterFindings(addSelectionUnit(newSelection('Necrons'),'Necron Warriors'));
   expect(findings.some(x=>x.code==='points-unavailable'&&x.severity==='info')).toBe(true);
-  expect(findings.some(x=>x.code==='size-default')).toBe(true);
+  expect(findings.some(x=>x.code==='size-unverified')).toBe(true);
  });
  it('flags more than three copies of a non-Battleline datasheet',()=>{
   const findings=rosterFindings(addSelectionUnit(newSelection('Space Marines'),'Aggressor Squad',4));
