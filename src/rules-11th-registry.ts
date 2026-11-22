@@ -17,7 +17,7 @@ export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):
   if(rule.detachments&&!rule.detachments.some(d=>detachments.has(d)))return false;
   if(rule.anyUnits&&!rule.anyUnits.some(u=>units.has(u)))return false;
   if(rule.allUnits&&!rule.allUnits.every(u=>units.has(u)))return false;
-  if(rule.enhancements&&!rule.enhancements.some(name=>Object.values(army.enhancements||{}).includes(name)||army.instances?.some(x=>x.enhancement===name)))return false;
+  if(rule.enhancements&&!rule.enhancements.some(name=>Object.values(army.upgrades2026||{}).includes(name)))return false;
   if(rule.equipment&&!Object.entries(rule.equipment).every(([unit,choice])=>army.equipment?.[unit]===choice||army.instances?.some(x=>x.unit===unit&&x.equipment===choice)))return false;
   return true;
  }).map(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,...reminder})=>({...reminder,units:reminder.units?.filter(u=>units.has(u))}));
