@@ -33,6 +33,13 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
  result.push(...matching11thRules(_army,DETACHMENT_RULES));
  result.push(...necronDatasheetReminders2026(_army));
+ if(_army.faction==='Necrons'&&Object.values(_army.units).some(n=>n>0)){
+  result.push({id:'11e-necron-reanimation',title:'Reanimation Protocols · D3 wounds',window:'Command',timing:'end',summary:'At the end of your Command phase, each friendly unit on the battlefield with Reanimation Protocols activates and heals D3 wounds. Restore damaged models before returning destroyed models.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'army'});
+  const units=new Set([...Object.entries(_army.units).filter(([,n])=>n>0).map(([u])=>u),...(_army.instances||[]).map(x=>x.unit)]);
+  const attachments=[...Object.entries(_army.attachments||{}).map(([leader,bodyguard])=>({leader,bodyguard})),...(_army.instances||[]).filter(x=>x.attachedTo).map(x=>({leader:x.unit,bodyguard:_army.instances?.find(b=>b.id===x.attachedTo)?.unit||''}))];
+  if(units.has('Technomancer')&&units.has('Canoptek Wraiths')&&attachments.some(a=>a.leader==='Technomancer'&&a.bodyguard==='Canoptek Wraiths'))result.push({id:'11e-necron-technomancer-wraiths',title:'Technomancer + Wraiths · Feel No Pain 5+',window:'Shooting',timing:'during',summary:'While the Technomancer leads Canoptek Wraiths, models in the attached unit benefit from its Feel No Pain 5+ ability; remember this when allocating wounds, including in the Fight phase.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'unit',units:['Technomancer','Canoptek Wraiths']});
+  if(units.has('Plasmancer')&&units.has('Immortals')&&attachments.some(a=>a.leader==='Plasmancer'&&a.bodyguard==='Immortals'))result.push({id:'11e-necron-plasmancer-immortals',title:'Plasmancer + Immortals · Critical Hits on 5+',window:'Shooting',timing:'during',summary:'While the Plasmancer leads Immortals, unmodified Hit rolls of 5+ score Critical Hits for models in the attached unit.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'unit',units:['Plasmancer','Immortals']});
+ }
  if(_army.faction==='Orks'&&Object.keys(_army.units).length){
   const source='https://www.warhammer-community.com/en-gb/articles/ckwgwgyx/new-codex-orks-army-rules-to-get-you-riled-up/';
   result.push({id:'11e-orks-war-cry',title:'Waaagh! · War Cry (once per battle)',window:'Command',timing:'start',summary:'At the start of your Command phase, you may use War Cry once per battle. Friendly ORKS units with Waaagh! become riled up until the end of the next turn.',source,origin:'army'});
