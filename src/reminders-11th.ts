@@ -1,3 +1,4 @@
+import {expandRoster} from './roster-instances';
 import {necronDatasheetReminders2026} from './necron-datasheet-reminders-2026';
 import {matching11thRules,type Rule11th} from './rules-11th-registry';
 import type {ArmySelection} from './catalog';
@@ -7,7 +8,6 @@ import {REMINDER_WINDOWS} from './generated-reminders';
 /** 11th-edition reminders ONLY. Legacy 10e datasheet/stratagem rules are never included. */
 const CORE_SOURCE='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
 const CORE_11TH:readonly GeneratedReminder[]=[
- {id:'11e-core-scouts',title:'Resolve Scouts before battle round one',window:'Pre-battle',timing:'during',summary:'After deployment, resolve eligible Scout moves during Resolve Pre-battle Rules, before the first battle round. Every model in the unit must have Scouts; attached Leaders can prevent eligibility. Check the Scout distance and finish more than 8 inches horizontally from enemy units. Do not treat this as a Movement phase move.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-core-cp',title:'Gain Core CP',window:'Command',timing:'during',summary:'In the Gain Core CP step, both players gain 1 Command Point.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-battle-shock',title:'Battle-shock rolls',window:'Command',timing:'during',summary:'During the Battle-shock step, roll for each of your units that is already battle-shocked or at or below half-strength. A successful roll clears existing battle-shock.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-command-abilities',title:'Command abilities',window:'Command',timing:'during',summary:'Resolve your eligible Command abilities after the Battle-shock step.',source:CORE_SOURCE,origin:'army'},
@@ -33,9 +33,23 @@ const DETACHMENT_RULES:readonly Rule11th[]=[
  {"id":"11e-necron-skyshroud-deepstrike","title":"Transdimensional Deployment · Tomb Blades","window":"Movement","timing":"during","summary":"Tomb Blades have Deep Strike while Skysword Spearhead is selected. Check arrival and ingress positioning.","origin":"detachment","detachments":["Skysword Spearhead"],"anyUnits":["Tomb Blades"],"units":["Tomb Blades"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"},
  {"id":"11e-necron-skyshroud-ingress","title":"Transdimensional Deployment · Ingress fire","window":"Shooting","timing":"during","summary":"Tomb Blades that made an ingress move this turn gain +1 to hit rolls with ranged attacks.","origin":"detachment","detachments":["Skysword Spearhead"],"anyUnits":["Tomb Blades"],"units":["Tomb Blades"],"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","faction":"Necrons"}
 ];
+
+/** Fail closed: only verified 11e Scout grants are emitted, by actual roster instance. */
+export function eligibleScoutReminders(army:ArmySelection):GeneratedReminder[]{
+ const instances=expandRoster(army);
+ const source='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
+ if(army.faction!=='Necrons'||!(army.detachments2026||[]).includes('Hand of the Dynasty'))return [];
+ return instances.filter(s=>s.unit==='Necron Warriors'&&(army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit])==='Enlivened Sentinels').filter(s=>!instances.some(leader=>leader.attachedTo===s.id)).map(s=>({
+  id:'11e-scout-'+s.id,title:s.id+' · Scouts 5"',window:'Pre-battle' as const,timing:'during' as const,
+  summary:'During Resolve Pre-battle Abilities, this upgraded unit has Scouts 5". If wholly within your deployment zone it may make a Scout move of up to 5", ending more than 8" horizontally from enemy units. If in Strategic Reserves it may instead set up wholly within your deployment zone. Check battlefield geometry before resolving.',
+  source,origin:'unit' as const,units:[s.id]
+ }));
+}
+
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
- result.push(...matching11thRules(_army,DETACHMENT_RULES));
+ result.push(...matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened'));
+ result.push(...eligibleScoutReminders(_army));
  result.push(...necronDatasheetReminders2026(_army));
  if(_army.faction==='Necrons'&&Object.values(_army.units).some(n=>n>0)){
   result.push({id:'11e-necron-reanimation',title:'Reanimation Protocols · D3 wounds',window:'Command',timing:'end',summary:'At the end of your Command phase, each friendly unit on the battlefield with Reanimation Protocols activates and heals D3 wounds. Restore damaged models before returning destroyed models.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'army'});
