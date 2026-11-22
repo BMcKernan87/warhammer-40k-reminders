@@ -62,6 +62,9 @@ export const NECRON_DATASHEET_REMINDERS_2026:readonly GeneratedReminder[]=[
       "Transcendent C’tan"
     ]
   }
+,
+{"id":"11e-necron-nekrosor-ranged-aura","title":"Nekrosor Ammentar · Infectious Murder-madness","window":"Shooting","timing":"during","summary":"Friendly NECRONS units within 6 inches (excluding MONSTER and TITANIC) gain Sustained Hits 1 when attacking if they have DESTROYER CULT or target the closest eligible enemy.","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","origin":"unit","units":["Nekrosor Ammentar"]},
+{"id":"11e-necron-nekrosor-fight-aura","title":"Nekrosor Ammentar · Infectious Murder-madness","window":"Fight","timing":"during","summary":"Friendly NECRONS units within 6 inches (excluding MONSTER and TITANIC) gain Sustained Hits 1 when attacking if they have DESTROYER CULT or target the closest eligible enemy.","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","origin":"unit","units":["Nekrosor Ammentar"]}
 ] as readonly GeneratedReminder[];
 export function necronDatasheetReminders2026(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
