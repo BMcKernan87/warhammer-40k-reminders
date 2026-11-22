@@ -12,7 +12,7 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction==='Necrons')result.push(...verifiedNecronReminders(army));
  if(army.faction==='Necrons'){
 
-  if(army.detachment==='Awakened Dynasty')result.push({id:'awakened-command-protocols',title:'Command Protocols',window:'Shooting',timing:'during',summary:'When a unit attacks, check whether it is being led by a Necron Character for its detachment Hit roll bonus. Also applies to melee attacks.',source,origin:'detachment'});
+  if(army.detachment==='Awakened Dynasty'&&Object.keys(army.attachments||{}).length>0)result.push({id:'awakened-command-protocols',title:'Command Protocols · +1 to Hit',window:'Shooting',timing:'during',summary:'For each attached unit led by a NECRONS CHARACTER, add 1 to Hit rolls whenever its models attack, including during the Fight phase. Attached units: '+Object.entries(army.attachments||{}).map(([leader,bodyguard])=>leader+' + '+bodyguard).join('; ')+'.',source,origin:'detachment'});
   if(army.detachment==='Hypercrypt Legion')result.push({id:'hypercrypt-hyperphasing',title:'Hyperphasing',window:'End of opponent turn',timing:'end',summary:'At the end of the opponent’s turn, eligible units outside Engagement Range can be placed into Strategic Reserves. Limit depends on battle size: Incursion 1, Strike Force 2, Onslaught 3.',source,origin:'detachment'});
 
  }else if(army.faction==='Space Marines'){
