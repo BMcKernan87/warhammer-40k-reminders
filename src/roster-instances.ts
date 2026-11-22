@@ -72,6 +72,17 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  }
  return true;
 }
+export function removeRosterInstance(army:ArmySelection,id:string):ArmySelection{
+ if(!army.instances)throw Error('Individual squads mode is not enabled');
+ const target=army.instances.find(x=>x.id===id);
+ if(!target)throw Error('Unknown squad');
+ const instances=army.instances.filter(x=>x.id!==id).map(x=>x.attachedTo===id?{...x,attachedTo:undefined}:x);
+ const units={...army.units};
+ if(units[target.unit]===1)delete units[target.unit];else units[target.unit]--;
+ const updated={...army,units,instances};
+ if(!validateRosterInstances(updated))throw Error('Removing squad would invalidate roster');
+ return updated;
+}
 export function appendRosterInstances(army:ArmySelection,unit:string,count:number):RosterInstance[]{
  const instances=expandRoster(army);const existing=new Set(instances.map(x=>x.id));const next=[...instances];
  for(let i=0;i<count;i++){let n=1;while(existing.has(unit+'#'+n))n++;const id=unit+'#'+n;existing.add(id);next.push({id,unit});}
