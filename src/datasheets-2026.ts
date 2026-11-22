@@ -41,7 +41,21 @@ export const DATASHEETS_2026:readonly Datasheet2026[]=[
  {"faction":"Necrons","unit":"Doomsday Ark","sizes":[1],"pointsBySize":{"1":200},"source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","pointsSource":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","verified":"sizes-and-points","laterCopyPointsBySize":{"3":{"1":230}}},
  {"faction":"Necrons","unit":"Tesseract Vault","sizes":[1],"pointsBySize":{"1":465},"source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","pointsSource":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","verified":"sizes-and-points","laterCopyPointsBySize":{"2":{"1":505}}},
  {"faction":"Necrons","unit":"Hexmark Destroyer","sizes":[1],"pointsBySize":{"1":75},"source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","pointsSource":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","verified":"sizes-and-points"},
- {"faction":"Necrons","unit":"Orikan the Diviner","sizes":[1],"pointsBySize":{"1":90},"source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","pointsSource":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","verified":"sizes-and-points"}
+ {"faction":"Necrons","unit":"Orikan the Diviner","sizes":[1],"pointsBySize":{"1":90},"source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","pointsSource":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","verified":"sizes-and-points"},
+ {"faction":"Necrons","unit":"Catacomb Command Barge","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Convergence Of Dominion","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1,2,3],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Deathmarks","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[5,10],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Lokhust Lord","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Night Scythe","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Obelisk","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Overlord","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Overlord with translocation shroud","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Psychomancer","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Royal Warden","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Skorpekh Lord","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Triarch Praetorians","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[5,10],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Triarch Stalker","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"},
+ {"faction":"Necrons","unit":"Trazyn the Infinite","source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html","sizes":[1],"verified":"sizes"}
 ];
 export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string}[]}
 export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet2026[]=DATASHEETS_2026):RosterCost2026{
