@@ -26,7 +26,7 @@ export function setInstanceEnhancement(army:ArmySelection,id:string,enhancement:
  if(!target)throw Error('Unknown Character');
  if(enhancement===null)delete target.enhancement;else{
   if(!NECRON_CHARACTERS.has(target.unit)||NECRON_EPIC_HEROES.has(target.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(enhancement))throw Error('Ineligible Enhancement bearer or detachment');
-  if(instances.some(x=>x.id!==id&&x.enhancement===enhancement)||Object.entries(army.enhancements||{}).some(([unit,value])=>unit!==target.unit&&value===enhancement))throw Error('Enhancement already assigned');
+  if(instances.some(x=>x.id!==id&&x.enhancement===enhancement)||Object.values(army.enhancements||{}).includes(enhancement))throw Error('Enhancement already assigned');
   if(instances.filter(x=>x.enhancement).length>=3&&!target.enhancement)throw Error('Maximum three Enhancements');
   target.enhancement=enhancement;
  }
@@ -61,6 +61,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  if(Object.entries(army.units).some(([unit,count])=>counts[unit]!==count))return false;
  const chosen=army.instances.map(x=>x.enhancement).filter((x):x is string=>!!x);
  if(chosen.length>3||new Set(chosen).size!==chosen.length)return false;
+ if(chosen.some(value=>Object.values(army.enhancements||{}).includes(value)))return false;
  for(const x of army.instances){
   if(x.attachedTo===undefined)continue;
   const body=army.instances.find(b=>b.id===x.attachedTo);
