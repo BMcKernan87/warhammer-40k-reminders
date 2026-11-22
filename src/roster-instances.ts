@@ -54,6 +54,7 @@ export function setInstanceEquipment(army:ArmySelection,id:string,equipment:stri
  const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
  if(!target)throw Error('Unknown squad');
  if(!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===target.unit&&o.choices.includes(equipment)))throw Error('Invalid equipment for this squad');
+ if(target.unit==='Overlord'&&target.resurrectionOrb&&equipment==='Tachyon arrow and Overlord’s blade')throw Error('Resurrection Orb cannot be equipped alongside tachyon arrow');
  target.equipment=equipment;
  delete target.weaponCounts;
  return {...army,instances};
@@ -63,6 +64,7 @@ export function setInstanceResurrectionOrb(army:ArmySelection,id:string,equipped
  const target=instances.find(x=>x.id===id);
  if(!target||target.unit!=='Overlord')throw Error('Resurrection Orb selection requires a supported Overlord');
  if(typeof equipped!=='boolean')throw Error('Invalid Resurrection Orb selection');
+ if(equipped&&(target.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')throw Error('Replace the tachyon arrow with staff of light or voidscythe before equipping a Resurrection Orb');
  target.resurrectionOrb=equipped;
  return {...army,instances};
 }
@@ -99,6 +101,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
+  if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(x.unit==='Lokhust Heavy Destroyers'?[1,2,3]:x.unit==='Necron Warriors'?[10,20]:x.unit==='Immortals'||x.unit==='Lychguard'?[5,10]:[]).includes(x.models)))return false;
   if(x.weaponCounts!==undefined){if(!['Lokhust Heavy Destroyers','Necron Warriors'].includes(x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??(x.unit==='Lokhust Heavy Destroyers'?1:x.unit==='Necron Warriors'?10:5)))return false;}
