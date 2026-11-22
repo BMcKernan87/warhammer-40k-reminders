@@ -1,15 +1,55 @@
 import type {ArmySelection} from './catalog';
-/** Current Necron Leader permissions, curated from 10e datasheets. */
+/** Current Necron Leader permissions, updated for 11e Necron Support and Leader eligibility. */
 export const NECRON_LEADERS:Record<string,readonly string[]>={
- 'Technomancer':['Canoptek Wraiths','Immortals','Necron Warriors'],
- 'Plasmancer':['Immortals','Necron Warriors'],
- 'Chronomancer':['Immortals','Necron Warriors'],
- 'Overlord':['Immortals','Lychguard','Necron Warriors'],
- 'Imotekh the Stormlord':['Immortals','Lychguard','Necron Warriors'],
- 'Orikan the Diviner':['Immortals','Necron Warriors']
+ "Technomancer": [
+  "Canoptek Wraiths",
+  "Immortals",
+  "Necron Warriors"
+ ],
+ "Plasmancer": [
+  "Immortals",
+  "Necron Warriors"
+ ],
+ "Chronomancer": [
+  "Immortals",
+  "Necron Warriors"
+ ],
+ "Geomancer": [
+  "Canoptek Macrocytes",
+  "Immortals",
+  "Necron Warriors"
+ ],
+ "Psychomancer": [
+  "Immortals",
+  "Necron Warriors"
+ ],
+ "Overlord": [
+  "Immortals",
+  "Lychguard",
+  "Necron Warriors"
+ ],
+ "Overlord with translocation shroud": [
+  "Immortals",
+  "Lychguard",
+  "Necron Warriors"
+ ],
+ "Imotekh the Stormlord": [
+  "Immortals",
+  "Lychguard",
+  "Necron Warriors"
+ ],
+ "Orikan the Diviner": [
+  "Immortals",
+  "Necron Warriors"
+ ],
+ "Trazyn the Infinite": [
+  "Immortals",
+  "Lychguard",
+  "Necron Warriors"
+ ]
 };
-const CRYPTEKS=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner']);
-const NOBLES=new Set(['Overlord','Imotekh the Stormlord']);
+const CRYPTEKS=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner','Geomancer','Psychomancer']);
+const NOBLES=new Set(['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite']);
 export function eligibleBodyguards(army:ArmySelection,leader:string):string[]{
  if(army.faction!=='Necrons')return [];
  return (NECRON_LEADERS[leader]||[]).filter(unit=>(army.units[unit]||0)>0);
