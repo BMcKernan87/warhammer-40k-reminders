@@ -15,7 +15,15 @@ const CORE_11TH:readonly GeneratedReminder[]=[
  {id:'11e-move-every-unit',title:'Select every unit to move',window:'Movement',timing:'during',summary:'Select each of your units once in the Move Units step, including units in Strategic Reserves or embarked in Transports. Remaining stationary counts as a selection.',source:CORE_SOURCE,origin:'army'}
 ];
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
- return CORE_11TH.map(rule=>({...rule}));
+ const result=CORE_11TH.map(rule=>({...rule}));
+ if(_army.faction==='Orks'&&Object.keys(_army.units).length){
+  const source='https://www.warhammer-community.com/en-gb/articles/ckwgwgyx/new-codex-orks-army-rules-to-get-you-riled-up/';
+  result.push({id:'11e-orks-war-cry',title:'Waaagh! · War Cry (once per battle)',window:'Command',timing:'start',summary:'At the start of your Command phase, you may use War Cry once per battle. Friendly ORKS units with Waaagh! become riled up until the end of the next turn.',source,origin:'army'});
+  result.push({id:'11e-orks-advance',title:'Waaagh! · Re-roll advances',window:'Movement',timing:'during',summary:'Friendly ORKS units with Waaagh! can re-roll Advance rolls. While riled up, their ranged attacks have Assault and advancing does not prevent them declaring a charge.',source,origin:'army'});
+  result.push({id:'11e-orks-riled-save',title:'Waaagh! · Riled-up protection',window:'Shooting',timing:'during',summary:'While riled up, friendly ORKS units with Waaagh! have a 5+ invulnerable save.',source,origin:'army'});
+  if((_army.units.Meganobz||0)>0)result.push({id:'11e-orks-meganobz-krumpin',title:'Meganobz · Krumpin’ Time',window:'Fight',timing:'during',summary:'While this Meganobz unit is riled up, add 1 to its Hit rolls in the Fight phase.',source,origin:'unit',units:['Meganobz']});
+ }
+ return result;
 }
 export function grouped11thReminders(army:ArmySelection):{window:ReminderWindow;reminders:GeneratedReminder[]}[]{
  const all=generate11thReminders(army);
