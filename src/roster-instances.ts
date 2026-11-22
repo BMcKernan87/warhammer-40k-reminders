@@ -10,7 +10,7 @@ export interface RosterInstance {id:string;unit:string;equipment?:string;models?
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances;
  const result:RosterInstance[]=[];
- for(const [unit,count] of Object.entries(army.units))for(let i=1;i<=count;i++)result.push({id:unit+'#'+i,unit,equipment:army.equipment?.[unit],enhancement:i===1?army.enhancements?.[unit]:undefined});
+ for(const [unit,count] of Object.entries(army.units))for(let i=1;i<=count;i++)result.push({id:unit+'#'+i,unit,models:verifiedUnitSizes2026(army,unit)?.[0]??legalUnitSizes(army.faction,unit)?.[0],equipment:army.equipment?.[unit]??EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===unit)?.defaultChoice,enhancement:i===1?army.enhancements?.[unit]:undefined});
  for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
   const l=result.find(x=>x.unit===leader&&!x.attachedTo);
   const b=result.find(x=>x.unit===bodyguard);
@@ -138,6 +138,6 @@ export function removeRosterInstance(army:ArmySelection,id:string):ArmySelection
 }
 export function appendRosterInstances(army:ArmySelection,unit:string,count:number):RosterInstance[]{
  const instances=expandRoster(army);const existing=new Set(instances.map(x=>x.id));const next=[...instances];
- for(let i=0;i<count;i++){let n=1;while(existing.has(unit+'#'+n))n++;const id=unit+'#'+n;existing.add(id);next.push({id,unit});}
+ for(let i=0;i<count;i++){let n=1;while(existing.has(unit+'#'+n))n++;const id=unit+'#'+n;existing.add(id);next.push({id,unit,models:verifiedUnitSizes2026(army,unit)?.[0]??legalUnitSizes(army.faction,unit)?.[0],equipment:EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===unit)?.defaultChoice});}
  return next;
 }
