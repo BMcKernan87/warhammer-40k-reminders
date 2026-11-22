@@ -82,13 +82,14 @@ function ActionForm({army,battle,change}:{army:ArmySelection;battle:BattleState;
   </form>;
 }
 function Tracker({army,battle,change,squad}:{army:ArmySelection;battle:BattleState;change:Change;squad:RosterInstance}){
+  const [damage,setDamage]=useState(1);
   const {wounds,maxWounds}=rosterHealth(army,battle,squad);
   const position=positionOf(battle,squad.id);
   return <div className="unit"><strong>{squad.id}</strong><div className="unit-actions">
     <label>Position <select aria-label={'Position of '+squad.id} value={position} onChange={e=>change(b=>moveRosterSquad(army,b,squad,e.target.value as TablePosition))}>
       {tablePositions.map(p=><option key={p} value={p}>{p[0].toUpperCase()+p.slice(1)}</option>)}</select></label>
     <button className="secondary" aria-label={'Lose one wound '+squad.id} disabled={wounds===0} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds-1))}>−</button>
-    <span>{wounds}/{maxWounds} W</span>{battle.player!==(battle.rosterPlayer??'A')&&position==='battlefield'&&wounds>0&&<button className="secondary" aria-label={'Record enemy attack damage to '+squad.id} onClick={()=>change(b=>recordEnemyAttackDamage(army,b,squad,1))}>Enemy attack −1 W · trigger rules</button>}<button className="secondary" aria-label={'Restore one wound '+squad.id} disabled={wounds===maxWounds} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds+1))}>+</button>
+    <span>{wounds}/{maxWounds} W</span>{battle.player!==(battle.rosterPlayer??'A')&&position==='battlefield'&&wounds>0&&<label>Enemy attack damage <input aria-label={'Enemy attack damage to '+squad.id} type="number" min="1" max={wounds} step="1" value={damage} onChange={e=>setDamage(Number(e.target.value))}/><button className="secondary" disabled={!Number.isInteger(damage)||damage<1||damage>wounds} aria-label={'Record enemy attack damage to '+squad.id} onClick={()=>change(b=>recordEnemyAttackDamage(army,b,squad,damage))}>Record damage &amp; trigger rules</button></label>}<button className="secondary" aria-label={'Restore one wound '+squad.id} disabled={wounds===maxWounds} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds+1))}>+</button>
   </div></div>;
 }
 export function NecronBattlefield({army,battle,change,completed}:Props){
