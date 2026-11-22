@@ -2,7 +2,7 @@ import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS} from './attachments';
-export interface RosterInstance {id:string;unit:string;equipment?:string;enhancement?:string;attachedTo?:string}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances;
  const result:RosterInstance[]=[];
@@ -13,6 +13,35 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
   if(l&&b)l.attachedTo=b.id;
  }
  return result;
+}
+export function setInstanceWeaponCounts(army:ArmySelection,id:string,weaponCounts:Record<string,number>):ArmySelection{
+ const instances=expandRoster(army).map(x=>({...x}));
+ const target=instances.find(x=>x.id===id);
+ if(!target)throw Error('Unknown squad');
+ const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===target.unit);
+ if(!options)throw Error('No supported weapon configurations for this squad');
+ const models=target.models??(target.unit==='Lokhust Heavy Destroyers'?1:target.unit==='Immortals'||target.unit==='Lychguard'?5:1);
+ if(!Number.isInteger(models)||models<1)throw Error('Invalid model count');
+ if(Object.entries(weaponCounts).some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0))throw Error('Invalid weapon distribution');
+ if(Object.values(weaponCounts).reduce((sum,count)=>sum+count,0)!==models)throw Error('Each model must have exactly one selected primary weapon');
+ target.weaponCounts={...weaponCounts};
+ delete target.equipment;
+ const updated={...army,instances};
+ if(!validateRosterInstances(updated))throw Error('Invalid weapon configuration');
+ return updated;
+}
+export function setInstanceModelCount(army:ArmySelection,id:string,models:number):ArmySelection{
+ if(!Number.isInteger(models)||models<1)throw Error('Invalid model count');
+ const instances=expandRoster(army).map(x=>({...x}));
+ const target=instances.find(x=>x.id===id);
+ if(!target)throw Error('Unknown squad');
+ const legal=target.unit==='Lokhust Heavy Destroyers'?[1,2,3]:target.unit==='Immortals'||target.unit==='Lychguard'?[5,10]:null;
+ if(!legal||!legal.includes(models))throw Error('Unsupported unit size');
+ target.models=models;
+ delete target.weaponCounts;
+ const updated={...army,instances};
+ if(!validateRosterInstances(updated))throw Error('Invalid model count');
+ return updated;
 }
 export function setInstanceEquipment(army:ArmySelection,id:string,equipment:string):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
@@ -54,6 +83,8 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
+  if(x.models!==undefined&&(!Number.isInteger(x.models)||!(x.unit==='Lokhust Heavy Destroyers'?[1,2,3]:x.unit==='Immortals'||x.unit==='Lychguard'?[5,10]:[]).includes(x.models)))return false;
+  if(x.weaponCounts!==undefined){const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??(x.unit==='Lokhust Heavy Destroyers'?1:5)))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&o.choices.includes(x.equipment!)))return false;
   if(x.enhancement!==undefined&&(!NECRON_CHARACTERS.has(x.unit)||NECRON_EPIC_HEROES.has(x.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(x.enhancement)))return false;
   seen.add(x.id);counts[x.unit]=(counts[x.unit]||0)+1;
