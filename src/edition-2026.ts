@@ -3,6 +3,30 @@ export type ForceDisposition='Take and Hold'|'Disruption'|'Purge the Foe'|'Prior
 export interface Detachment2026 {name:string;disposition:ForceDisposition;dp:1|2|3}
 export const EDITION_2026_SOURCE='https://www.warhammer-community.com/en-gb/articles/fchkklcq/new40k-download-new-xenos-faction-packs-today/';
 export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>={
+ 'Space Marines':[
+ {name:"Fulguris Task Force",disposition:"Disruption",dp:1},
+ {name:"Librarius Conclave",disposition:"Reconnaissance",dp:1},
+ {name:"Subversion Assets",disposition:"Reconnaissance",dp:1},
+ {name:"1st Company Task Force",disposition:"Priority Assets",dp:2},
+ {name:"Anvil Siege Force",disposition:"Take and Hold",dp:2},
+ {name:"Armoured Speartip",disposition:"Take and Hold",dp:3},
+ {name:"Bastion Task Force",disposition:"Take and Hold",dp:2},
+ {name:"Blade of Ultramar",disposition:"Priority Assets",dp:3},
+ {name:"Ceramite Sentinels",disposition:"Take and Hold",dp:3},
+ {name:"Emperor's Shield",disposition:"Priority Assets",dp:2},
+ {name:"Firestorm Assault Force",disposition:"Purge the Foe",dp:2},
+ {name:"Forgefather's Seekers",disposition:"Purge the Foe",dp:2},
+ {name:"Gladius Task Force",disposition:"Priority Assets",dp:3},
+ {name:"Hammer of Avernii",disposition:"Priority Assets",dp:2},
+ {name:"Headhunter Task Force",disposition:"Priority Assets",dp:2},
+ {name:"Ironstorm Spearhead",disposition:"Purge the Foe",dp:2},
+ {name:"Orbital Assault Force",disposition:"Take and Hold",dp:2},
+ {name:"Reclamation Force",disposition:"Take and Hold",dp:2},
+ {name:"Shadowmark Talon",disposition:"Disruption",dp:2},
+ {name:"Spearpoint Task Force",disposition:"Disruption",dp:2},
+ {name:"Stormlance Task Force",disposition:"Disruption",dp:3},
+ {name:"Vanguard Spearhead",disposition:"Reconnaissance",dp:2},
+ ],
  Necrons:[
  {name:'Hand of the Dynasty',disposition:'Take and Hold',dp:1},
  {name:'Skyshroud Spearhead',disposition:'Reconnaissance',dp:1},
