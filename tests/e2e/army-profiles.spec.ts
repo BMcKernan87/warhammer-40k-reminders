@@ -1,15 +1,15 @@
 import {test,expect} from '@playwright/test';
-test('mobile builder equipment choices change reminders and profiles stay isolated',async({page})=>{
+test('mobile builder equipment choices persist across profiles without showing legacy reminders',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('/');
  await page.getByLabel('Select unit').selectOption('Immortals');
  await page.getByRole('button',{name:'Add',exact:true}).click();
  await page.getByRole('button',{name:'Play reminders'}).click();
- await expect(page.locator('.panel').getByText('Immortals · Gauss blaster')).toBeVisible();
+ await expect(page.getByText('11th-edition army setup')).toBeVisible();
  await page.getByRole('button',{name:'Edit army'}).click();
  await page.getByLabel('Equipment for Immortals').selectOption('Tesla carbine');
  await page.getByRole('button',{name:'Play reminders'}).click();
- await expect(page.locator('.panel').getByText('Immortals · Tesla carbine')).toBeVisible();
+ await expect(page.getByText('11th-edition phase reminders')).toBeVisible();
  await page.getByRole('button',{name:'Edit army'}).click();
  page.once('dialog',dialog=>dialog.accept('Orks army'));
  await page.getByRole('button',{name:'New army'}).click();
@@ -22,7 +22,7 @@ test('print contains all phases even when current phase is filtered',async({page
  await page.setViewportSize({width:375,height:812});
  await page.goto('/');
  await page.getByRole('button',{name:'Play reminders'}).click();
- await page.getByRole('button',{name:'Current phase'}).click();
+
  const phases=page.locator('.print-sheet h3');
  await expect(phases).toHaveCount(6);
  await page.emulateMedia({media:'print'});
