@@ -4,10 +4,10 @@ import {generate11thReminders} from '../src/reminders-11th';
 import {DATASHEETS_2026,verifiedUnitSizes2026,rosterCost2026} from '../src/datasheets-2026';
 import {setInstanceEquipment} from '../src/roster-instances';
 describe('official 11e Necron datasheet integration',()=>{
- it('loads Macrocytes as a five-model unit without guessing points',()=>{
+ it('loads Macrocytes as a five-model unit with attributed points',()=>{
   const army=addSelectionUnit(newSelection('Necrons'),'Canoptek Macrocytes');
   expect(verifiedUnitSizes2026(army,'Canoptek Macrocytes')).toEqual([5]);
-  expect(rosterCost2026(army).total).toBeNull();
+  expect(rosterCost2026(army).total).toBe(70);
   expect(generate11thReminders(army).some(x=>x.id==='11e-necron-macrocytes-accelerator')).toBe(true);
  });
  it('filters Geomancer and Nekrosor abilities by actual roster',()=>{
