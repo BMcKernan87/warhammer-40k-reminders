@@ -1,55 +1,150 @@
-import {selectedEquipment} from './equipment';
-import type {ArmySelection} from './catalog';
-import type {Phase} from './engine';
-import {factionSource} from './sources';
-export type ReminderWindow=Phase|'End of opponent turn';
-export const REMINDER_WINDOWS:readonly ReminderWindow[]=['Command','Movement','Shooting','Charge','Fight','End of opponent turn'];
-export interface GeneratedReminder {id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string;source:string;origin:'army'|'detachment'|'unit';units?:string[]}
-export function generateReminders(army:ArmySelection):GeneratedReminder[]{
- const source=factionSource(army).url;
- const result:GeneratedReminder[]=[];
- if(army.faction==='Necrons'){
-  result.push({id:'necron-reanimation',title:'Reanimation Protocols',window:'Command',timing:'end',summary:'At the end of your Command phase, each eligible unit on the battlefield activates Reanimation Protocols and reanimates D3 wounds. Check model return restrictions.',source,origin:'army'});
-  if(army.detachment==='Awakened Dynasty')result.push({id:'awakened-command-protocols',title:'Command Protocols',window:'Shooting',timing:'during',summary:'When a unit attacks, check whether it is being led by a Necron Character for its detachment Hit roll bonus. Also applies to melee attacks.',source,origin:'detachment'});
-  if(army.detachment==='Hypercrypt Legion')result.push({id:'hypercrypt-hyperphasing',title:'Hyperphasing',window:'End of opponent turn',timing:'end',summary:'At the end of the opponent’s turn, eligible units outside Engagement Range can be placed into Strategic Reserves. Limit depends on battle size: Incursion 1, Strike Force 2, Onslaught 3.',source,origin:'detachment'});
-  if(army.detachment==='Canoptek Court')result.push({id:'canoptek-power-matrix',title:'Power Matrix',window:'Shooting',timing:'during',summary:'Check whether the attacking Cryptek or Canoptek unit benefits from the current Power Matrix rule and battlefield control conditions.',source,origin:'detachment'});
- }else if(army.faction==='Space Marines'){
-  result.push({id:'marine-oath',title:'Oath of Moment',window:'Command',timing:'start',summary:'At the start of your Command phase, select an enemy unit as your Oath target. Attacks against it can re-roll Hit rolls; check the additional Wound bonus conditions.',source,origin:'army'});
-  if(army.detachment==='Gladius Task Force')result.push({id:'gladius-doctrines',title:'Combat Doctrines',window:'Command',timing:'during',summary:'Review the available Combat Doctrine selection, its timing, and whether a doctrine was already used this battle.',source,origin:'detachment'});
- }
- const unitRules:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
- 'Technomancer':[{id:'technomancer-heal',title:'Technomancer · repair',window:'Movement',timing:'end',summary:'At the end of your Movement phase, select one friendly Necrons model within 6 inches to regain up to D3 lost wounds; each model can be selected once per turn.'}],
- 'Canoptek Wraiths':[{id:'wraith-form',title:'Canoptek Wraiths · Wraith Form',window:'Movement',timing:'during',summary:'After a Normal move over an enemy unit, you may roll one D6 per Wraith model; each 4+ inflicts a mortal wound on that enemy unit.'}],
- 'Immortals':[{id:'immortals-eradication',title:'Immortals · Implacable Eradication',window:'Shooting',timing:'during',summary:'Re-roll Wound rolls of 1; against enemies within range of an objective marker, you can instead re-roll the Wound roll.'}],
- };
- for(const unit of Object.keys(army.units)){
-  if(army.faction==='Necrons')for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source,origin:'unit',units:[unit]});
- }
- if(army.faction==='Necrons'){
-  const abilities:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
-   'Plasmancer':[{id:'plasmancer-lightning',title:'Living Lightning',window:'Shooting',timing:'during',summary:'In your Shooting phase, choose a visible enemy within 18 inches (subject to Lone Operative restrictions), then roll four D6; each 4+ inflicts one mortal wound.'}],
-   'Chronomancer':[{id:'chronomancer-chronometron',title:'Chronometron',window:'Shooting',timing:'end',summary:'After this model’s unit shoots, if it is outside Engagement Range it can make a Normal move up to 5 inches; that unit cannot declare a charge this turn.'}],
-   'Overlord':[{id:'overlord-my-will',title:'My Will Be Done',window:'Command',timing:'during',summary:'Once per battle round, when an eligible unit with this ability is targeted by a Stratagem, you can reduce that Stratagem’s CP cost by 1.'}],
-   'Imotekh the Stormlord':[{id:'imotekh-command',title:'Imotekh · command abilities',window:'Command',timing:'during',summary:'Check Imotekh’s current datasheet for Command phase CP generation and once-per-battle effects before resolving.'}],
-   'Orikan the Diviner':[{id:'orikan-abilities',title:'Orikan · special abilities',window:'Fight',timing:'during',summary:'Review Orikan’s current invulnerable-save support and once-per-battle transformation conditions.'}],
-  };
-  for(const unit of Object.keys(army.units))for(const rule of abilities[unit]||[])result.push({...rule,source,origin:'unit',units:[unit]});
-  for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
-   const attachmentSource='https://wahapedia.ru/wh40k10ed/factions/necrons/'+encodeURIComponent(leader).replace(/%20/g,'-');
-   const effects:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
-    'Technomancer':[{id:'technomancer-fnp',title:'Rites of Reanimation · Feel No Pain 5+',window:'Shooting',timing:'during',summary:'While the Technomancer leads this unit, its models have Feel No Pain 5+. Apply it when models would lose wounds, including in melee.'}],
-    'Plasmancer':[{id:'plasmancer-critical',title:'Harbinger of Destruction · Critical Hits 5+',window:'Shooting',timing:'during',summary:'While the Plasmancer leads this unit, its models score Critical Hits on unmodified ranged Hit rolls of 5+.'}],
-    'Chronomancer':[{id:'chronomancer-mantle',title:'Timesplinter Mantle · -1 to Hit',window:'Shooting',timing:'during',summary:'While the Chronomancer leads this unit, subtract 1 from Hit rolls for attacks targeting the attached unit, including melee attacks.'}]
-   };
-   for(const effect of effects[leader]||[])result.push({...effect,id:'attached-'+leader+'-'+bodyguard+'-'+effect.id,title:leader+' + '+bodyguard+' · '+effect.title,source:attachmentSource,origin:'unit',units:[leader,bodyguard]});
+import { getFaction } from './catalog';
+import { equipped, type Army, type UnitEntry } from './army';
+import { formation, leadersOf, unitLabel } from './attachments';
+import { rules } from './data/rules';
+import { windows, timings, type Slot, type Rule, type Window } from './data/schema';
+import { profileFor } from './sources';
+import { PHASES } from './engine';
+
+export type Card = {
+  id: string;
+  rule: Rule;
+  slot: Slot;
+  subject: string;
+  instances: string[];
+  usage: string[];
+  interaction?: { effect: string; url: string };
+};
+export type TurnFilter = 'both' | 'your' | 'opponent';
+export type SheetFilter = { phase: 'all' | 'current' | Window; turn: TurnFilter };
+type Subject = Pick<Card, 'subject' | 'instances' | 'usage' | 'interaction'>;
+
+function subjects(army: Army, rule: Rule): Subject[] {
+  const f = getFaction(army.faction),
+    s = rule.scope;
+  const det = f.detachments.find((d) => d.id === army.detachment)!;
+  const profile = (u: UnitEntry) => profileFor(f.family, u.unit);
+  const label = (u: UnitEntry) => unitLabel(army, u);
+  let owners: UnitEntry[];
+  if (rule.appliesTo === 'formations') owners = army.units.filter((u) => leadersOf(army, u.key).length > 0);
+  else if (s.kind === 'unit')
+    owners = army.units.filter((u) => s.unit === u.unit && (!s.gear || equipped(u, profile(u), s.gear)));
+  else if (s.kind === 'enhancement') owners = army.units.filter((u) => u.enhancement === s.enhancement);
+  else {
+    const subject =
+      s.kind === 'core'
+        ? 'Core rule'
+        : s.kind === 'stratagem'
+          ? (s.detachment ? det.name : 'Core Stratagem') + ' · ' + s.cp + ' CP'
+          : s.kind === 'detachment'
+            ? det.name
+            : f.name;
+    return [{ subject, instances: [], usage: [] }];
   }
- }
- for(const unit of Object.keys(army.units)){const choice=selectedEquipment(army,unit);if(choice)result.push({id:'equipment-'+unit+'-'+choice,title:unit+' · '+choice,window:'Shooting',timing:'during',summary:'Check the selected '+choice+' weapon profile, range and weapon abilities when this unit shoots. Other loadouts are not included in this reminder.',source,origin:'unit',units:[unit]});}
- if(army.faction==='Orks')result.push({id:'orks-waaagh',title:'Waaagh!',window:'Command',timing:'start',summary:'Review Waaagh! declaration timing, effects and eligible Orks units in current faction rules.',source,origin:'army'});
- if(army.faction==='Tyranids')result.push({id:'tyranids-shadow',title:'Shadow in the Warp',window:'Command',timing:'during',summary:'Review Shadow in the Warp declaration timing and Battle-shock effects in current faction rules.',source,origin:'army'});
-
- return result;
+  return owners.flatMap((owner) => {
+    if (rule.appliesTo === 'led' && !owner.bodyguard) return [];
+    const members = formation(army, owner),
+      body = members[0];
+    if (
+      rule.leaderKeyword &&
+      !members.slice(1).some((u) => profile(u)?.keywords.includes(rule.leaderKeyword!))
+    )
+      return [];
+    const shared = rule.appliesTo !== 'model';
+    const instances = (shared ? members : [owner]).map((u) => u.key).sort();
+    const subject = shared ? members.map(label).join(' + ') : label(owner);
+    const match = rule.interactions?.find(
+      (i) => body.unit === i.bodyguard && equipped(body, profile(body), i.gear),
+    );
+    const interaction = match ? { effect: match.effect, url: profile(body)!.source.url } : undefined;
+    const quantity =
+      rule.perItem && s.kind === 'unit'
+        ? Object.values(owner.gear)
+            .flat()
+            .filter((id) => id === s.gear).length
+        : 1;
+    return Array.from({ length: quantity }, (_, i) => {
+      const token = rule.perItem ? ['token-' + (i + 1)] : [];
+      return {
+        subject: subject + (quantity > 1 ? ' · token ' + (i + 1) : ''),
+        instances: [...instances, ...token],
+        usage: rule.armyLimit ? [] : [owner.key, ...token],
+        interaction,
+      };
+    });
+  });
 }
-export function remindersForWindow(army:ArmySelection,window:ReminderWindow):GeneratedReminder[]{return generateReminders(army).filter(r=>r.window===window);}
-
-export function groupedReminders(army:ArmySelection):Array<{window:ReminderWindow;reminders:GeneratedReminder[]}>{return REMINDER_WINDOWS.map(window=>({window,reminders:remindersForWindow(army,window)}));}
+export function generateReminders(army: Army): Card[] {
+  const family = getFaction(army.faction).family;
+  const cards: Card[] = [],
+    seen = new Set<string>();
+  for (const rule of rules) {
+    const s = rule.scope;
+    if ('family' in s && s.family && s.family !== family) continue;
+    if ('detachment' in s && s.detachment && s.detachment !== army.detachment) continue;
+    for (const subject of subjects(army, rule))
+      for (const slot of rule.slots) {
+        const id = [
+          rule.id,
+          slot.phase,
+          slot.timing,
+          slot.turn,
+          ...subject.instances,
+          ...(rule.limit && !rule.armyLimit ? subject.usage : []),
+        ].join('/');
+        if (seen.has(id)) continue;
+        seen.add(id);
+        cards.push({ id, rule, slot, ...subject });
+      }
+  }
+  return cards.sort(
+    (a, b) =>
+      windows.indexOf(a.slot.phase) - windows.indexOf(b.slot.phase) ||
+      timings.indexOf(a.slot.timing) - timings.indexOf(b.slot.timing) ||
+      a.rule.title.localeCompare(b.rule.title) ||
+      a.subject.localeCompare(b.subject, undefined, { numeric: true }),
+  );
+}
+export function filterCards(
+  cards: Card[],
+  filter: SheetFilter,
+  current: { phase: Window; turn: 'your' | 'opponent'; round: number },
+): Card[] {
+  const phase = filter.phase === 'current' ? current.phase : filter.phase;
+  const turn = filter.phase === 'current' && filter.turn === 'both' ? current.turn : filter.turn;
+  return cards.filter(
+    ({ slot, rule }) =>
+      (phase === 'all' ||
+        slot.phase === phase ||
+        (slot.phase === 'Any phase' && PHASES.some((p) => p === phase))) &&
+      (turn === 'both' || slot.turn === turn || slot.turn === 'either' || slot.turn === 'neutral') &&
+      !(filter.phase === 'current' && rule.firstRound && current.round !== 1),
+  );
+}
+export function completionKey(
+  armyId: string,
+  card: Card,
+  round: number,
+  perspective: 'your' | 'opponent',
+  activePhase?: Window,
+) {
+  const { rule, slot } = card;
+  const prefix = [armyId, rule.id, ...(rule.limit ? card.usage : card.instances)];
+  if (rule.limit === 'battle') return [...prefix, 'battle'].join(':');
+  if (rule.limit === 'round') return [...prefix, round].join(':');
+  const turn = slot.turn === 'either' ? perspective : slot.turn;
+  if (rule.limit === 'turn') return [...prefix, round, turn].join(':');
+  return [
+    ...prefix,
+    round,
+    turn,
+    slot.phase === 'Any phase' ? (activePhase ?? slot.phase) : slot.phase,
+    slot.timing,
+  ].join(':');
+}
+export const turnLabels: Record<Slot['turn'], string> = {
+  your: 'Your turn',
+  opponent: 'Opponent’s turn',
+  either: 'Either turn',
+  neutral: 'Before either turn',
+};

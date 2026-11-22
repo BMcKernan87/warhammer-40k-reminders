@@ -1,9 +1,26 @@
-import {describe,it,expect} from 'vitest';
-import {validateRuleRecord,validateRuleRegistry} from '../src/rule-registry';
-const rule={id:'test-rule',faction:'Orks',scope:'faction',title:'Test',window:'Command',timing:'start',summary:'A concise trigger.',sourceUrl:'https://wahapedia.ru/wh40k10ed/factions/orks/',verification:'reference'};
-describe('normalized rules registry',()=>{
- it('accepts source-backed structured reminders',()=>expect(validateRuleRecord(rule)).toBe(true));
- it('rejects missing source and unsupported timing',()=>{expect(validateRuleRecord({...rule,sourceUrl:''})).toBe(false);expect(validateRuleRecord({...rule,window:'Unknown'})).toBe(false);});
- it('requires unit and equipment identity for equipment triggers',()=>expect(validateRuleRecord({...rule,scope:'equipment'})).toBe(false));
- it('rejects duplicate rule IDs',()=>expect(validateRuleRegistry([rule,rule])).toBe(false));
+import { test, expect } from 'vitest';
+import { ruleSchema, provenanceSchema } from '../src/data/schema';
+import { validateRules, profileFor } from '../src/sources';
+import { rules } from '../src/data/rules';
+const sample = rules.find((r) => r.id === 'plasmancer-critical')!;
+test('a link alone cannot be marked checked', () => {
+  expect(provenanceSchema.safeParse({ status: 'checked', url: sample.source.url }).success).toBe(false);
+  expect(
+    ruleSchema.safeParse({ ...sample, slots: [{ phase: 'Psychic', timing: 'during', turn: 'your' }] })
+      .success,
+  ).toBe(false);
+  expect(
+    ruleSchema.safeParse({ ...sample, source: { ...sample.source, url: 'http://example.com' } }).success,
+  ).toBe(false);
+  expect(ruleSchema.safeParse({ ...sample, scope: { kind: 'unit', family: 'necrons' } }).success).toBe(false);
+});
+test('cross-validates duplicate IDs and interactions against the Bodyguard profile', () => {
+  expect(() => validateRules([sample, sample], [], [])).toThrow(/Duplicate/);
+  expect(() => validateRules([sample], [], [profileFor('necrons', 'plasmancer')!])).toThrow(/equipment/);
+  const wrong = {
+    ...sample,
+    scope: { kind: 'detachment' as const, family: 'orks', detachment: 'hypercrypt-legion' },
+    interactions: [],
+  };
+  expect(() => validateRules([wrong], [], [])).toThrow(/detachment/);
 });

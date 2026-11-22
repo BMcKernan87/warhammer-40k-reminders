@@ -1,14 +1,8 @@
-import {describe,it,expect} from 'vitest';
-import {readFileSync} from 'node:fs';
-describe('application bootstrap',()=>{
-  it('has a React entry point and persistent battle state',()=>{
-    const app=readFileSync('src/main.tsx','utf8');
-    expect(app).toContain('createRoot(');
-    expect(app).toContain("localStorage.setItem(storageKey");
-    expect(app).toContain('Gain command CP for both players');
-  });
-  it('has a configured Pages base path',()=>{
-    const config=readFileSync('vite.config.ts','utf8');
-    expect(config).toContain("base:'/warhammer-40k-reminders/'");
-  });
+// @vitest-environment node
+import { test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import config from '../vite.config';
+test('builds the deployable entry under the GitHub Pages subpath', () => {
+  expect(config.base).toBe('/warhammer-40k-reminders/');
+  expect(readFileSync('index.html', 'utf8')).toMatch(/src="\/src\/main\.tsx"/);
 });

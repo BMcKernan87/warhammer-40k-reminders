@@ -1,36 +1,63 @@
-import type {ArmySelection} from './catalog';
-/** Current Necron Leader permissions, curated from 10e datasheets. */
-export const NECRON_LEADERS:Record<string,readonly string[]>={
- 'Technomancer':['Canoptek Wraiths','Immortals','Necron Warriors'],
- 'Plasmancer':['Immortals','Necron Warriors'],
- 'Chronomancer':['Immortals','Necron Warriors'],
- 'Overlord':['Immortals','Lychguard','Necron Warriors'],
- 'Imotekh the Stormlord':['Immortals','Lychguard','Necron Warriors'],
- 'Orikan the Diviner':['Immortals','Necron Warriors']
-};
-const CRYPTEKS=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner']);
-const NOBLES=new Set(['Overlord','Imotekh the Stormlord']);
-export function eligibleBodyguards(army:ArmySelection,leader:string):string[]{
- if(army.faction!=='Necrons')return [];
- return (NECRON_LEADERS[leader]||[]).filter(unit=>(army.units[unit]||0)>0);
+import type { Army, UnitEntry } from './army';
+import { getFaction } from './catalog';
+import { profileFor } from './sources';
+
+export function unitLabel(army: Army, entry: UnitEntry) {
+  const name = getFaction(army.faction).units.find((u) => u.id === entry.unit)?.name || entry.unit;
+  const copies = army.units.filter((u) => u.unit === entry.unit);
+  return copies.length > 1 ? name + ' #' + (copies.findIndex((u) => u.key === entry.key) + 1) : name;
 }
-export function attachmentError(army:ArmySelection,leader:string,bodyguard:string):string|null{
- if(army.faction!=='Necrons'||!NECRON_LEADERS[leader]?.includes(bodyguard))return 'This Leader cannot join that unit';
- if(!(army.units[leader]>0)||!(army.units[bodyguard]>0))return 'Both units must be in the roster';
- const attachments=army.attachments||{};
- const leaders=Object.entries(attachments).filter(([l,b])=>l!==leader&&b===bodyguard).map(([l])=>l);
- if(leaders.length>=2)return 'A Bodyguard unit cannot have more than two Leaders';
- if(leaders.length===1&&!(CRYPTEKS.has(leader)&&NOBLES.has(leaders[0])||NOBLES.has(leader)&&CRYPTEKS.has(leaders[0])))return 'A second Leader must be a compatible Cryptek and Noble pairing';
- return null;
+export function leadersOf(army: Army, bodyguardKey: string) {
+  return army.units.filter((u) => u.bodyguard === bodyguardKey);
 }
-export function attachLeader(army:ArmySelection,leader:string,bodyguard:string|null):ArmySelection{
- if(bodyguard===null){const attachments={...army.attachments};delete attachments[leader];return {...army,attachments};}
- const error=attachmentError(army,leader,bodyguard);if(error)throw Error(error);
- return {...army,attachments:{...army.attachments,[leader]:bodyguard}};
+export function formation(army: Army, entry: UnitEntry) {
+  const body = army.units.find((u) => u.key === entry.bodyguard) ?? entry;
+  return [body, ...leadersOf(army, body.key)];
 }
-export function validateAttachments(army:ArmySelection):boolean{
- if(!army.attachments)return true;
- if(typeof army.attachments!=='object'||Array.isArray(army.attachments))return false;
- let candidate:ArmySelection={...army,attachments:{}};
- try{for(const [leader,bodyguard] of Object.entries(army.attachments)){candidate=attachLeader(candidate,leader,bodyguard);}return true;}catch{return false;}
+export function attachmentError(army: Army, leader: UnitEntry, body: UnitEntry): string | null {
+  const family = getFaction(army.faction).family,
+    p = profileFor(family, leader.unit);
+  if (leader.key === body.key || body.bodyguard || !p?.leadersFor.includes(body.unit))
+    return 'This Leader cannot join that Bodyguard.';
+  if (leadersOf(army, leader.key).length) return 'A Bodyguard cannot also be attached as a Leader.';
+  const others = leadersOf(army, body.key).filter((u) => u.key !== leader.key);
+  if (!others.length) return null;
+  if (others.length !== 1) return 'An attached unit can have at most two Leaders.';
+  const other = profileFor(family, others[0].unit);
+  if (
+    other &&
+    (p.secondWith.some((k) => other.keywords.includes(k)) ||
+      other.secondWith.some((k) => p.keywords.includes(k)))
+  )
+    return null;
+  const exception = profileFor(family, body.unit)?.secondLeader;
+  if (
+    exception &&
+    body.models === exception.models &&
+    [p, other].some((leader) => leader?.keywords.includes(exception.keyword))
+  )
+    return null;
+  return 'These Leaders cannot share this Bodyguard.';
+}
+export function eligibleBodyguards(army: Army, leader: UnitEntry) {
+  return army.units.filter((u) => !attachmentError(army, leader, u));
+}
+export function attachLeader(army: Army, leaderKey: string, bodyKey: string | null): Army {
+  const leader = army.units.find((u) => u.key === leaderKey);
+  if (!leader) throw Error('Leader is missing from this roster.');
+  if (bodyKey !== null) {
+    const body = army.units.find((u) => u.key === bodyKey);
+    if (!body) throw Error('Bodyguard is missing from this roster.');
+    const error = attachmentError(army, leader, body);
+    if (error) throw Error(error);
+  }
+  return { ...army, units: army.units.map((u) => (u.key === leaderKey ? { ...u, bodyguard: bodyKey } : u)) };
+}
+export function removeUnit(army: Army, key: string): Army {
+  return {
+    ...army,
+    units: army.units
+      .filter((u) => u.key !== key)
+      .map((u) => (u.bodyguard === key ? { ...u, bodyguard: null } : u)),
+  };
 }
