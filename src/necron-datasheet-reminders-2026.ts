@@ -15,30 +15,6 @@ export const NECRON_DATASHEET_REMINDERS_2026:readonly GeneratedReminder[]=[
     ]
   },
   {
-    "id": "11e-necron-macrocytes-nanoscarab",
-    "title": "Canoptek Macrocytes · Nanoscarab Projector",
-    "window": "Command",
-    "timing": "during",
-    "summary": "Once per battle round, when a friendly NECRONS unit within 3 inches activates Reanimation Protocols, a model equipped with a nanoscarab projector can make that unit reanimate 1 additional wound.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Canoptek Macrocytes"
-    ]
-  },
-  {
-    "id": "11e-necron-tomb-crawlers-retinue",
-    "title": "Canoptek Tomb Crawlers · Canoptek Retinue",
-    "window": "Command",
-    "timing": "start",
-    "summary": "At Declare Battle Formations, this unit may join a Bodyguard led by a CRYPTEK; no more than one Tomb Crawlers unit and no Cryptothralls in the same Bodyguard.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "Canoptek Tomb Crawlers"
-    ]
-  },
-  {
     "id": "11e-necron-tomb-crawlers-sentinels",
     "title": "Canoptek Tomb Crawlers · Weapon Sentinels",
     "window": "Shooting",
@@ -72,18 +48,6 @@ export const NECRON_DATASHEET_REMINDERS_2026:readonly GeneratedReminder[]=[
     "origin": "unit",
     "units": [
       "Geomancer"
-    ]
-  },
-  {
-    "id": "11e-necron-deceiver-illusion",
-    "title": "C'tan Shard of the Deceiver · Grand Illusion",
-    "window": "Command",
-    "timing": "start",
-    "summary": "After both players deploy, redeploy up to three friendly NECRONS units; they may enter Strategic Reserves regardless of the existing number in Reserves.",
-    "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-    "origin": "unit",
-    "units": [
-      "C’tan Shard of the Deceiver"
     ]
   },
   {
