@@ -1,4 +1,5 @@
 import type {ArmySelection} from './catalog';
+import {expandRoster} from './roster-instances';
 import type {GeneratedReminder} from './generated-reminders';
 const faction='https://wahapedia.ru/wh40k10ed/factions/necrons/';
 type Entry=Omit<GeneratedReminder,'source'|'origin'> & {unit?:string;detachment?:string;sourceUnit?:string};
@@ -18,10 +19,20 @@ const rules:Entry[]=[
 ];
 export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
- return rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!])).map(r=>({
- id:r.id,title:r.title,window:r.window,timing:r.timing,summary:r.summary,
- source:r.sourceUnit?faction+r.sourceUnit.replaceAll(' ','-'):faction,
- origin:r.detachment?'detachment':r.unit?'unit':'army',
- units:r.unit?[r.unit,...(r.id.startsWith('attached-')?[army.attachments![r.unit]!]:[])]:undefined
- }));
+ const instances=army.instances?expandRoster(army):null;
+ return rules.filter(r=>(!r.unit||!!army.units[r.unit])&&(!r.detachment||army.detachment===r.detachment)&&(!r.id.startsWith('attached-')||!!army.attachments?.[r.unit!]||!!instances?.some(x=>x.unit===r.unit&&x.attachedTo))).flatMap(r=>{
+  if(r.id.startsWith('attached-')&&instances){
+   return instances.filter(x=>x.unit===r.unit&&x.attachedTo).map(x=>({
+    id:r.id+'-'+x.id,title:r.title+' · '+x.id+' → '+x.attachedTo,
+    window:r.window,timing:r.timing,summary:r.summary,
+    source:r.sourceUnit?faction+r.sourceUnit.replaceAll(' ','-'):faction,
+    origin:'unit' as const,units:[x.id,x.attachedTo!]
+   }));
+  }
+  return [{id:r.id,title:r.title,window:r.window,timing:r.timing,summary:r.summary,
+   source:r.sourceUnit?faction+r.sourceUnit.replaceAll(' ','-'):faction,
+   origin:(r.detachment?'detachment':r.unit?'unit':'army') as GeneratedReminder['origin'],
+   units:r.unit?[r.unit,...(r.id.startsWith('attached-')&&army.attachments?.[r.unit]?[army.attachments[r.unit]]:[])]:undefined
+  }];
+ });
 }
