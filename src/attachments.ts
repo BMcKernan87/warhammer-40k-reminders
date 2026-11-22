@@ -81,3 +81,16 @@ export function validateAttachments(army:ArmySelection):boolean{
  let candidate:ArmySelection={...army,attachments:{}};
  try{for(const [leader,bodyguard] of Object.entries(army.attachments)){candidate=attachLeader(candidate,leader,bodyguard);}return true;}catch{return false;}
 }
+
+/** Assign an unattached Necron character only when there is exactly one legal destination.
+ * Multiple possible bodyguards are left for the player to choose. */
+export function autoAttachUnambiguousNecrons(army:ArmySelection):ArmySelection{
+ if(army.faction!=='Necrons'||army.instances)return army;
+ let result=army;
+ for(const leader of Object.keys(NECRON_LEADERS)){
+  if((result.units[leader]||0)!==1||result.attachments?.[leader])continue;
+  const candidates=eligibleBodyguards(result,leader).filter(body=>attachmentError(result,leader,body)===null);
+  if(candidates.length===1)result=attachLeader(result,leader,candidates[0]);
+ }
+ return result;
+}
