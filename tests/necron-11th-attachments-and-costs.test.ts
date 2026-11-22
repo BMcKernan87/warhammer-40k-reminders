@@ -4,10 +4,10 @@ import {attachLeader} from '../src/attachments';
 import {generate11thReminders} from '../src/reminders-11th';
 import {rosterCost2026} from '../src/datasheets-2026';
 describe('11e Necron verified-cost and attachment reminders',()=>{
- it('calculates sourced units while requiring an explicit Warriors squad size',()=>{
+ it('calculates sourced units while using minimum Warriors squad size',()=>{
   const army=addSelectionUnit(addSelectionUnit(newSelection('Necrons'),'Canoptek Macrocytes'),'Canoptek Tomb Crawlers');
   expect(rosterCost2026(army).total).toBe(130);
-  expect(rosterCost2026(addSelectionUnit(army,'Necron Warriors')).total).toBeNull();
+  expect(rosterCost2026(addSelectionUnit(army,'Necron Warriors')).total).toBe(215);
  });
  it('shows Reanimation Protocols only for a Necron roster',()=>{
   expect(generate11thReminders(newSelection('Necrons')).some(x=>x.id==='11e-necron-reanimation')).toBe(false);
