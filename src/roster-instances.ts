@@ -1,3 +1,5 @@
+import {EQUIPMENT_OPTIONS} from './equipment';
+import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS} from './attachments';
 export interface RosterInstance {id:string;unit:string;equipment?:string;enhancement?:string;attachedTo?:string}
@@ -15,13 +17,19 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
 export function setInstanceEquipment(army:ArmySelection,id:string,equipment:string):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
  if(!target)throw Error('Unknown squad');
+ if(!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===target.unit&&o.choices.includes(equipment)))throw Error('Invalid equipment for this squad');
  target.equipment=equipment;
  return {...army,instances};
 }
 export function setInstanceEnhancement(army:ArmySelection,id:string,enhancement:string|null):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));const target=instances.find(x=>x.id===id);
  if(!target)throw Error('Unknown Character');
- if(enhancement===null)delete target.enhancement;else target.enhancement=enhancement;
+ if(enhancement===null)delete target.enhancement;else{
+  if(!NECRON_CHARACTERS.has(target.unit)||NECRON_EPIC_HEROES.has(target.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(enhancement))throw Error('Ineligible Enhancement bearer or detachment');
+  if(instances.some(x=>x.id!==id&&x.enhancement===enhancement)||Object.entries(army.enhancements||{}).some(([unit,value])=>unit!==target.unit&&value===enhancement))throw Error('Enhancement already assigned');
+  if(instances.filter(x=>x.enhancement).length>=3&&!target.enhancement)throw Error('Maximum three Enhancements');
+  target.enhancement=enhancement;
+ }
  return {...army,instances};
 }
 export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodyguardId:string|null):ArmySelection{
@@ -46,11 +54,13 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
-  if(x.equipment!==undefined&&typeof x.equipment!=='string')return false;
-  if(x.enhancement!==undefined&&typeof x.enhancement!=='string')return false;
+  if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&o.choices.includes(x.equipment!)))return false;
+  if(x.enhancement!==undefined&&(!NECRON_CHARACTERS.has(x.unit)||NECRON_EPIC_HEROES.has(x.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(x.enhancement)))return false;
   seen.add(x.id);counts[x.unit]=(counts[x.unit]||0)+1;
  }
  if(Object.entries(army.units).some(([unit,count])=>counts[unit]!==count))return false;
+ const chosen=army.instances.map(x=>x.enhancement).filter((x):x is string=>!!x);
+ if(chosen.length>3||new Set(chosen).size!==chosen.length)return false;
  for(const x of army.instances){
   if(x.attachedTo===undefined)continue;
   const body=army.instances.find(b=>b.id===x.attachedTo);
