@@ -23,7 +23,7 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  }
  const unitRules:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
 
- 'Canoptek Wraiths':[{id:'wraith-form',title:'Canoptek Wraiths · Wraith Form',window:'Movement',timing:'during',summary:'After a Normal move over an enemy unit, you may roll one D6 per Wraith model; each 4+ inflicts a mortal wound on that enemy unit.'}],
+ 'Canoptek Wraiths':[{id:'wraith-form',title:'Canoptek Wraiths · Wraith Form',window:'Movement',timing:'during',summary:'Each time this unit ends a Normal move, select one enemy unit it moved over during that move; roll one D6 per model in this unit, inflicting 1 mortal wound for each 4+.'}],
  'Immortals':[{id:'immortals-eradication',title:'Immortals · Implacable Eradication',window:'Shooting',timing:'during',summary:'Re-roll Wound rolls of 1; against enemies within range of an objective marker, you can instead re-roll the Wound roll.'}],
  };
  for(const item of army.instances||Object.keys(army.units).map(unit=>({id:unit,unit}))){
