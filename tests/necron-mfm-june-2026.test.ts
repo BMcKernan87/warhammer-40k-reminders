@@ -10,7 +10,7 @@ describe('historical 11th edition Necron MFM snapshot',()=>{
  it('retains variable squad sizes and later-copy tiers',()=>{
   const wraiths=NECRON_MFM_JUNE_2026.find(x=>x.unit==='Canoptek Wraiths');
   expect(wraiths?.pointsBySize).toEqual({'3':95,'6':220});
-  expect(wraiths?.laterCopyPointsBySize).toEqual({'2':{'3':115,'6':240}});
+  expect(wraiths&&'laterCopyPointsBySize' in wraiths?wraiths.laterCopyPointsBySize:undefined).toEqual({'2':{'3':115,'6':240}});
   const immortals=NECRON_MFM_JUNE_2026.find(x=>x.unit==='Immortals');
   expect(immortals?.pointsBySize).toEqual({'5':70,'10':140});
  });
