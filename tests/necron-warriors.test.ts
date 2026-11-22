@@ -13,10 +13,14 @@ describe('Necron Warrior squad configuration',()=>{
   expect(reminders.find(r=>r.id==='equipment-Necron Warriors#1-Gauss flayer')?.summary).toContain('24″');
   expect(reminders.find(r=>r.id==='equipment-Necron Warriors#2-Gauss reaper')?.summary).toContain('12″');
  });
- it('rejects illegal squad sizes and unsupported mixed-weapon configurations',()=>{
+ it('rejects illegal squad sizes and permits legal mixed-weapon configurations',()=>{
   let a=addSelectionUnit(newSelection(),'Necron Warriors');
   a={...a,instances:expandRoster(a)};
   expect(()=>setInstanceModelCount(a,'Necron Warriors#1',15)).toThrow();
-  expect(()=>setInstanceWeaponCounts(a,'Necron Warriors#1',{'Gauss flayer':5,'Gauss reaper':5})).toThrow();
+  a=setInstanceWeaponCounts(a,'Necron Warriors#1',{'Gauss flayer':5,'Gauss reaper':5});
+  expect(validateSelection(a)).toBe(true);
+  const reminders=generateReminders(a);
+  expect(reminders.find(r=>r.id==='equipment-Necron Warriors#1-Gauss flayer')?.title).toContain('5 ×');
+  expect(reminders.find(r=>r.id==='equipment-Necron Warriors#1-Gauss reaper')?.summary).toContain('S4');
  });
 });
