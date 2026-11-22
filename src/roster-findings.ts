@@ -6,7 +6,7 @@ import {isModeledLeader} from './leader-eligibility';
 export interface RosterFinding {code:string;severity:'error'|'warning'|'info';message:string;unit?:string}
 /** Auditable checks only. This is not a substitute for current official points and mission rules. */
 export function rosterFindings(army:ArmySelection):RosterFinding[]{
- const findings:RosterFinding[]=[];
+ const findings:RosterFinding[]=[{code:'edition-mismatch',severity:'error',message:'This roster builder currently models Warhammer 40,000 10th-edition detachments and abilities. The current 2026 edition uses revised faction packs, Detachment Points and Force Dispositions. Do not treat this roster or reminder sheet as current-edition legal.'}];
  const instances=expandRoster(army);
  const byUnit=new Map<string,typeof instances>();
  for(const instance of instances)byUnit.set(instance.unit,[...(byUnit.get(instance.unit)||[]),instance]);
@@ -20,7 +20,7 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
  const attached=instances.filter(x=>x.attachedTo);
  if(attached.length&&army.faction!=='Necrons')findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
  if(CATALOG[army.faction].detachments.some(x=>x.includes('(unverified)')))findings.push({code:'detachment-unverified',severity:'warning',message:'This faction’s detachment catalog is not yet verified.'});
- findings.push({code:'points-unavailable',severity:'info',message:'Points have not been loaded from a versioned official Munitorum Field Manual. Total points and the 2,000-point limit cannot yet be validated.'});
+ findings.push({code:'points-unavailable',severity:'info',message:'Current-edition unit, upgrade and Detachment Points have not been loaded from the official online Munitorum Field Manual. Total points and legality cannot yet be validated.'});
  return findings;
 }
 const battleline:Record<string,readonly string[]>={
