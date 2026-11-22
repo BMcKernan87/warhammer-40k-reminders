@@ -5,7 +5,7 @@ import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import type {ArmySelection} from './catalog';
-import {NECRON_LEADERS} from './attachments';
+import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string;resurrectionOrb?:boolean}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances;
@@ -97,8 +97,6 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
  if(!validateRosterInstances(updated))throw Error('Incompatible Leader attachment or duplicate assignment');
  return updated;
 }
-const crypteks=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner']);
-const nobles=new Set(['Overlord','Imotekh the Stormlord']);
 export function validateRosterInstances(army:ArmySelection):boolean{
  if(!army.instances)return true;
  if(!Array.isArray(army.instances))return false;
@@ -123,7 +121,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(!body||!leaderBodyguards(army.faction,x.unit).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
   if(leaders.length>2)return false;
-  if(leaders.length===2&&(army.faction!=='Necrons'||!((crypteks.has(leaders[0].unit)&&nobles.has(leaders[1].unit))||(nobles.has(leaders[0].unit)&&crypteks.has(leaders[1].unit)))))return false;
+  if(leaders.length===2&&(army.faction!=='Necrons'||new Set(leaders.map(l=>necronAttachmentRole(l.unit))).size!==2))return false;
  }
  return true;
 }
