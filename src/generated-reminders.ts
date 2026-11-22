@@ -1,3 +1,4 @@
+import {necronStratagemReminders} from './necron-stratagems';
 import {verifiedNecronReminders} from './verified-necrons';
 import {selectedEquipment} from './equipment';
 import type {ArmySelection} from './catalog';
@@ -9,7 +10,7 @@ export interface GeneratedReminder {id:string;title:string;window:ReminderWindow
 export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  const source=factionSource(army).url;
  const result:GeneratedReminder[]=[];
- if(army.faction==='Necrons')result.push(...verifiedNecronReminders(army));
+ if(army.faction==='Necrons'){result.push(...verifiedNecronReminders(army));result.push(...necronStratagemReminders(army));}
  if(army.faction==='Necrons'){
 
   if(army.detachment==='Awakened Dynasty'&&Object.keys(army.attachments||{}).length>0)result.push({id:'awakened-command-protocols',title:'Command Protocols · +1 to Hit',window:'Shooting',timing:'during',summary:'For each attached unit led by a NECRONS CHARACTER, add 1 to Hit rolls whenever its models attack, including during the Fight phase. Attached units: '+Object.entries(army.attachments||{}).map(([leader,bodyguard])=>leader+' + '+bodyguard).join('; ')+'.',source,origin:'detachment'});
