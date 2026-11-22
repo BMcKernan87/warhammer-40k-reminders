@@ -16,6 +16,17 @@ const CORE_11TH:readonly GeneratedReminder[]=[
 ];
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
+ if(_army.faction==='Necrons'&&(_army.detachments2026||[]).includes('Hand of the Dynasty')){
+  const source='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
+  const warriors=(_army.units['Necron Warriors']||0)>0;
+  const immortals=(_army.units.Immortals||0)>0;
+  if(warriors||immortals){
+   result.push({id:'11e-necron-hod-hypermotility',title:'Hypermotility Protocols',window:'Movement',timing:'during',summary:'Selected Necron Warriors and Immortals gain Assault on ranged attacks and can start an action after advancing.',source,origin:'detachment',units:['Necron Warriors','Immortals'].filter(u=>(_army.units[u]||0)>0)});
+   result.push({id:'11e-necron-hod-will',title:'Will of the Conqueror · 1CP',window:'Movement',timing:'end',summary:'At the end of your Movement phase, select an eligible Necron Warriors or Immortals unit and secure one objective it controls.',source,origin:'detachment',units:['Necron Warriors','Immortals'].filter(u=>(_army.units[u]||0)>0)});
+   result.push({id:'11e-necron-hod-nanosaturation',title:'Nanosaturation · 1CP',window:'Shooting',timing:'during',summary:'In your opponent’s Shooting phase, after an enemy unit has shot at your Necron Warriors or Immortals, that unit may snap shoot at the attacker.',source,origin:'detachment',units:['Necron Warriors','Immortals'].filter(u=>(_army.units[u]||0)>0)});
+  }
+  if(immortals)result.push({id:'11e-necron-hod-dominance',title:'Dominance Protocols · 1CP',window:'Command',timing:'during',summary:'Select a friendly Immortals unit in your Command phase; it gains +1 OC until the end of the turn.',source,origin:'detachment',units:['Immortals']});
+ }
  if(_army.faction==='Orks'&&Object.keys(_army.units).length){
   const source='https://www.warhammer-community.com/en-gb/articles/ckwgwgyx/new-codex-orks-army-rules-to-get-you-riled-up/';
   result.push({id:'11e-orks-war-cry',title:'Waaagh! · War Cry (once per battle)',window:'Command',timing:'start',summary:'At the start of your Command phase, you may use War Cry once per battle. Friendly ORKS units with Waaagh! become riled up until the end of the next turn.',source,origin:'army'});
