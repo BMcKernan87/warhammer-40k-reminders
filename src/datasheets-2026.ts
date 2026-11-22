@@ -13,7 +13,7 @@ export const DATASHEETS_2026:readonly Datasheet2026[]=[
  {"faction":"Necrons","unit":"C’tan Shard of the Deceiver","profile":{"move":"8\"","toughness":11,"save":"3+","wounds":16,"leadership":"6+","objectiveControl":4},"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","sizes":[1],"verified":"sizes"},
  {"faction":"Necrons","unit":"Transcendent C’tan","profile":{"move":"8\"","toughness":11,"save":"3+","wounds":16,"leadership":"6+","objectiveControl":4},"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","sizes":[1],"verified":"sizes"},
  {"faction":"Necrons","unit":"Nekrosor Ammentar","profile":{"move":"10\"","toughness":8,"save":"3+","wounds":9,"leadership":"6+","objectiveControl":3},"source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","sizes":[1],"verified":"sizes"},
- {"faction":"Necrons","unit":"Seraptek Heavy Construct","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","sizes":[1],"verified":"sizes"}
+ {"faction":"Necrons","unit":"Seraptek Heavy Construct","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","sizes":[1],"pointsBySize":{1:540},"pointsSource":"https://tactical40k.com/codex/necrons","verified":"sizes-and-points"}
 ];
 export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string}[]}
 export function rosterCost2026(army:ArmySelection):RosterCost2026{
