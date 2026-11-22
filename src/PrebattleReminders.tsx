@@ -8,7 +8,7 @@ export function PrebattleReminders({army,battle,completed,onComplete}:Props){
  if(!reminders.length)return null;
  return <section className="panel" aria-label="Pre-battle reminders">
   <h2>Pre-battle · Resolve before round one</h2>
-  <p className="muted">After deployment, resolve applicable pre-battle abilities before beginning your first Command phase. Scout permissions and movement distances must be confirmed for each attached unit; this checklist does not certify movement legality.</p>
+  <p className="muted">After deployment, resolve applicable pre-battle abilities before beginning your first Command phase. Only roster-verified Scout grants are listed. Attached units with unverified Scout permissions are omitted; this checklist does not certify movement geometry.</p>
   <ul>{reminders.map(r=><li key={r.id}><strong>{r.title}</strong><p>{r.summary}</p>
     <button className="secondary" type="button" disabled={completed.includes('prebattle:'+r.id)} onClick={()=>onComplete('prebattle:'+r.id)}>{completed.includes('prebattle:'+r.id)?'Resolved':'Mark resolved / not applicable'}</button>
     <a href={r.source} target="_blank" rel="noreferrer">Rule source</a>
