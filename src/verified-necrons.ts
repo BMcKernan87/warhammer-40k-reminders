@@ -28,6 +28,10 @@ export function verifiedNecronReminders(army:ArmySelection):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
  const instances=army.instances?expandRoster(army):null;
  const contextual:GeneratedReminder[]=[];
+ for(const overlord of instances?.filter(x=>x.unit==='Overlord'&&x.resurrectionOrb)||[]){
+  contextual.push({id:'overlord-resurrection-orb-'+overlord.id,title:'Overlord · Resurrection Orb · '+overlord.id,window:'Command',timing:'during',summary:'This Overlord has a Resurrection Orb equipped. Once per battle, when its eligible unit activates Reanimation Protocols, check the current Resurrection Orb rule and resolve its additional reanimation effect. Track that this Orb has been used; do not treat it as a separate Reanimation Protocols activation. '+(overlord.attachedTo?'Attached unit: '+overlord.attachedTo+'.':'This Overlord is not currently assigned to a Bodyguard.'),source:faction+'Overlord',origin:'unit',units:[overlord.id,...(overlord.attachedTo?[overlord.attachedTo]:[])]});
+ }
+
  if(army.detachment==='Awakened Dynasty'&&army.units['Necron Warriors']){
   const squads=instances?instances.filter(x=>x.unit==='Necron Warriors').map(x=>x.id):['Necron Warriors'];
   for(const squad of squads){
