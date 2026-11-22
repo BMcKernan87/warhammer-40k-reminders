@@ -1,7 +1,7 @@
 import type {ArmySelection} from './catalog';
 export interface EquipmentOption {unit:string;choices:readonly string[];defaultChoice:string}
 export const EQUIPMENT_OPTIONS:Partial<Record<ArmySelection['faction'],readonly EquipmentOption[]>>={
- Necrons:[{unit:'Immortals',choices:['Gauss blaster','Tesla carbine'],defaultChoice:'Gauss blaster'}],
+ Necrons:[{unit:'Immortals',choices:['Gauss blaster','Tesla carbine'],defaultChoice:'Gauss blaster'},{unit:'Lokhust Heavy Destroyers',choices:['Gauss destructor','Enmitic exterminator'],defaultChoice:'Gauss destructor'}],
  Orks:[{unit:'Boyz',choices:['Slugga and choppa','Shoota'],defaultChoice:'Slugga and choppa'}],
  Tyranids:[{unit:'Termagants',choices:['Fleshborer','Devourer','Spinefists'],defaultChoice:'Fleshborer'}]
 };
