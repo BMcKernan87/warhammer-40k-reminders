@@ -1,3 +1,4 @@
+import {validateAttachments} from './attachments';
 import {EQUIPMENT_OPTIONS} from './equipment';
 export type Faction='Necrons'|'Space Marines'|'Orks'|'Tyranids'|'Adepta Sororitas'|'Adeptus Custodes'|'Adeptus Mechanicus'|'Aeldari'|'Astra Militarum'|'Black Templars'|'Blood Angels'|'Chaos Daemons'|'Chaos Knights'|'Chaos Space Marines'|'Dark Angels'|'Death Guard'|'Drukhari'|'Emperor’s Children'|'Genestealer Cults'|'Grey Knights'|'Imperial Agents'|'Imperial Knights'|'Leagues of Votann'|'Space Wolves'|'T’au Empire'|'Thousand Sons'|'World Eaters';
 export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonly string[];enhancements:readonly string[]}> = {
@@ -37,14 +38,14 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>}
+export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>}
 export function newSelection(faction:Faction='Necrons'):ArmySelection{return {faction,detachment:CATALOG[faction].detachments[0],units:{}}}
 export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelection{
  if(!CATALOG[s.faction].units.includes(name)||!Number.isInteger(count)||count<1)throw Error('Invalid unit selection');
  return {...s,units:{...s.units,[name]:(s.units[name]||0)+count}};
 }
 export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
- const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];return {...s,units,equipment};
+ const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];const attachments=Object.fromEntries(Object.entries(s.attachments||{}).filter(([leader,bodyguard])=>leader!==name&&bodyguard!==name));return {...s,units,equipment,attachments};
 }
 export function validateSelection(x:unknown):x is ArmySelection{
  if(!x||typeof x!=='object')return false;
