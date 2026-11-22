@@ -48,6 +48,7 @@ export function setInstanceEquipment(army:ArmySelection,id:string,equipment:stri
  if(!target)throw Error('Unknown squad');
  if(!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===target.unit&&o.choices.includes(equipment)))throw Error('Invalid equipment for this squad');
  target.equipment=equipment;
+ delete target.weaponCounts;
  return {...army,instances};
 }
 export function setInstanceEnhancement(army:ArmySelection,id:string,enhancement:string|null):ArmySelection{
@@ -84,7 +85,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(x.unit==='Lokhust Heavy Destroyers'?[1,2,3]:x.unit==='Immortals'||x.unit==='Lychguard'?[5,10]:[]).includes(x.models)))return false;
-  if(x.weaponCounts!==undefined){const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??(x.unit==='Lokhust Heavy Destroyers'?1:5)))return false;}
+  if(x.weaponCounts!==undefined){if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??(x.unit==='Lokhust Heavy Destroyers'?1:5)))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&o.choices.includes(x.equipment!)))return false;
   if(x.enhancement!==undefined&&(!NECRON_CHARACTERS.has(x.unit)||NECRON_EPIC_HEROES.has(x.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(x.enhancement)))return false;
   seen.add(x.id);counts[x.unit]=(counts[x.unit]||0)+1;
