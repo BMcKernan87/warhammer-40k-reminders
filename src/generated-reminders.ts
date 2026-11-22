@@ -1,3 +1,4 @@
+import {selectedEquipment} from './equipment';
 import type {ArmySelection} from './catalog';
 import type {Phase} from './engine';
 import {factionSource} from './sources';
@@ -24,6 +25,7 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  for(const unit of Object.keys(army.units)){
   if(army.faction==='Necrons')for(const rule of unitRules[unit]||[])result.push({...rule,id:rule.id,source,origin:'unit',units:[unit]});
  }
+ for(const unit of Object.keys(army.units)){const choice=selectedEquipment(army,unit);if(choice)result.push({id:'equipment-'+unit+'-'+choice,title:unit+' · '+choice,window:'Shooting',timing:'during',summary:'Check the selected '+choice+' weapon profile, range and weapon abilities when this unit shoots. Other loadouts are not included in this reminder.',source,origin:'unit',units:[unit]});}
  if(army.faction==='Orks')result.push({id:'orks-waaagh',title:'Waaagh!',window:'Command',timing:'start',summary:'Review Waaagh! declaration timing, effects and eligible Orks units in current faction rules.',source,origin:'army'});
  if(army.faction==='Tyranids')result.push({id:'tyranids-shadow',title:'Shadow in the Warp',window:'Command',timing:'during',summary:'Review Shadow in the Warp declaration timing and Battle-shock effects in current faction rules.',source,origin:'army'});
 
