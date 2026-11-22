@@ -50,7 +50,7 @@ export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelect
  return {...s,units:{...s.units,[name]:(s.units[name]||0)+count},...(instances?{instances}:{})};
 }
 export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
- const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];const attachments=Object.fromEntries(Object.entries(s.attachments||{}).filter(([leader,bodyguard])=>leader!==name&&bodyguard!==name));const enhancements={...s.enhancements};delete enhancements[name];const removedIds=new Set(expandRoster(s).filter(x=>x.unit===name).map(x=>x.id));const instances=s.instances?.filter(x=>x.unit!==name).map(x=>x.attachedTo&&removedIds.has(x.attachedTo)?{...x,attachedTo:undefined}:x);return {...s,units,equipment,attachments,enhancements,...(instances?{instances}:{})};
+ const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];const attachments=Object.fromEntries(Object.entries(s.attachments||{}).filter(([leader,bodyguard])=>leader!==name&&bodyguard!==name));const enhancements={...s.enhancements};delete enhancements[name];const removedIds=new Set(expandRoster(s).filter(x=>x.unit===name).map(x=>x.id));const instances=s.instances?.filter(x=>x.unit!==name).map(x=>x.attachedTo&&removedIds.has(x.attachedTo)?{...x,attachedTo:undefined}:x);const upgrades2026=Object.fromEntries(Object.entries(s.upgrades2026||{}).filter(([key])=>key!==name&&!removedIds.has(key)));return {...s,units,equipment,attachments,enhancements,upgrades2026,...(instances?{instances}:{})};
 }
 export function validateSelection(x:unknown):x is ArmySelection{
  if(!x||typeof x!=='object')return false;
