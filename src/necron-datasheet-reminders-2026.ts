@@ -55,7 +55,7 @@ export const NECRON_DATASHEET_REMINDERS_2026:readonly GeneratedReminder[]=[
     "title": "Transcendent C'tan · Transdimensional Displacement",
     "window": "Movement",
     "timing": "during",
-    "summary": "When this model is selected to Advance, you may remove and set it up anywhere more than 9 inches horizontally from all enemy units.",
+    "summary": "When this model is selected to Advance, you may remove and set it up anywhere more than 8 inches horizontally from all enemy units.",
     "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
     "origin": "unit",
     "units": [
