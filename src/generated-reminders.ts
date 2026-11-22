@@ -1,3 +1,4 @@
+import {verifiedNecronReminders} from './verified-necrons';
 import {selectedEquipment} from './equipment';
 import type {ArmySelection} from './catalog';
 import type {Phase} from './engine';
@@ -8,17 +9,18 @@ export interface GeneratedReminder {id:string;title:string;window:ReminderWindow
 export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  const source=factionSource(army).url;
  const result:GeneratedReminder[]=[];
+ if(army.faction==='Necrons')result.push(...verifiedNecronReminders(army));
  if(army.faction==='Necrons'){
-  result.push({id:'necron-reanimation',title:'Reanimation Protocols',window:'Command',timing:'end',summary:'At the end of your Command phase, each eligible unit on the battlefield activates Reanimation Protocols and reanimates D3 wounds. Check model return restrictions.',source,origin:'army'});
+
   if(army.detachment==='Awakened Dynasty')result.push({id:'awakened-command-protocols',title:'Command Protocols',window:'Shooting',timing:'during',summary:'When a unit attacks, check whether it is being led by a Necron Character for its detachment Hit roll bonus. Also applies to melee attacks.',source,origin:'detachment'});
   if(army.detachment==='Hypercrypt Legion')result.push({id:'hypercrypt-hyperphasing',title:'Hyperphasing',window:'End of opponent turn',timing:'end',summary:'At the end of the opponent’s turn, eligible units outside Engagement Range can be placed into Strategic Reserves. Limit depends on battle size: Incursion 1, Strike Force 2, Onslaught 3.',source,origin:'detachment'});
-  if(army.detachment==='Canoptek Court')result.push({id:'canoptek-power-matrix',title:'Power Matrix',window:'Shooting',timing:'during',summary:'Check whether the attacking Cryptek or Canoptek unit benefits from the current Power Matrix rule and battlefield control conditions.',source,origin:'detachment'});
+
  }else if(army.faction==='Space Marines'){
   result.push({id:'marine-oath',title:'Oath of Moment',window:'Command',timing:'start',summary:'At the start of your Command phase, select an enemy unit as your Oath target. Attacks against it can re-roll Hit rolls; check the additional Wound bonus conditions.',source,origin:'army'});
   if(army.detachment==='Gladius Task Force')result.push({id:'gladius-doctrines',title:'Combat Doctrines',window:'Command',timing:'during',summary:'Review the available Combat Doctrine selection, its timing, and whether a doctrine was already used this battle.',source,origin:'detachment'});
  }
  const unitRules:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
- 'Technomancer':[{id:'technomancer-heal',title:'Technomancer · repair',window:'Movement',timing:'end',summary:'At the end of your Movement phase, select one friendly Necrons model within 6 inches to regain up to D3 lost wounds; each model can be selected once per turn.'}],
+
  'Canoptek Wraiths':[{id:'wraith-form',title:'Canoptek Wraiths · Wraith Form',window:'Movement',timing:'during',summary:'After a Normal move over an enemy unit, you may roll one D6 per Wraith model; each 4+ inflicts a mortal wound on that enemy unit.'}],
  'Immortals':[{id:'immortals-eradication',title:'Immortals · Implacable Eradication',window:'Shooting',timing:'during',summary:'Re-roll Wound rolls of 1; against enemies within range of an objective marker, you can instead re-roll the Wound roll.'}],
  };
@@ -27,7 +29,7 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  }
  if(army.faction==='Necrons'){
   const abilities:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
-   'Plasmancer':[{id:'plasmancer-lightning',title:'Living Lightning',window:'Shooting',timing:'during',summary:'In your Shooting phase, choose a visible enemy within 18 inches (subject to Lone Operative restrictions), then roll four D6; each 4+ inflicts one mortal wound.'}],
+
    'Chronomancer':[{id:'chronomancer-chronometron',title:'Chronometron',window:'Shooting',timing:'end',summary:'After this model’s unit shoots, if it is outside Engagement Range it can make a Normal move up to 5 inches; that unit cannot declare a charge this turn.'}],
    'Overlord':[{id:'overlord-my-will',title:'My Will Be Done',window:'Command',timing:'during',summary:'Once per battle round, when an eligible unit with this ability is targeted by a Stratagem, you can reduce that Stratagem’s CP cost by 1.'}],
    'Imotekh the Stormlord':[{id:'imotekh-command',title:'Imotekh · command abilities',window:'Command',timing:'during',summary:'Check Imotekh’s current datasheet for Command phase CP generation and once-per-battle effects before resolving.'}],
@@ -37,8 +39,8 @@ export function generateReminders(army:ArmySelection):GeneratedReminder[]{
   for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
    const attachmentSource='https://wahapedia.ru/wh40k10ed/factions/necrons/'+encodeURIComponent(leader).replace(/%20/g,'-');
    const effects:Record<string,Array<{id:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string}>>={
-    'Technomancer':[{id:'technomancer-fnp',title:'Rites of Reanimation · Feel No Pain 5+',window:'Shooting',timing:'during',summary:'While the Technomancer leads this unit, its models have Feel No Pain 5+. Apply it when models would lose wounds, including in melee.'}],
-    'Plasmancer':[{id:'plasmancer-critical',title:'Harbinger of Destruction · Critical Hits 5+',window:'Shooting',timing:'during',summary:'While the Plasmancer leads this unit, its models score Critical Hits on unmodified ranged Hit rolls of 5+.'}],
+
+
     'Chronomancer':[{id:'chronomancer-mantle',title:'Timesplinter Mantle · -1 to Hit',window:'Shooting',timing:'during',summary:'While the Chronomancer leads this unit, subtract 1 from Hit rolls for attacks targeting the attached unit, including melee attacks.'}]
    };
    for(const effect of effects[leader]||[])result.push({...effect,id:'attached-'+leader+'-'+bodyguard+'-'+effect.id,title:leader+' + '+bodyguard+' · '+effect.title,source:attachmentSource,origin:'unit',units:[leader,bodyguard]});
