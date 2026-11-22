@@ -17,12 +17,12 @@ export const DATASHEETS_2026:readonly Datasheet2026[]=[
  {"faction":"Necrons","unit":"Seraptek Heavy Construct","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf","sizes":[1],"pointsBySize":{"1":540},"pointsSource":"https://tactical40k.com/codex/necrons","verified":"sizes-and-points"}
 ];
 export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string}[]}
-export function rosterCost2026(army:ArmySelection):RosterCost2026{
+export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet2026[]=DATASHEETS_2026):RosterCost2026{
  const copies=new Map<string,number>();
  const entries=expandRoster(army).map(instance=>{
   const copy=(copies.get(instance.unit)||0)+1;
   copies.set(instance.unit,copy);
-  const sheet=DATASHEETS_2026.find(d=>d.faction===army.faction&&d.unit===instance.unit);
+  const sheet=registry.find(d=>d.faction===army.faction&&d.unit===instance.unit);
   const models=instance.models??(sheet?.sizes.length===1?sheet.sizes[0]:null);
   const priceTable=copy>=2?(sheet?.laterCopyPointsBySize?.[copy]||sheet?.laterCopyPointsBySize?.[2]||sheet?.pointsBySize):sheet?.pointsBySize;
   const points=models===null?null:priceTable?.[models]??null;
