@@ -18,6 +18,8 @@ const factionReminders:Record<Faction,Partial<Record<string,string[]>>>={
  Other:{}
 };
 const storageKey='w40k-reminders-v2';
+const completionStorageKey='w40k-reminders-completed-v1';
+function loadCompleted():string[]{try{const x=JSON.parse(localStorage.getItem(completionStorageKey)||'[]');return Array.isArray(x)?x.filter((v):v is string=>typeof v==='string').slice(-500):[];}catch{return [];}}
 function valid(x:unknown):x is BattleState {
  if(!x||typeof x!=='object')return false;
  const b=x as Partial<BattleState>;
@@ -35,8 +37,9 @@ function App(){
  const [wounds,setWoundsInput]=useState('1');
  const [note,setNote]=useState('');
  const [error,setError]=useState('');
- const [completed,setCompleted]=useState<string[]>([]);
+ const [completed,setCompleted]=useState<string[]>(loadCompleted);
  useEffect(()=>localStorage.setItem(storageKey,JSON.stringify(battle)),[battle]);
+ useEffect(()=>localStorage.setItem(completionStorageKey,JSON.stringify(completed)),[completed]);
  const change=(fn:(b:BattleState)=>BattleState)=>{try{const next=fn(battle);setHistory(h=>[...h.slice(-49),structuredClone(battle)]);setBattle(next);setError('');}catch(e){setError(e instanceof Error?e.message:'Action rejected');}};
  const next=()=>change(advancePhase);
  const gain=()=>change(gainCommandCp);
