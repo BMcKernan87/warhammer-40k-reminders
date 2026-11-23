@@ -49,6 +49,17 @@ export function recordEnemyAttackDamage(army:ArmySelection,battle:BattleState,sq
  return observe(army,battle,{action:'enemyAttacked',squadId:squad.id,damage});
 }
 
+/** Record a confirmed Reanimation Protocols activation and its restored wounds together.
+ * The player supplies the dice result; the app never invents a roll or resurrects a destroyed unit. */
+export function activateRosterReanimation(army:ArmySelection,battle:BattleState,squad:RosterInstance,restored:number):BattleState {
+ if(army.faction!=='Necrons'||!onTable(battle,squad))throw Error('Only active Necron squads can reanimate.');
+ if(!Number.isInteger(restored)||restored<0)throw Error('Restored wounds must be a nonnegative whole number.');
+ const {wounds,maxWounds}=rosterHealth(army,battle,squad);
+ if(restored>maxWounds-wounds)throw Error('Restoration exceeds the squad maximum.');
+ const next=restored?changeRosterWounds(army,battle,squad,wounds+restored):battle;
+ return observe(army,next,{action:'reanimate',squadId:squad.id});
+}
+
 export function moveRosterSquad(army:ArmySelection,battle:BattleState,squad:RosterInstance,to:TablePosition): BattleState {
   if(to==='destroyed')return changeRosterWounds(army,battle,squad,0);
   const next=positionOf(battle,squad.id)==='destroyed'
