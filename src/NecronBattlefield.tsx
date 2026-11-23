@@ -4,7 +4,7 @@ import type {BattleState,Player} from './engine';
 import {expandRoster,type RosterInstance} from './roster-instances';
 import {ACTIONS,actionAvailable,isEnemyAction,tablePositions,type Action,type Observation,type Signal,type TablePosition} from './battlefield-events';
 import {BATTLEFIELD_RULES} from './necron-battlefield-rules';
-import {battlefieldReminders,changeRosterWounds,recordEnemyAttackDamage,latestObservation,measuringSquads,moveRosterSquad,observe,onTable,positionOf,rosterHealth,setRosterPlayer,useBattlefieldAbility,type LiveReminder} from './necron-battlefield';
+import {battlefieldReminders,activateRosterReanimation,changeRosterWounds,recordEnemyAttackDamage,latestObservation,measuringSquads,moveRosterSquad,observe,onTable,positionOf,rosterHealth,setRosterPlayer,useBattlefieldAbility,type LiveReminder} from './necron-battlefield';
 
 type Change = (fn:(b:BattleState)=>BattleState)=>void;
 interface Props {army:ArmySelection;battle:BattleState;change:Change;completed:readonly string[]}
@@ -83,6 +83,7 @@ function ActionForm({army,battle,change}:{army:ArmySelection;battle:BattleState;
 }
 function Tracker({army,battle,change,squad}:{army:ArmySelection;battle:BattleState;change:Change;squad:RosterInstance}){
   const [damage,setDamage]=useState(1);
+  const [restored,setRestored]=useState(1);
   const {wounds,maxWounds}=rosterHealth(army,battle,squad);
   const position=positionOf(battle,squad.id);
   const ownTurn=battle.player===(battle.rosterPlayer??'A');
@@ -92,7 +93,7 @@ function Tracker({army,battle,change,squad}:{army:ArmySelection;battle:BattleSta
     <label>Position <select aria-label={'Position of '+squad.id} value={position} onChange={e=>change(b=>moveRosterSquad(army,b,squad,e.target.value as TablePosition))}>
       {tablePositions.map(p=><option key={p} value={p}>{p[0].toUpperCase()+p.slice(1)}</option>)}</select></label>
     <button className="secondary" aria-label={'Lose one wound '+squad.id} disabled={wounds===0} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds-1))}>−</button>
-    <span>{wounds}/{maxWounds} W</span>{availableActions.length>0&&<div className="unit-quick-actions" aria-label={'Quick actions for '+squad.id}>{availableActions.map(action=><button type="button" className="secondary" key={action} aria-label={ACTIONS[action]+' for '+squad.id} onClick={()=>change(b=>observe(army,b,{action,squadId:squad.id}))}>{ACTIONS[action]}</button>)}</div>}{battle.player!==(battle.rosterPlayer??'A')&&position==='battlefield'&&wounds>0&&<label>Enemy attack damage <input aria-label={'Enemy attack damage to '+squad.id} type="number" min="1" max={wounds} step="1" value={damage} onChange={e=>setDamage(Number(e.target.value))}/><button className="secondary" disabled={!Number.isInteger(damage)||damage<1||damage>wounds} aria-label={'Record enemy attack damage to '+squad.id} onClick={()=>change(b=>recordEnemyAttackDamage(army,b,squad,damage))}>Record damage &amp; trigger rules</button></label>}<button className="secondary" aria-label={'Restore one wound '+squad.id} disabled={wounds===maxWounds} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds+1))}>+</button>
+    <span>{wounds}/{maxWounds} W</span>{position==='battlefield'&&wounds>0&&wounds<maxWounds&&<label>Reanimation wounds restored <input aria-label={'Reanimation wounds restored to '+squad.id} type="number" min="0" max={maxWounds-wounds} step="1" value={restored} onChange={e=>setRestored(Number(e.target.value))}/><button type="button" className="secondary" disabled={!Number.isInteger(restored)||restored<0||restored>maxWounds-wounds} aria-label={'Activate Reanimation Protocols for '+squad.id} onClick={()=>change(b=>activateRosterReanimation(army,b,squad,restored))}>Activate Reanimation &amp; trigger rules</button></label>}{availableActions.length>0&&<div className="unit-quick-actions" aria-label={'Quick actions for '+squad.id}>{availableActions.map(action=><button type="button" className="secondary" key={action} aria-label={ACTIONS[action]+' for '+squad.id} onClick={()=>change(b=>observe(army,b,{action,squadId:squad.id}))}>{ACTIONS[action]}</button>)}</div>}{battle.player!==(battle.rosterPlayer??'A')&&position==='battlefield'&&wounds>0&&<label>Enemy attack damage <input aria-label={'Enemy attack damage to '+squad.id} type="number" min="1" max={wounds} step="1" value={damage} onChange={e=>setDamage(Number(e.target.value))}/><button className="secondary" disabled={!Number.isInteger(damage)||damage<1||damage>wounds} aria-label={'Record enemy attack damage to '+squad.id} onClick={()=>change(b=>recordEnemyAttackDamage(army,b,squad,damage))}>Record damage &amp; trigger rules</button></label>}<button className="secondary" aria-label={'Restore one wound '+squad.id} disabled={wounds===maxWounds} onClick={()=>change(b=>changeRosterWounds(army,b,squad,wounds+1))}>+</button>
   </div></div>;
 }
 export function NecronBattlefield({army,battle,change,completed}:Props){
