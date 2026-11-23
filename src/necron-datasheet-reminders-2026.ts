@@ -18,7 +18,7 @@ const existingIds:Record<string,string>={
 const actionPhase:Partial<Record<Signal,Phase>>={
   normal:'Movement',crossed:'Movement',advance:'Movement',fallback:'Movement',stationary:'Movement',arrival:'Movement',
   shoot:'Shooting',shot:'Shooting',shotHit:'Shooting',deathRay:'Shooting',tesla:'Shooting',
-  chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',reanimate:'Command',
+  chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',killed:'Fight',reanimate:'Command',
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.id==='tunnelling')return ['End of opponent turn'];
@@ -26,7 +26,7 @@ function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.phase)return [rule.phase];
   const signals=typeof rule.signal==='string'?[rule.signal]:rule.signal;
   if(signals.some(s=>s==='phaseStart'||s==='phaseEnd'||s==='stratagem'))return [...PHASES];
-  if(signals.includes('shoot')&&signals.includes('overwatch'))return ['Shooting'];
+  if(signals.includes('shoot')&&signals.includes('overwatch'))return ['Shooting','Movement','Charge'];
   if(signals.includes('overwatch'))return ['Movement','Charge'];
   return [...new Set(signals.flatMap(s=>actionPhase[s]?[actionPhase[s]!]:['Shooting','Fight'] as Phase[]))];
 }
