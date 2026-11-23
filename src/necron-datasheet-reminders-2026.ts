@@ -22,6 +22,7 @@ const actionPhase:Partial<Record<Signal,Phase>>={
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.id==='tunnelling')return ['End of opponent turn'];
+  if(rule.id==='terror')return ['Shooting'];
   if(rule.phase)return [rule.phase];
   const signals=typeof rule.signal==='string'?[rule.signal]:rule.signal;
   if(signals.some(s=>s==='phaseStart'||s==='phaseEnd'||s==='stratagem'))return [...PHASES];
@@ -99,7 +100,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       }
     }
   }
-  for(const s of roster.filter(s=>s.unit==='Cryptothralls')){
+  for(const s of roster.filter(s=>s.unit==='Cryptothralls'&&roster.some(leader=>leader.attachedTo===s.id&&['Chronomancer','Geomancer','Orikan the Diviner','Plasmancer','Psychomancer','Technomancer'].includes(leader.unit)))){
     output.push({id:'11e-necron-cryptothralls-bound-'+s.id,title:s.id+' · Bound Creation',window:'Shooting',timing:'during',
       summary:'A Cryptek model in the same unit as these Cryptothralls has Feel No Pain 4+.',
       source:necronSource(s.unit),origin:'unit',units:[s.id]});
