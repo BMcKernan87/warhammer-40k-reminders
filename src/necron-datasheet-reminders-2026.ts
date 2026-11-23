@@ -100,7 +100,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       }
     }
   }
-  for(const s of roster.filter(s=>s.unit==='Cryptothralls'&&roster.some(leader=>leader.attachedTo===s.id&&['Chronomancer','Geomancer','Orikan the Diviner','Plasmancer','Psychomancer','Technomancer'].includes(leader.unit)))){
+  for(const s of roster.filter(s=>s.unit==='Cryptothralls')){
     output.push({id:'11e-necron-cryptothralls-bound-'+s.id,title:s.id+' · Bound Creation',window:'Shooting',timing:'during',
       summary:'A Cryptek model in the same unit as these Cryptothralls has Feel No Pain 4+.',
       source:necronSource(s.unit),origin:'unit',units:[s.id]});
