@@ -9,7 +9,7 @@ test('mobile builder equipment choices persist across profiles without showing l
  await page.getByRole('button',{name:'Edit army'}).click();
  await page.getByLabel('Equipment for Immortals').selectOption('Tesla carbine');
  await page.getByRole('button',{name:'Play reminders'}).click();
- await expect(page.getByText('11th-edition phase reminders')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Phase reminders'})).toBeVisible();
  await page.getByRole('button',{name:'Edit army'}).click();
  page.once('dialog',dialog=>dialog.accept('Orks army'));
  await page.getByRole('button',{name:'New army'}).click();
