@@ -4,7 +4,7 @@ import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
 import {ACTIONS,type Signal} from './battlefield-events';
 import {PHASES,createBattle,type Phase} from './engine';
-import {necronSource} from './necron-wargear';
+import {necronSource,NECRON_LOADOUTS} from './necron-wargear';
 
 // Stable IDs keep previously saved references to the first squad working.
 const existingIds:Record<string,string>={
@@ -63,7 +63,13 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   const side=rule.turn==='own'?'Your turn. ':rule.turn==='opponent'?'Opponent’s turn. ':'';
   const limit=rule.limit==='plasmacytes'?'One use per equipped Plasmacyte. ':rule.limit?'Once per '+rule.limit+'. ':'';
   let text=typeof rule.text==='string'?rule.text:rule.text({bearer:squad,roster,eligibleRoster:roster,battle:createBattle(),actedThisTurn:()=>false});
-  if(rule.id==='optimised')text='Re-roll Wound rolls of 1 for gauss destructors against Monsters and Vehicles, and for enmitic exterminators against other targets.';
+  if(rule.id==='optimised'){
+    const selected=squad.weaponCounts?Object.entries(squad.weaponCounts).filter(([,n])=>n>0).map(([name])=>name):[squad.equipment??NECRON_LOADOUTS[squad.unit]?.primary?.[0]];
+    const cues:string[]=[];
+    if(selected.includes('Gauss destructor'))cues.push('Gauss destructor: re-roll Wound rolls of 1 against Monsters and Vehicles');
+    if(selected.includes('Enmitic exterminator'))cues.push('Enmitic exterminator: re-roll Wound rolls of 1 against other targets');
+    text=cues.join('. ')+'.';
+  }
   if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
   if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
   if(rule.id==='orb')text+=' Only one unit can resurrect in a turn.';
@@ -77,6 +83,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   for(const squad of roster){
     for(const rule of BATTLEFIELD_RULES){
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
+      if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       const body=roster.find(s=>s.id===squad.attachedTo);
       let suffix=existingIds[rule.id]??rule.id;
       if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
