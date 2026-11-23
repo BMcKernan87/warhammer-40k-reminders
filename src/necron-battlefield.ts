@@ -109,13 +109,14 @@ export function battlefieldReminders(army:ArmySelection,battle:BattleState,signa
         const body=bearer.attachedTo && roster.find(s=>s.id===bearer.attachedTo&&onTable(battle,s));
         if(rule.scope==='nearby'){
           const measurement=observation?.measurements?.[bearer.id];
-          const distance=bearer.id===subject?.id?0:measurement?.distance;
+          const sameFormation=!!subject&&(bearer.attachedTo===subject.id||subject.attachedTo===bearer.id||!!bearer.attachedTo&&bearer.attachedTo===subject.attachedTo);
+          const distance=bearer.id===subject?.id||sameFormation?0:measurement?.distance;
           const limit=typeof rule.within==='function'?rule.within(ctx):rule.within;
           if(limit!==undefined&&(distance===undefined||distance>limit))continue;
           if(rule.visible&&!measurement?.visible)continue;
         }else if(rule.scope==='leading'){
           if(!body||!(body.id===subject?.id||bearer.id===subject?.id))continue;
-        }else if(bearer.id!==subject?.id&&!(rule.scope==='formation'&&body&&body.id===subject?.id))continue;
+        }else if(bearer.id!==subject?.id&&!(rule.scope==='formation'&&((body&&body.id===subject?.id)||(subject?.attachedTo===bearer.id))))continue;
       }
       if(rule.id==='ghost-repair'&&subject&&!onTable(battle,subject))continue;
       if(rule.when&&!rule.when(ctx))continue;
