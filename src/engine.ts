@@ -4,7 +4,7 @@ export type Phase = 'Command' | 'Movement' | 'Shooting' | 'Charge' | 'Fight';
 export const PHASES: readonly Phase[] = ['Command','Movement','Shooting','Charge','Fight'];
 export interface UnitState { id:string; name:string; owner:Player; wounds:number; maxWounds:number; battleShocked:boolean; destroyed:boolean; }
 export type PrebattleDecision='scouted'|'declined'|'not-applicable';
-export interface BattleState { prebattle?:{resolved:boolean;decisions:Record<string,PrebattleDecision>}; round:number; player:Player; phase:Phase; rosterPlayer?:Player; positions?:Record<string,TablePosition>; cp:Record<Player,number>; notes:string[]; units:UnitState[]; events:BattleEvent[]; }
+export interface BattleState { prebattle?:{resolved:boolean;decisions:Record<string,PrebattleDecision>}; round:number; player:Player; phase:Phase; rosterPlayer?:Player; positions?:Record<string,TablePosition>; casualties?:Record<string,Record<string,number>>; cp:Record<Player,number>; notes:string[]; units:UnitState[]; events:BattleEvent[]; }
 export type BattleEvent = { id:string; round:number; player:Player; phase:Phase; kind:'ability'|'stratagem'|'damage'|'heal'|'battle-shock'|'note'|'battlefield'; observation?:Observation; use?:AbilityUse; unitId?:string; description:string };
 export function createBattle():BattleState {return {prebattle:{resolved:false,decisions:{}},round:1,player:'A',phase:'Command',cp:{A:0,B:0},notes:[],units:[],events:[]};}
 export function advancePhase(b:BattleState):BattleState {if(b.prebattle&&!b.prebattle.resolved)throw new Error('Resolve pre-battle decisions before advancing to Command phase');const n=structuredClone(b);const i=PHASES.indexOf(n.phase);if(i<PHASES.length-1)n.phase=PHASES[i+1];else {n.phase='Command';n.player=n.player==='A'?'B':'A';if(n.player==='A')n.round++;}return n;}
@@ -13,6 +13,7 @@ export function validateBattleState(x:unknown):x is BattleState {
  const b=x as Partial<BattleState>;
  if(!Number.isInteger(b.round)||b.round!<1||(b.player!=='A'&&b.player!=='B')||!PHASES.includes(b.phase as Phase))return false;
  if(b.prebattle!==undefined&&(!b.prebattle||typeof b.prebattle.resolved!=='boolean'||!b.prebattle.decisions||typeof b.prebattle.decisions!=='object'||Array.isArray(b.prebattle.decisions)||Object.values(b.prebattle.decisions).some(v=>!['scouted','declined','not-applicable'].includes(v))))return false;
+ if(b.casualties!==undefined&&(!b.casualties||typeof b.casualties!=='object'||Array.isArray(b.casualties)||Object.values(b.casualties).some(groups=>!groups||typeof groups!=='object'||Array.isArray(groups)||Object.entries(groups).some(([weapon,count])=>!weapon||!Number.isInteger(count)||count<0))))return false;
  if(b.rosterPlayer!==undefined&&!['A','B'].includes(b.rosterPlayer))return false;
  if(b.positions!==undefined&&(!b.positions||typeof b.positions!=='object'||Array.isArray(b.positions)||Object.values(b.positions).some(p=>!tablePositions.includes(p))))return false;
  if(!b.cp||!Number.isInteger(b.cp.A)||!Number.isInteger(b.cp.B)||b.cp.A<0||b.cp.B<0)return false;
