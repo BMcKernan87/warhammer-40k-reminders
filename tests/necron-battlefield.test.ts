@@ -3,7 +3,7 @@ import {CATALOG,addSelectionUnit,newSelection,type ArmySelection} from '../src/c
 import {createBattle as createFreshBattle,advancePhase,validateBattleState,type Phase,type Player} from '../src/engine';
 // These tests exercise in-battle mechanics after pre-battle resolution.
 const createBattle=()=>({...createFreshBattle(),prebattle:{resolved:true,decisions:{}}});
-import {battlefieldReminders,recordEnemyAttackDamage,latestObservation,measuringSquads,observe,useBattlefieldAbility,rosterHealth} from '../src/necron-battlefield';
+import {battlefieldReminders,activateRosterReanimation,recordEnemyAttackDamage,latestObservation,measuringSquads,observe,useBattlefieldAbility,rosterHealth} from '../src/necron-battlefield';
 import {expandRoster,setInstanceAttachment,setInstanceEquipment,setInstanceResurrectionOrb,setInstanceModelCount,setInstanceWargear} from '../src/roster-instances';
 import type {Observation,Signal} from '../src/battlefield-events';
 import {generate11thReminders} from '../src/reminders-11th';
@@ -228,5 +228,21 @@ describe('automatic squad action events',()=>{
    expect(latestObservation(next)?.squadId).toBe(squad.id);
    expect(latestObservation(next)?.action).toBe(action);
   }
+ });
+});
+
+describe('reanimation activation ledger',()=>{
+ it('restores confirmed wounds and records the reanimation trigger atomically',()=>{
+  const army=roster('Necron Warriors');const squad=expandRoster(army)[0];
+  const damaged=recordEnemyAttackDamage(army,at('Shooting','B'),squad,2);
+  const next=activateRosterReanimation(army,{...damaged,phase:'Command',player:'A'},squad,1);
+  expect(rosterHealth(army,next,squad).wounds).toBe(rosterHealth(army,damaged,squad).wounds+1);
+  expect(latestObservation(next)).toMatchObject({action:'reanimate',squadId:squad.id});
+  expect(validateBattleState(next)).toBe(true);
+ });
+ it('rejects excess healing and destroyed units',()=>{
+  const army=roster('Necron Warriors');const squad=expandRoster(army)[0];const battle=at('Command');
+  expect(()=>activateRosterReanimation(army,battle,squad,1)).toThrow();
+  expect(()=>activateRosterReanimation(army,{...battle,positions:{[squad.id]:'destroyed'}},squad,0)).toThrow();
  });
 });
