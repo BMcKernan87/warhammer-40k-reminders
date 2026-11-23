@@ -116,7 +116,7 @@ export function battlefieldReminders(army:ArmySelection,battle:BattleState,signa
           if(rule.visible&&!measurement?.visible)continue;
         }else if(rule.scope==='leading'){
           if(!body||!(body.id===subject?.id||bearer.id===subject?.id))continue;
-        }else if(bearer.id!==subject?.id&&!(rule.scope==='formation'&&body&&body.id===subject?.id))continue;
+        }else if(bearer.id!==subject?.id&&!(rule.scope==='formation'&&((body&&body.id===subject?.id)||(subject?.attachedTo===bearer.id))))continue;
       }
       if(rule.id==='ghost-repair'&&subject&&!onTable(battle,subject))continue;
       if(rule.when&&!rule.when(ctx))continue;
