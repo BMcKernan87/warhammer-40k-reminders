@@ -41,6 +41,23 @@ export function changeRosterWounds(army: ArmySelection,battle: BattleState,squad
 }
 /** Record an explicitly identified enemy attack and update squad health in one transaction.
  * Nearby aura distances remain unverified until measured; do not invent them. */
+/** Explicit casualty allocation by primary weapon; aggregate wounds alone cannot identify a lost model. */
+export function allocateModelCasualty(army:ArmySelection,battle:BattleState,squad:RosterInstance,weapon:string):BattleState {
+ if(army.faction!=='Necrons'||!onTable(battle,squad))throw Error('Select an active Necron squad.');
+ const models=squad.models??verifiedUnitSizes2026(army,squad.unit)?.[0]??1;
+ const categories=squad.weaponCounts??{[squad.equipment??'Standard loadout']:models};
+ if(!Object.prototype.hasOwnProperty.call(categories,weapon)||!Number.isInteger(categories[weapon])||categories[weapon]<1)throw Error('Unknown model loadout.');
+ const current=battle.casualties?.[squad.id]??{};
+ const total=Object.values(current).reduce((sum,n)=>sum+n,0);
+ if(total>=models|| (current[weapon]??0)>=categories[weapon])throw Error('No models of this loadout remain.');
+ return {...battle,casualties:{...battle.casualties,[squad.id]:{...current,[weapon]:(current[weapon]??0)+1}}};
+}
+export function survivingLoadouts(army:ArmySelection,battle:BattleState,squad:RosterInstance):Record<string,number> {
+ const models=squad.models??verifiedUnitSizes2026(army,squad.unit)?.[0]??1;
+ const categories=squad.weaponCounts??{[squad.equipment??'Standard loadout']:models};
+ return Object.fromEntries(Object.entries(categories).map(([weapon,count])=>[weapon,Math.max(0,count-(battle.casualties?.[squad.id]?.[weapon]??0))]));
+}
+
 export function recordEnemyAttackDamage(army:ArmySelection,battle:BattleState,squad:RosterInstance,damage:number):BattleState {
  if(battle.player===(battle.rosterPlayer??'A'))throw Error('Enemy attacks can only be recorded during the opponent turn.');
  if(!Number.isInteger(damage)||damage<1||!onTable(battle,squad))throw Error('Select an active squad and a positive damage amount.');
