@@ -85,6 +85,8 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
     for(const rule of BATTLEFIELD_RULES){
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
+      if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
+      if(rule.id==='trazyn'&&!roster.some(other=>other.id!==squad.id&&['Overlord','Overlord with translocation shroud','Chronomancer','Geomancer','Hexmark Destroyer','Plasmancer','Psychomancer','Royal Warden','Technomancer'].includes(other.unit)))continue;
       const body=roster.find(s=>s.id===squad.attachedTo);
       let suffix=existingIds[rule.id]??rule.id;
       if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
