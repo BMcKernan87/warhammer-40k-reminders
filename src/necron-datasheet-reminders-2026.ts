@@ -4,7 +4,7 @@ import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
 import {ACTIONS,type Signal} from './battlefield-events';
 import {PHASES,createBattle,type Phase} from './engine';
-import {necronSource,NECRON_LOADOUTS} from './necron-wargear';
+import {necronSource,NECRON_LOADOUTS,necronKeywords} from './necron-wargear';
 
 // Stable IDs keep previously saved references to the first squad working.
 const existingIds:Record<string,string>={
@@ -90,6 +90,8 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
+      if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
+      if((rule.id==='invasion'||rule.id==='monolith')&&!roster.some(other=>necronKeywords.INFANTRY.has(other.unit)))continue;
       if(rule.id==='trazyn'&&!roster.some(other=>other.id!==squad.id&&['Overlord','Overlord with translocation shroud','Chronomancer','Geomancer','Hexmark Destroyer','Plasmancer','Psychomancer','Royal Warden','Technomancer'].includes(other.unit)))continue;
       const body=roster.find(s=>s.id===squad.attachedTo);
       let suffix=existingIds[rule.id]??rule.id;
