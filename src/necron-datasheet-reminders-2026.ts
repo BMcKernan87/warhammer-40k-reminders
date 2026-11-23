@@ -23,11 +23,15 @@ const actionPhase:Partial<Record<Signal,Phase>>={
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.id==='tunnelling')return ['End of opponent turn'];
   if(rule.id==='terror')return ['Shooting'];
+  if(rule.id==='will')return ['Command','Movement','Shooting','Charge','Fight'];
+  if(rule.id==='orb')return ['Command','Movement','Shooting','Charge','Fight'];
   if(rule.phase)return [rule.phase];
   const signals=typeof rule.signal==='string'?[rule.signal]:rule.signal;
   if(signals.some(s=>s==='phaseStart'||s==='phaseEnd'||s==='stratagem'))return [...PHASES];
   if(signals.includes('shoot')&&signals.includes('overwatch'))return ['Shooting','Movement','Charge'];
   if(signals.includes('overwatch'))return ['Movement','Charge'];
+  if(rule.id==='hex-return')return ['Shooting'];
+  if(rule.id==='guardian'||rule.id==='shield'||rule.id==='orikan-save'||rule.id==='rites'||rule.id==='overlord'||rule.id==='necroadjust'||rule.id==='gloom'||rule.id==='nodes'||rule.id==='fabricator'||rule.id==='nullstone')return ['Shooting','Fight'];
   return [...new Set(signals.flatMap(s=>actionPhase[s]?[actionPhase[s]!]:['Shooting','Fight'] as Phase[]))];
 }
 const circumstances:Record<string,string>={
