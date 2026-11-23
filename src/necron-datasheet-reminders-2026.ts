@@ -92,7 +92,6 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
       if(rule.id==='szeras'&&!roster.some(other=>other.unit==='Necron Warriors'||other.unit==='Immortals'))continue;
-      if(rule.id==='reanimation-beam'&&!roster.some(other=>other.id!==squad.id))continue;
       if(rule.id==='fabricator'&&!roster.some(other=>other.id!==squad.id&&necronKeywords.VEHICLE.has(other.unit)))continue;
       if(rule.id==='nodes'&&!roster.some(other=>other.id!==squad.id&&necronKeywords.INFANTRY.has(other.unit)))continue;
       if((rule.id==='invasion'||rule.id==='monolith')&&!roster.some(other=>necronKeywords.INFANTRY.has(other.unit)))continue;
