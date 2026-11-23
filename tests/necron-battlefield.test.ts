@@ -213,3 +213,20 @@ describe('one-click enemy damage triggers',()=>{
   expect(()=>recordEnemyAttackDamage(army,wounded,squad,999)).toThrow();
  });
 });
+
+describe('automatic squad action events',()=>{
+ it('records normal movement and exposes its matching rules without manual reminder selection',()=>{
+  const army=roster('Canoptek Wraiths');const squad=expandRoster(army)[0];
+  const moved=observe(army,at('Movement'),{action:'normal',squadId:squad.id});
+  expect(latestObservation(moved)).toMatchObject({action:'normal',squadId:squad.id});
+  expect(moved.events.at(-1)?.kind).toBe('battlefield');
+ });
+ it('captures shooting and fight events with stable squad identity',()=>{
+  const army=roster('Necron Warriors');const squad=expandRoster(army)[0];
+  for(const [phase,action] of [['Shooting','shoot'],['Fight','fight']] as const){
+   const next=observe(army,at(phase),{action,squadId:squad.id});
+   expect(latestObservation(next)?.squadId).toBe(squad.id);
+   expect(latestObservation(next)?.action).toBe(action);
+  }
+ });
+});
