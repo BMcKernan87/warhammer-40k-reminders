@@ -24,6 +24,6 @@ export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):
   return true;
  }).flatMap(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,...reminder})=>{
   if(!______)return [{...reminder,units:reminder.units?.filter(u=>units.has(u))}];
-  return instances.filter(instance=>______.some(name=>(army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit])===name)&&(!reminder.units||reminder.units.includes(instance.unit))).map(instance=>({...reminder,id:reminder.id+'-'+instance.id,title:instance.id+' · '+reminder.title,units:[instance.id]}));
+  return instances.filter(instance=>______.some(name=>(army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit])===name)&&(!reminder.units||reminder.units.includes(instance.unit))).map((instance,index)=>({...reminder,id:index===0?reminder.id:reminder.id+'-'+instance.id,title:instance.id+' · '+reminder.title,units:[instance.id]}));
  });
 }
