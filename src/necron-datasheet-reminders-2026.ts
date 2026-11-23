@@ -23,6 +23,9 @@ const actionPhase:Partial<Record<Signal,Phase>>={
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.id==='tunnelling')return ['End of opponent turn'];
   if(rule.id==='terror')return ['Shooting'];
+  if(rule.id==='harbinger'||rule.id==='lokhust-lead')return ['Shooting'];
+  if(rule.id==='united')return ['Fight'];
+  if(rule.id==='orikan-save')return ['Shooting','Fight'];
   if(rule.id==='will')return ['Command','Movement','Shooting','Charge','Fight'];
   if(rule.id==='orb')return ['Command','Movement','Shooting','Charge','Fight'];
   if(rule.phase)return [rule.phase];
@@ -89,6 +92,8 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
     for(const rule of BATTLEFIELD_RULES){
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
+      if(rule.id==='chronometron'&&!squad.attachedTo)continue;
+      if(rule.id==='warden'&&!squad.attachedTo)continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
       if(rule.id==='szeras'&&!roster.some(other=>other.unit==='Necron Warriors'||other.unit==='Immortals'))continue;
