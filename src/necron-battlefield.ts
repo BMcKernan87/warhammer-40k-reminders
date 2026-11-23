@@ -109,7 +109,8 @@ export function battlefieldReminders(army:ArmySelection,battle:BattleState,signa
         const body=bearer.attachedTo && roster.find(s=>s.id===bearer.attachedTo&&onTable(battle,s));
         if(rule.scope==='nearby'){
           const measurement=observation?.measurements?.[bearer.id];
-          const distance=bearer.id===subject?.id?0:measurement?.distance;
+          const sameFormation=!!subject&&(bearer.attachedTo===subject.id||subject.attachedTo===bearer.id||!!bearer.attachedTo&&bearer.attachedTo===subject.attachedTo);
+          const distance=bearer.id===subject?.id||sameFormation?0:measurement?.distance;
           const limit=typeof rule.within==='function'?rule.within(ctx):rule.within;
           if(limit!==undefined&&(distance===undefined||distance>limit))continue;
           if(rule.visible&&!measurement?.visible)continue;
