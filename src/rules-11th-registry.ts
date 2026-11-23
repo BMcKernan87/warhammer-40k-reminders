@@ -23,7 +23,7 @@ export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):
   if(rule.equipment&&!Object.entries(rule.equipment).every(([unit,choice])=>army.equipment?.[unit]===choice||army.instances?.some(x=>x.unit===unit&&x.equipment===choice)))return false;
   return true;
  }).flatMap(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,...reminder})=>{
-  if(!enhancements)return [{...reminder,units:reminder.units?.filter(u=>units.has(u))}];
-  return instances.filter(instance=>enhancements.some(name=>(army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit])===name)&&(!reminder.units||reminder.units.includes(instance.unit))).map(instance=>({...reminder,id:reminder.id+'-'+instance.id,title:instance.id+' · '+reminder.title,units:[instance.id]}));
+  if(!______)return [{...reminder,units:reminder.units?.filter(u=>units.has(u))}];
+  return instances.filter(instance=>______.some(name=>(army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit])===name)&&(!reminder.units||reminder.units.includes(instance.unit))).map(instance=>({...reminder,id:reminder.id+'-'+instance.id,title:instance.id+' · '+reminder.title,units:[instance.id]}));
  });
 }
