@@ -119,7 +119,6 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  ...NECRON_CHARACTER_BEARERS.flatMap(unit=>['Eternal Madness','Ingrained Superiority'].map(name=>({name,faction:'Necrons' as const,detachment:'Annihilation Legion',unit,source:REMAINING_NECRON_SOURCE}))),
  ...DESTROYER_BEARERS.flatMap(unit=>['Soulless Reaper','Eldritch Nightmare'].map(name=>({name,faction:'Necrons' as const,detachment:'Annihilation Legion',unit,source:REMAINING_NECRON_SOURCE}))),
  ...OVERLORD_BEARERS.flatMap(unit=>['Honourable Combatant','Unflinching Will','Warrior Noble','Eternal Conqueror'].map(name=>({name,faction:'Necrons' as const,detachment:'Obeisance Phalanx',unit,source:REMAINING_NECRON_SOURCE}))),
- ...['Prelocational Optimiser','Miniaturised Nebuloscope','Demanding Leader','Chrono-impedance Fields','Quantum Abacus','Gauntlet of Compression'].map(name=>({name,faction:'Necrons' as const,detachment:name==='Prelocational Optimiser'?"The Phaeron's Armoury":['Quantum Abacus','Gauntlet of Compression'].includes(name)?'Cryptek Conclave':'Starshatter Arsenal',unit:'Transcendent C’tan',source:REMAINING_NECRON_SOURCE})),
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
@@ -143,6 +142,7 @@ export function upgradeError2026(army:ArmySelection):string|null{
   const binding=army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')&&PANTHEON_BINDINGS[s.unit];
   if(!name)continue;
   if(binding)return 'A C’tan with a mandatory Necrodermal Binding cannot take another enhancement';
+  if(s.unit==='Transcendent C’tan')return 'Transcendent C’tan cannot take ordinary enhancements';
   if(!eligibleUpgrades2026(army,s.unit).some(x=>x.name===name)||!Object.prototype.hasOwnProperty.call(NECRON_ENHANCEMENT_POINTS,name))return 'Enhancement unavailable for this unit or detachment';
   const formation=s.attachedTo??s.id;
   if(formations.has(formation))return 'Only one enhancement or Upgrade is allowed per attached formation';
