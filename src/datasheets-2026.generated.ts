@@ -1,5 +1,6 @@
 // Generated from data/necrons-11e-datasheets.json. Run npm run import:datasheets; do not edit.
 import type {Datasheet2026} from './datasheets-2026';
+export const DATASHEET_IMPORT_REVISION={"edition":11,"faction":"Necrons","revision":"repository-baseline-c761461d","sourceStatus":"mixed-source-unreconciled"} as const;
 export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   {
     "faction": "Necrons",
