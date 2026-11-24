@@ -30,9 +30,10 @@ function profile(v,label){
 }
 const canonical=v=>Array.isArray(v)?v.map(canonical):object(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
 export function generateDatasheets(snapshot){
- keys(snapshot,['edition','faction','revision','sourceStatus','datasheets'],'snapshot');
+ keys(snapshot,['edition','faction','revision','sourceStatus','expectedUnits','datasheets'],'snapshot');
  if(snapshot.edition!==11||snapshot.faction!=='Necrons'||!string(snapshot.revision)||!['mixed-source-unreconciled','source-reconciled'].includes(snapshot.sourceStatus))fail('unsupported edition, faction or missing revision/status');
  if(!Array.isArray(snapshot.datasheets)||snapshot.datasheets.length===0)fail('empty datasheet input');
+ if(!Array.isArray(snapshot.expectedUnits)||snapshot.expectedUnits.length===0||snapshot.expectedUnits.some(u=>!string(u))||new Set(snapshot.expectedUnits).size!==snapshot.expectedUnits.length)fail('invalid expected unit manifest');
  const seen=new Set();
  for(const d of snapshot.datasheets){
   keys(d,['faction','unit','source','sizes','pointsBySize','laterCopyPointsBySize','pointsSource','verified','profile'],'datasheet');
@@ -51,9 +52,11 @@ export function generateDatasheets(snapshot){
   }
   if(d.profile!==undefined)profile(d.profile,d.unit);
  }
+ if(seen.size!==snapshot.expectedUnits.length||snapshot.expectedUnits.some(u=>!seen.has(u)))fail('datasheet set does not match expected unit manifest');
  const ordered=[...snapshot.datasheets].sort((a,b)=>a.unit<b.unit?-1:a.unit>b.unit?1:0).map(canonical);
  return '// Generated from data/necrons-11e-datasheets.json. Run npm run import:datasheets; do not edit.\n'+
   "import type {Datasheet2026} from './datasheets-2026';\n"+
+  'export const DATASHEET_IMPORT_REVISION='+JSON.stringify({edition:snapshot.edition,faction:snapshot.faction,revision:snapshot.revision,sourceStatus:snapshot.sourceStatus})+' as const;\n'+
   'export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]='+JSON.stringify(ordered,null,2)+';\n';
 }
 export function runImport({inputPath=input,outputPath=output,check=false}={}){
