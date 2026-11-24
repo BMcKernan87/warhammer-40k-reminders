@@ -5,7 +5,10 @@ const NECRON_SOURCE='https://assets.warhammer-community.com/eng_09-06_warhammer4
 export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Enlivened Sentinels',faction:'Necrons',detachment:'Hand of the Dynasty',unit:'Necron Warriors',source:NECRON_SOURCE},
  {name:'Tools of Dominion',faction:'Necrons',detachment:'Hand of the Dynasty',unit:'Immortals',source:NECRON_SOURCE},
- {name:'Recursive Reanimation',faction:'Necrons',detachment:'Skyshroud Spearhead',unit:'Tomb Blades',source:NECRON_SOURCE}
+ {name:'Recursive Reanimation',faction:'Necrons',detachment:'Skysword Spearhead',unit:'Tomb Blades',source:NECRON_SOURCE},
+ {name:'Deepening Madness',faction:'Necrons',detachment:'Skysword Spearhead',unit:'Lokhust Destroyers',source:NECRON_SOURCE},
+ {name:'Deepening Madness',faction:'Necrons',detachment:'Skysword Spearhead',unit:'Lokhust Heavy Destroyers',source:NECRON_SOURCE},
+ {name:'Deepening Madness',faction:'Necrons',detachment:'Skysword Spearhead',unit:'Lokhust Lord',source:NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
  return UPGRADES_2026.filter(u=>u.faction===army.faction&&u.unit===unit&&(army.detachments2026||[]).includes(u.detachment));
