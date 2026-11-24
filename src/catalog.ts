@@ -1,3 +1,4 @@
+import {reconcileWarlord} from './necron-muster-legality';
 import {currentEquipmentName} from './necron-wargear';
 import {BATTLE_SIZES_2026,detachmentBudget,type BattleSize2026} from './edition-2026';
 import {expandRoster,appendRosterInstances,retiredSquadNumbers,validateRosterInstances,type RosterInstance} from './roster-instances';
@@ -43,19 +44,20 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];retiredSquadNumbers?:Record<string,number>;battleSize2026?:BattleSize2026;detachments2026?:string[];upgrades2026?:Record<string,string>}
+export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];retiredSquadNumbers?:Record<string,number>;battleSize2026?:BattleSize2026;detachments2026?:string[];upgrades2026?:Record<string,string>;warlordId?:string}
 export function newSelection(faction:Faction='Necrons'):ArmySelection{return {faction,detachment:CATALOG[faction].detachments[0],units:{}}}
 export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelection{
  if(!CATALOG[s.faction].units.includes(name)||!Number.isInteger(count)||count<1)throw Error('Invalid unit selection');
  const instances=s.instances?appendRosterInstances(s,name,count):undefined;
- return {...s,units:{...s.units,[name]:(s.units[name]||0)+count},...(instances?{instances}:{})};
+ return reconcileWarlord({...s,units:{...s.units,[name]:(s.units[name]||0)+count},...(instances?{instances}:{})});
 }
 export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
- const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];const attachments=Object.fromEntries(Object.entries(s.attachments||{}).filter(([leader,bodyguard])=>leader!==name&&bodyguard!==name));const enhancements={...s.enhancements};delete enhancements[name];const removedIds=new Set(expandRoster(s).filter(x=>x.unit===name).map(x=>x.id));const instances=s.instances?.filter(x=>x.unit!==name).map(x=>x.attachedTo&&removedIds.has(x.attachedTo)?{...x,attachedTo:undefined}:x);const upgrades2026=Object.fromEntries(Object.entries(s.upgrades2026||{}).filter(([key])=>key!==name&&!removedIds.has(key)));return {...s,units,equipment,attachments,enhancements,upgrades2026,...(instances?{instances,retiredSquadNumbers:retiredSquadNumbers(s,s.instances!.filter(x=>x.unit===name))}:{})};
+ const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];const attachments=Object.fromEntries(Object.entries(s.attachments||{}).filter(([leader,bodyguard])=>leader!==name&&bodyguard!==name));const enhancements={...s.enhancements};delete enhancements[name];const removedIds=new Set(expandRoster(s).filter(x=>x.unit===name).map(x=>x.id));const instances=s.instances?.filter(x=>x.unit!==name).map(x=>x.attachedTo&&removedIds.has(x.attachedTo)?{...x,attachedTo:undefined}:x);const upgrades2026=Object.fromEntries(Object.entries(s.upgrades2026||{}).filter(([key])=>key!==name&&!removedIds.has(key)));return reconcileWarlord({...s,units,equipment,attachments,enhancements,upgrades2026,...(instances?{instances,retiredSquadNumbers:retiredSquadNumbers(s,s.instances!.filter(x=>x.unit===name))}:{})});
 }
 export function validateSelection(x:unknown):x is ArmySelection{
  if(!x||typeof x!=='object')return false;
  const s=x as Partial<ArmySelection>;
+ if(s.warlordId!==undefined&&typeof s.warlordId!=='string')return false;
  if(s.retiredSquadNumbers!==undefined&&(!s.retiredSquadNumbers||typeof s.retiredSquadNumbers!=='object'||Array.isArray(s.retiredSquadNumbers)||Object.values(s.retiredSquadNumbers).some(n=>!Number.isSafeInteger(n)||n<0||n>1000000000)))return false;
  return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>CATALOG[s.faction!].units.includes(name)&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&!!EQUIPMENT_OPTIONS[s.faction!]?.find(option=>option.unit===name&&option.choices.includes(currentEquipmentName(name,choice))))))&&(!s.battleSize2026||Object.prototype.hasOwnProperty.call(BATTLE_SIZES_2026,s.battleSize2026))&&(!s.detachments2026||(Array.isArray(s.detachments2026)&&s.detachments2026.every(d=>typeof d==='string')&&detachmentBudget(s.faction!,s.detachments2026,s.battleSize2026||'Strike Force').valid))&&validateUpgrades2026(s as ArmySelection)&&validateAttachments(s as ArmySelection)&&validateEnhancements(s as ArmySelection)&&validateRosterInstances(s as ArmySelection);
 }
