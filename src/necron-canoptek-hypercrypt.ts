@@ -6,7 +6,7 @@ import {necronKeywords as k} from './necron-wargear';
 // Current 11e faction reference, including the published FAQ/errata.
 export const COURT_HYPERCRYPT_SOURCE='https://wahapedia.ru/wh40k11ed/factions/necrons/';
 export const COURT_BEARERS=['Chronomancer','Geomancer','Plasmancer','Psychomancer','Technomancer'] as const;
-export const HYPERCRYPT_BEARERS=[...COURT_BEARERS,'Overlord','Overlord with translocation shroud','Royal Warden','Skorpekh Lord','Lokhust Lord','Hexmark Destroyer','Catacomb Command Barge','Transcendent C’tan'] as const;
+export const HYPERCRYPT_BEARERS=[...COURT_BEARERS,'Overlord','Overlord with translocation shroud','Royal Warden','Skorpekh Lord','Lokhust Lord','Hexmark Destroyer','Catacomb Command Barge'] as const;
 const canoptek=new Set(['Canoptek Macrocytes','Canoptek Tomb Crawlers','Canoptek Wraiths','Canoptek Scarab Swarms','Canoptek Spyders','Canoptek Doomstalker','Canoptek Reanimator']);
 export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[]{
  if(army.faction!=='Necrons'||!roster.length)return [];
