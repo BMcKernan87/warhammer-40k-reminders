@@ -1,4 +1,5 @@
 import type {ArmySelection} from './catalog';
+import {COURT_BEARERS,HYPERCRYPT_BEARERS,COURT_HYPERCRYPT_SOURCE} from './necron-canoptek-hypercrypt';
 import {expandRoster,reconcileInstanceAttachments} from './roster-instances';
 export interface Upgrade2026 {name:string;faction:'Necrons';detachment:string;unit:string;source:string}
 const NECRON_SOURCE='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
@@ -107,7 +108,10 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
 {"name":"Mark of the Nekrosor","faction":"Necrons","detachment":"Cursed Legion","unit":"Skorpekh Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
 {"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Hexmark Destroyer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
 {"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Lokhust Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
-{"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Skorpekh Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"}
+{"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Skorpekh Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+
+ ...COURT_BEARERS.flatMap(unit=>['Dimensional Sanctum','Hyperphasic Fulcrum','Autodivinator','Metalodermal Tesla Weave'].map(name=>({name,faction:'Necrons' as const,detachment:'Canoptek Court',unit,source:COURT_HYPERCRYPT_SOURCE}))),
+ ...HYPERCRYPT_BEARERS.flatMap(unit=>['Dimensional Overseer','Arisen Tyrant','Hyperspatial Transfer Node','Osteoclave Fulcrum'].map(name=>({name,faction:'Necrons' as const,detachment:'Hypercrypt Legion',unit,source:COURT_HYPERCRYPT_SOURCE})))
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
  return UPGRADES_2026.filter(u=>u.faction===army.faction&&u.unit===unit&&(army.detachments2026||[]).includes(u.detachment));
