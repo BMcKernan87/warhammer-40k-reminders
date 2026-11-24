@@ -1,3 +1,4 @@
+import {reconcileRetinues,validRetinues} from './necron-retinues';
 import {reconcileWarlord} from './necron-muster-legality';
 import {NECRON_LOADOUTS,slotLimit,validOptionalGear,currentEquipmentName} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
@@ -9,7 +10,7 @@ import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhanc
 import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances;
  const result:RosterInstance[]=[];
@@ -137,7 +138,7 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
   if(leader.id===body.id)throw Error('A Leader cannot attach to itself');
   leader.attachedTo=bodyguardId;
  }else delete leader.attachedTo;
- const updated={...army,instances};
+ const updated=reconcileRetinues({...army,instances});
  if(!validateRosterInstances(updated))throw Error('Incompatible Leader attachment or duplicate assignment');
  const upgradeError=upgradeError2026(updated);if(upgradeError)throw Error(upgradeError);
  return updated;
@@ -169,7 +170,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(leaders.length>2||!validMurdermindFormation(army,body,leaders))return false;
   if(leaders.length===2&&(army.faction!=='Necrons'||new Set(leaders.map(l=>necronAttachmentRole(l.unit))).size!==2))return false;
  }
- return true;
+ return validRetinues(army);
 }
 // Battle events refer to squad IDs across reloads. A replacement squad must not inherit a removed bearer’s history.
 export function retiredSquadNumbers(army:ArmySelection,removed:readonly RosterInstance[]):Record<string,number> {
@@ -192,7 +193,7 @@ export function removeRosterInstance(army:ArmySelection,id:string):ArmySelection
  const upgrades2026={...army.upgrades2026};
  delete upgrades2026[id];
  if(!units[target.unit])delete upgrades2026[target.unit];
- const updated={...army,units,instances,upgrades2026,retiredSquadNumbers:retiredSquadNumbers(army,[target])};
+ const updated=reconcileRetinues({...army,units,instances,upgrades2026,retiredSquadNumbers:retiredSquadNumbers(army,[target])});
  if(!validateRosterInstances(updated))throw Error('Removing squad would invalidate roster');
  return autoAttachUnambiguousInstances(reconcileWarlord(updated));
 }
@@ -234,5 +235,5 @@ export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
    for(const l of leaders)if(!instanceBodyguards({...army,upgrades2026:{}},l).includes(body.unit))delete l.attachedTo;
   }
  }
- return {...army,instances};
+ return reconcileRetinues({...army,instances});
 }
