@@ -6,8 +6,8 @@ import {instanceBodyguards,validMurdermindFormation} from './leader-eligibility'
 import {necronAttachmentRole} from './attachments';
 
 export const REMAINING_NECRON_SOURCE='https://wahapedia.ru/wh40k11ed/factions/necrons/';
-export const NECRON_CHARACTER_BEARERS=['Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Transcendent C’tan','Lokhust Lord','Catacomb Command Barge'] as const;
-const characters=new Set<string>([...NECRON_CHARACTER_BEARERS,'Illuminor Szeras','Imotekh the Stormlord','Nekrosor Ammentar','Orikan the Diviner','Trazyn the Infinite','C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','The Silent King']);
+export const NECRON_CHARACTER_BEARERS=['Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Lokhust Lord','Catacomb Command Barge'] as const;
+const characters=new Set<string>([...NECRON_CHARACTER_BEARERS,'Transcendent C’tan','Illuminor Szeras','Imotekh the Stormlord','Nekrosor Ammentar','Orikan the Diviner','Trazyn the Infinite','C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','The Silent King']);
 const nobles=new Set(['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite','Catacomb Command Barge']);
 const triarch=new Set(['The Silent King','Triarch Praetorians','Triarch Stalker']);
 export const OVERLORD_BEARERS=['Overlord','Overlord with translocation shroud'] as const;

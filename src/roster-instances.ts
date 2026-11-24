@@ -5,6 +5,7 @@ import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
+import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
@@ -137,6 +138,7 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
  }else delete leader.attachedTo;
  const updated={...army,instances};
  if(!validateRosterInstances(updated))throw Error('Incompatible Leader attachment or duplicate assignment');
+ const upgradeError=upgradeError2026(updated);if(upgradeError)throw Error(upgradeError);
  return updated;
 }
 export function validateRosterInstances(army:ArmySelection):boolean{
@@ -210,7 +212,8 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
    !expandRoster(current).some(other=>other.attachedTo===body.id&&necronAttachmentRole(other.unit)===necronAttachmentRole(leader.unit))&&
    expandRoster(current).filter(other=>other.attachedTo===body.id).length<2
   );
-  if(candidates.length===1)current=setInstanceAttachment(current,leader.id,candidates[0].id);
+  const legal=candidates.flatMap(body=>{try{return [setInstanceAttachment(current,leader.id,body.id)];}catch{return [];}});
+  if(legal.length===1)current=legal[0];
  }
  return current;
 }

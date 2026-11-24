@@ -5,7 +5,8 @@ import {NECRON_LOADOUTS,availableGearCount,currentEquipmentName,necronSource} fr
 import {necronAttachmentRole} from './attachments';
 import {isModeledLeader,instanceBodyguards,validMurdermindFormation} from './leader-eligibility';
 import {verifiedUnitSizes2026} from './datasheets-2026';
-import {eligibleUpgrades2026,selectUpgrade2026} from './upgrades-2026';
+import {availableUpgrades2026,selectUpgrade2026} from './upgrades-2026';
+import {NECRON_ENHANCEMENT_POINTS,PANTHEON_BINDINGS} from './necron-enhancement-points';
 
 type Edit = (fn:(army:ArmySelection)=>ArmySelection)=>void;
 function numbers(max:number) {
@@ -29,10 +30,11 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
   const primary=currentEquipmentName(squad.unit,squad.equipment??sheet.primary?.[0]??'');
   const choices=sheet.primary??[];
   const single=army.units[squad.unit]===1;
-  const upgrades=eligibleUpgrades2026(army,squad.unit);
+  const upgrades=availableUpgrades2026(army,squad);
+  const binding=army.detachments2026?.includes('Pantheon of Woe')?PANTHEON_BINDINGS[squad.unit]:undefined;
   const roster=expandRoster(army);
   const bodies=roster.filter(body=>instanceBodyguards(army,squad).includes(body.unit) && validMurdermindFormation(army,body,[squad,...roster.filter(l=>l.id!==squad.id&&l.attachedTo===body.id)]) &&
-    !roster.some(l=>l.id!==squad.id&&l.attachedTo===body.id&&necronAttachmentRole(l.unit)===necronAttachmentRole(squad.unit)));
+    !roster.some(l=>l.id!==squad.id&&l.attachedTo===body.id&&necronAttachmentRole(l.unit)===necronAttachmentRole(squad.unit))).filter(body=>{try{setInstanceAttachment(army,squad.id,body.id);return true;}catch{return false;}});
   const fixed=[sheet.fixed,choices.length===1?choices[0]:''].filter(Boolean).join(' · ');
   const special=squad.unit==='Canoptek Macrocytes' ? Object.values(squad.wargear??{}).reduce((sum,n)=>sum+n,0) : 0;
   return <section className="loadout" aria-label={'Squad '+squad.id}>
@@ -58,8 +60,9 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
         </select></label>))}
       {isModeledLeader('Necrons',squad.unit)&&<label>Attached to <select aria-label={'Attach squad '+squad.id} value={squad.attachedTo??''} onChange={e=>edit(a=>setInstanceAttachment(a,squad.id,e.target.value||null))}>
         <option value="">Unattached</option>{bodies.map(b=><option key={b.id}>{b.id}</option>)}</select></label>}
-      {upgrades.length>0&&<label>11th-edition upgrade <select aria-label={'11th upgrade for squad '+squad.id} value={army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit]??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>
-        <option value="">None</option>{upgrades.map(u=><option key={u.name}>{u.name}</option>)}</select></label>}
+      {binding&&<span>{binding.name} · mandatory +{binding.points} pts</span>}
+      {upgrades.length>0&&<label>11th-edition enhancement <select aria-label={'11th upgrade for squad '+squad.id} value={army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit]??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>
+        <option value="">None</option>{upgrades.map(u=><option key={u.name} value={u.name}>{u.name==='Prelocational Optimiser'?'Relocational Optimiser':u.name} (+{NECRON_ENHANCEMENT_POINTS[u.name]} pts)</option>)}</select></label>}
     </div>
     <button className="secondary" aria-label={'Remove squad '+squad.id} onClick={()=>edit(a=>removeRosterInstance(a,squad.id))}>Remove squad</button>
   </section>;

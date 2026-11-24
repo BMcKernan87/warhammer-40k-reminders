@@ -2,13 +2,13 @@ import {BATTLE_SIZES_2026,DETACHMENTS_2026,detachmentBudget} from './edition-202
 import type {ArmySelection} from './catalog';
 import {expandRoster} from './roster-instances';
 import {rosterCost2026,verifiedUnitSizes2026} from './datasheets-2026';
-import {validateUpgrades2026} from './upgrades-2026';
+import {upgradeError2026} from './upgrades-2026';
 export interface RosterFinding {code:string;severity:'error'|'warning'|'info';message:string;unit?:string}
 /** Auditable checks only. This is not a substitute for current official points and mission rules. */
 export function rosterFindings(army:ArmySelection):RosterFinding[]{
  const findings:RosterFinding[]=[];
  if(!army.detachments2026?.length)findings.push({code:'no-11e-detachment',severity:'warning',message:'Select at least one 11th-edition detachment to enable detachment-specific reminders.'});
- if(!validateUpgrades2026(army))findings.push({code:'invalid-11e-upgrade',severity:'error',message:'One or more 11th-edition upgrades are unavailable for the selected unit or detachment.'});
+ const upgradeError=upgradeError2026(army);if(upgradeError)findings.push({code:'invalid-11e-upgrade',severity:'error',message:upgradeError+'.'});
  const instances=expandRoster(army);
  const byUnit=new Map<string,typeof instances>();
  for(const instance of instances)byUnit.set(instance.unit,[...(byUnit.get(instance.unit)||[]),instance]);
