@@ -114,7 +114,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
    const turn=window==='Shooting'?'Your Shooting phase. ':'Either Fight phase. ';
    if(destroyers.length){
     emit(window==='Fight'?'cold-fervour':'cold-fervour-shooting','Cursed Legion · Cold Fervour',window,'Destroyer Cult models gain +2 weapon Strength. The first time each turn a Destroyer Cult unit kills a unit or brings it Below Half-strength, after resolving its attacks, other friendly Necron models (not Destroyer Cult, Monster or Titanic) gain +2 weapon Strength for the rest of the turn.');
-    emit('image-'+window.toLowerCase(),'Image of Death · 1CP',window,(window==='Shooting'?'Opponent’s Shooting phase. ':'Either Fight phase. ')+'Immediately after an enemy targets a Destroyer Cult unit, subtract 1 from attacks targeting it for this phase.');
+    emit('image-'+window.toLowerCase(),'Image of Death · 1CP',window,(window==='Shooting'?'Opponent’s Shooting phase. ':'Either Fight phase. ')+'Immediately after an enemy targets a Destroyer Cult unit, subtract 1 from Hit rolls of attacks targeting it for this phase.');
     if(nonHeavy.length)emit('mortis-'+window.toLowerCase(),'Mortis Protocols · 1CP',window,turn+'Immediately after the first Destroyer Cult kill this turn, activate Reanimation for one non-Monster, non-Vehicle Necron unit within 9″ of that Destroyer Cult unit.');
    }
    if(nonHeavy.length)emit('methodical-'+window.toLowerCase(),'Methodical Murder · 1CP',window,turn+'Select a non-Monster, non-Vehicle Necron unit not yet selected to shoot or fight. Its weapons gain Sustained Hits 1 this phase.');
