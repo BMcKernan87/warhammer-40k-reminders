@@ -1,5 +1,6 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
+import {leaderBodyguards} from './leader-eligibility';
 import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
 import {ACTIONS,type Signal} from './battlefield-events';
@@ -89,12 +90,13 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   const output:GeneratedReminder[]=[];
   const ids=new Set<string>();
   for(const squad of roster){
+    const body=roster.find(s=>s.id===squad.attachedTo&&s.id!==squad.id&&leaderBodyguards(army.faction,squad.unit).includes(s.unit));
     for(const rule of BATTLEFIELD_RULES){
       if(rule.id==='doomsday-still')continue; // The shooting reminder already includes the stationary condition.
-      if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
+      if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
-      if(rule.id==='chronometron'&&!squad.attachedTo)continue;
-      if(rule.id==='warden'&&!squad.attachedTo)continue;
+      if(rule.id==='chronometron'&&!body)continue;
+      if(rule.id==='warden'&&!body)continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
       if(rule.id==='szeras'&&!roster.some(other=>other.unit==='Necron Warriors'||other.unit==='Immortals'))continue;
@@ -102,7 +104,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       if(rule.id==='nodes'&&!roster.some(other=>other.id!==squad.id&&necronKeywords.INFANTRY.has(other.unit)))continue;
       if((rule.id==='invasion'||rule.id==='monolith')&&!roster.some(other=>necronKeywords.INFANTRY.has(other.unit)))continue;
       if(rule.id==='trazyn'&&!roster.some(other=>other.id!==squad.id&&['Overlord','Overlord with translocation shroud','Chronomancer','Geomancer','Hexmark Destroyer','Plasmancer','Psychomancer','Royal Warden','Technomancer'].includes(other.unit)))continue;
-      const body=roster.find(s=>s.id===squad.attachedTo);
+
       let suffix=existingIds[rule.id]??rule.id;
       if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
       if(rule.id==='rites'&&body?.unit==='Canoptek Wraiths')suffix='technomancer-wraiths';
@@ -110,10 +112,10 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
         const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
         const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
         ids.add(id);
-        output.push({id,title:squad.id+' · '+rule.title+(rule.scope==='leading'&&body?' → '+body.id:''),
+        output.push({id,title:squad.id+' · '+rule.title+((rule.scope==='leading'||rule.id==='chronometron'||rule.id==='warden')&&body?' → '+body.id:''),
           window,timing:rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
           summary:referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
-          units:rule.scope==='leading'&&body?[squad.id,body.id]:[squad.id]});
+          units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='warden')&&body?[squad.id,body.id]:[squad.id]});
       }
     }
   }
