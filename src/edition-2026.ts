@@ -334,5 +334,5 @@ export function detachmentBudget(faction:Faction,selected:readonly string[],size
  const conflicts=groups.some(group=>selected.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=faction==='Necrons'&&size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;
- return {supported:true,spent,limit:BATTLE_SIZES_2026[size].dp,valid:selected.length>0&&new Set(selected).size===selected.length&&entries.every(Boolean)&&!conflicts&&(spent<=limit||soloThreeDP),dispositions:[...new Set(entries.filter((d):d is Detachment2026=>!!d).flatMap(d=>[d.disposition,...(d.additionalDispositions??[])]))]};
+ return {supported:true,spent,limit:soloThreeDP?3:limit,valid:selected.length>0&&new Set(selected).size===selected.length&&entries.every(Boolean)&&!conflicts&&(spent<=limit||soloThreeDP),dispositions:[...new Set(entries.filter((d):d is Detachment2026=>!!d).flatMap(d=>[d.disposition,...(d.additionalDispositions??[])]))]};
 }
