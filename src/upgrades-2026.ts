@@ -1,4 +1,5 @@
 import type {ArmySelection} from './catalog';
+import {NECRON_CHARACTER_BEARERS,DESTROYER_BEARERS,OVERLORD_BEARERS,REMAINING_NECRON_SOURCE} from './necron-remaining-detachments';
 import {COURT_BEARERS,HYPERCRYPT_BEARERS,COURT_HYPERCRYPT_SOURCE} from './necron-canoptek-hypercrypt';
 import {expandRoster,reconcileInstanceAttachments} from './roster-instances';
 export interface Upgrade2026 {name:string;faction:'Necrons';detachment:string;unit:string;source:string}
@@ -111,7 +112,11 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
 {"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Skorpekh Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
 
  ...COURT_BEARERS.flatMap(unit=>['Dimensional Sanctum','Hyperphasic Fulcrum','Autodivinator','Metalodermal Tesla Weave'].map(name=>({name,faction:'Necrons' as const,detachment:'Canoptek Court',unit,source:COURT_HYPERCRYPT_SOURCE}))),
- ...HYPERCRYPT_BEARERS.flatMap(unit=>['Dimensional Overseer','Arisen Tyrant','Hyperspatial Transfer Node','Osteoclave Fulcrum'].map(name=>({name,faction:'Necrons' as const,detachment:'Hypercrypt Legion',unit,source:COURT_HYPERCRYPT_SOURCE})))
+ ...HYPERCRYPT_BEARERS.flatMap(unit=>['Dimensional Overseer','Arisen Tyrant','Hyperspatial Transfer Node','Osteoclave Fulcrum'].map(name=>({name,faction:'Necrons' as const,detachment:'Hypercrypt Legion',unit,source:COURT_HYPERCRYPT_SOURCE}))),
+ ...NECRON_CHARACTER_BEARERS.flatMap(unit=>['Veil of Darkness','Nether-realm Casket','Phasal Subjugator','Enaegic Dermal Bond'].map(name=>({name,faction:'Necrons' as const,detachment:'Awakened Dynasty',unit,source:REMAINING_NECRON_SOURCE}))),
+ ...NECRON_CHARACTER_BEARERS.flatMap(unit=>['Eternal Madness','Ingrained Superiority'].map(name=>({name,faction:'Necrons' as const,detachment:'Annihilation Legion',unit,source:REMAINING_NECRON_SOURCE}))),
+ ...DESTROYER_BEARERS.flatMap(unit=>['Soulless Reaper','Eldritch Nightmare'].map(name=>({name,faction:'Necrons' as const,detachment:'Annihilation Legion',unit,source:REMAINING_NECRON_SOURCE}))),
+ ...OVERLORD_BEARERS.flatMap(unit=>['Honourable Combatant','Unflinching Will','Warrior Noble','Eternal Conqueror'].map(name=>({name,faction:'Necrons' as const,detachment:'Obeisance Phalanx',unit,source:REMAINING_NECRON_SOURCE})))
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
  return UPGRADES_2026.filter(u=>u.faction===army.faction&&u.unit===unit&&(army.detachments2026||[]).includes(u.detachment));
