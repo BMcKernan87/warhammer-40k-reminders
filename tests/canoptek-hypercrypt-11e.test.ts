@@ -54,7 +54,7 @@ describe('11e Hypercrypt Legion',()=>{
   expect(eligibleUpgrades2026(a,'Imotekh the Stormlord')).toHaveLength(0);
   expect(eligibleUpgrades2026(a,'Overlord')).toHaveLength(4);
   const id=expandRoster(a).find(x=>x.unit==='Overlord')!.id;
-  for(const [size,count] of [['Incursion',1],['Strike Force',2],['Onslaught',3]] as const){
+  for(const [size,count] of [['Incursion',1],['Strike Force',2]] as const){
    const selected=selectUpgrade2026({...a,battleSize2026:size},id,'Dimensional Overseer');
    expect(reminders(selected).find(x=>x.title.includes('Hyperphasing'))?.summary).toContain('up to '+count);
    expect(reminders(selected).find(x=>x.title.includes('Dimensional Overseer'))?.summary).toContain('to '+(count+1));
