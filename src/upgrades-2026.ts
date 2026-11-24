@@ -93,7 +93,21 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
 {"name":"Gravitic Bolas","faction":"Necrons","detachment":"Cryptek Conclave","unit":"Geomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
 {"name":"Gravitic Bolas","faction":"Necrons","detachment":"Cryptek Conclave","unit":"Plasmancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
 {"name":"Gravitic Bolas","faction":"Necrons","detachment":"Cryptek Conclave","unit":"Psychomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
-{"name":"Gravitic Bolas","faction":"Necrons","detachment":"Cryptek Conclave","unit":"Technomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"}
+{"name":"Gravitic Bolas","faction":"Necrons","detachment":"Cryptek Conclave","unit":"Technomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Destroyer Ankh","faction":"Necrons","detachment":"Cursed Legion","unit":"Catacomb Command Barge","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Destroyer Ankh","faction":"Necrons","detachment":"Cursed Legion","unit":"Overlord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Destroyer Ankh","faction":"Necrons","detachment":"Cursed Legion","unit":"Overlord with translocation shroud","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Murdermind","faction":"Necrons","detachment":"Cursed Legion","unit":"Chronomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Murdermind","faction":"Necrons","detachment":"Cursed Legion","unit":"Geomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Murdermind","faction":"Necrons","detachment":"Cursed Legion","unit":"Plasmancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Murdermind","faction":"Necrons","detachment":"Cursed Legion","unit":"Psychomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Murdermind","faction":"Necrons","detachment":"Cursed Legion","unit":"Technomancer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Mark of the Nekrosor","faction":"Necrons","detachment":"Cursed Legion","unit":"Hexmark Destroyer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Mark of the Nekrosor","faction":"Necrons","detachment":"Cursed Legion","unit":"Lokhust Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Mark of the Nekrosor","faction":"Necrons","detachment":"Cursed Legion","unit":"Skorpekh Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Hexmark Destroyer","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Lokhust Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"},
+{"name":"Cursed Circlet","faction":"Necrons","detachment":"Cursed Legion","unit":"Skorpekh Lord","source":"https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf"}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
  return UPGRADES_2026.filter(u=>u.faction===army.faction&&u.unit===unit&&(army.detachments2026||[]).includes(u.detachment));
