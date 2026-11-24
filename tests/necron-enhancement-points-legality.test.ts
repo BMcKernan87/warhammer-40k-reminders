@@ -68,7 +68,7 @@ describe('11e enhancement points and limits',()=>{
   expect(rosterCost2026(a).entries.map(e=>e.bindingPoints)).toEqual([45,45,35,40,40]);
   expect(rosterCost2026(b).entries.every(e=>!e.bindingPoints)).toBe(true);
   const c={...a,detachments2026:['Pantheon of Woe','The Phaeron\'s Armoury']};
-  expect(()=>selectUpgrade2026(c,id(c,'Transcendent C’tan'),'Prelocational Optimiser')).toThrow(/binding/);
+  expect(()=>selectUpgrade2026(c,id(c,'Transcendent C’tan'),'Prelocational Optimiser')).toThrow(/binding/i);
  });
  it('checks imported wrong bearer, absent unit, unknown pricing and explicit malformed inputs',()=>{
   const a=army(['Awakened Dynasty'],'Immortals');
