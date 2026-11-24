@@ -3,7 +3,7 @@ import type {ArmySelection} from './catalog';
 import {expandRoster,individualArmy,removeRosterInstance,setInstanceAttachment,setInstanceEquipment,setInstanceModelCount,setInstanceResurrectionOrb,setInstanceWargear,setInstanceWeaponCounts,type RosterInstance} from './roster-instances';
 import {NECRON_LOADOUTS,availableGearCount,currentEquipmentName,necronSource} from './necron-wargear';
 import {necronAttachmentRole} from './attachments';
-import {isModeledLeader,leaderBodyguards} from './leader-eligibility';
+import {isModeledLeader,instanceBodyguards,validMurdermindFormation} from './leader-eligibility';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 import {eligibleUpgrades2026,selectUpgrade2026} from './upgrades-2026';
 
@@ -31,7 +31,7 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
   const single=army.units[squad.unit]===1;
   const upgrades=eligibleUpgrades2026(army,squad.unit);
   const roster=expandRoster(army);
-  const bodies=roster.filter(body=>leaderBodyguards('Necrons',squad.unit).includes(body.unit) &&
+  const bodies=roster.filter(body=>instanceBodyguards(army,squad).includes(body.unit) && validMurdermindFormation(army,body,[squad,...roster.filter(l=>l.id!==squad.id&&l.attachedTo===body.id)]) &&
     !roster.some(l=>l.id!==squad.id&&l.attachedTo===body.id&&necronAttachmentRole(l.unit)===necronAttachmentRole(squad.unit)));
   const fixed=[sheet.fixed,choices.length===1?choices[0]:''].filter(Boolean).join(' · ');
   const special=squad.unit==='Canoptek Macrocytes' ? Object.values(squad.wargear??{}).reduce((sum,n)=>sum+n,0) : 0;
