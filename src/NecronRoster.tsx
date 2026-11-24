@@ -62,7 +62,7 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
         <option value="">Unattached</option>{bodies.map(b=><option key={b.id}>{b.id}</option>)}</select></label>}
       {binding&&<span>{binding.name} · mandatory +{binding.points} pts</span>}
       {upgrades.length>0&&<label>11th-edition enhancement <select aria-label={'11th upgrade for squad '+squad.id} value={army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit]??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>
-        <option value="">None</option>{upgrades.map(u=><option key={u.name} value={u.name}>{u.name} (+{NECRON_ENHANCEMENT_POINTS[u.name]} pts)</option>)}</select></label>}
+        <option value="">None</option>{upgrades.map(u=><option key={u.name} value={u.name}>{u.name==='Prelocational Optimiser'?'Relocational Optimiser':u.name} (+{NECRON_ENHANCEMENT_POINTS[u.name]} pts)</option>)}</select></label>}
     </div>
     <button className="secondary" aria-label={'Remove squad '+squad.id} onClick={()=>edit(a=>removeRosterInstance(a,squad.id))}>Remove squad</button>
   </section>;
