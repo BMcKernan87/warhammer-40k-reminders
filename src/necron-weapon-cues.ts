@@ -66,11 +66,6 @@ const profiles:Record<string,WeaponPhases>={
       {weapon:"Weapons of the Final Triarch", abilities:"Lethal Hits"},
     ],
   },
-  "Chronomancer": {
-    shoot: [
-      {weapon:"Aeonstave", abilities:"Blast"},
-    ],
-  },
   "Geomancer": {
     shoot: [
       {weapon:"Tremorglaive – reverberating beam", abilities:"Melta 2"},
