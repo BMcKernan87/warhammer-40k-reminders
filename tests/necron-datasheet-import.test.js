@@ -12,6 +12,7 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
   const generated=generateDatasheets(snapshot);
   expect(generated).toBe(readFileSync('src/datasheets-2026.generated.ts','utf8'));
   expect(generateDatasheets({...snapshot,datasheets:[...snapshot.datasheets].reverse()})).toBe(generated);
+  expect(snapshot.expectedUnits).toEqual([...CATALOG.Necrons.units].sort());
   expect(DATASHEETS_2026.map(d=>d.unit).sort()).toEqual([...CATALOG.Necrons.units].sort());
  });
  it('preserves all imported fields and drives current runtime pricing',()=>{
@@ -22,6 +23,8 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
   s=>{s.edition=10;},
   s=>{s.revision='';},
   s=>{s.datasheets.push(s.datasheets[0]);},
+  s=>{s.datasheets.pop();},
+  s=>{s.expectedUnits.push(s.expectedUnits[0]);},
   s=>{s.datasheets[0].source='https://wahapedia.ru/wh40k10ed/factions/necrons/Chronomancer';},
   s=>{delete s.datasheets[0].pointsBySize['1'];},
   s=>{s.datasheets[0].laterCopyPointsBySize={'1':{'1':80}};},
