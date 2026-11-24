@@ -58,10 +58,21 @@ export function setInstanceModelCount(army:ArmySelection,id:string,models:number
  }
  if(target.weaponCounts){
   const choices=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===target.unit)?.choices;
-  const current=Object.entries(target.weaponCounts);
-  const first=choices?.find(w=>current.some(([key,count])=>key===w&&count>0))||choices?.[0];
-  if(first)target.weaponCounts={[first]:models};
-  else delete target.weaponCounts;
+  const current=target.weaponCounts;
+  const first=choices?.find(w=>(current[w]??0)>0)||choices?.[0];
+  if(first&&choices){
+   // Retain existing weapon assignments where possible. Only newly added models
+   // receive the first selected weapon; shrinking trims in catalog order.
+   const retained:Record<string,number>={};
+   let remaining=models;
+   for(const weapon of choices){
+    const count=Math.min(current[weapon]??0,remaining);
+    if(count>0)retained[weapon]=count;
+    remaining-=count;
+   }
+   if(remaining>0)retained[first]=(retained[first]??0)+remaining;
+   target.weaponCounts=retained;
+  }else delete target.weaponCounts;
  }
  const updated={...army,instances};
  if(!validateRosterInstances(updated))throw Error('Invalid model count');

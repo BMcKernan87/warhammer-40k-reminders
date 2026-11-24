@@ -6,8 +6,8 @@ import {DATASHEETS_2026} from '../src/datasheets-2026';
 import {generate11thReminders} from '../src/reminders-11th';
 
 describe('11e Necron loadout coverage',()=>{
-  it('covers the priced registry and the selectable Chronomancer, with explicit fixed or configurable gear',()=>{
-    expect(DATASHEETS_2026.filter(s=>s.faction==='Necrons')).toHaveLength(51);
+  it('covers the entire priced registry, with explicit fixed or configurable gear',()=>{
+    expect(DATASHEETS_2026.filter(s=>s.faction==='Necrons').map(s=>s.unit).sort()).toEqual([...CATALOG.Necrons.units].sort());
     expect(Object.keys(NECRON_LOADOUTS).sort()).toEqual([...CATALOG.Necrons.units].sort());
   });
   it.each(CATALOG.Necrons.units)('%s has a legal default at every registered size and rejects foreign gear',unit=>{

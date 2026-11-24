@@ -1,11 +1,11 @@
 import {describe,it,expect} from 'vitest';
 import {DATASHEETS_2026,rosterCost2026} from '../src/datasheets-2026';
-import {addSelectionUnit,newSelection} from '../src/catalog';
+import {CATALOG,addSelectionUnit,newSelection} from '../src/catalog';
 import {setInstanceModelCount} from '../src/roster-instances';
 describe('complete Necron 11e point schedules',()=>{
  it('has a unique, priced 11e record for every imported Necron unit',()=>{
   const units=DATASHEETS_2026.filter(d=>d.faction==='Necrons');
-  expect(units).toHaveLength(51);
+  expect(units.map(d=>d.unit).sort()).toEqual([...CATALOG.Necrons.units].sort());
   expect(new Set(units.map(d=>d.unit)).size).toBe(units.length);
   for(const d of units){
    expect(d.verified).toBe('sizes-and-points');
@@ -18,6 +18,12 @@ describe('complete Necron 11e point schedules',()=>{
    const army=addSelectionUnit(newSelection('Necrons'),unit);
    expect(rosterCost2026(army).total).toBe(points);
   }
+ });
+ it('prices Chronomancer first and later copies and imports its profile',()=>{
+  const army=addSelectionUnit(newSelection('Necrons'),'Chronomancer',3);
+  expect(rosterCost2026(army).entries.map(e=>e.points)).toEqual([70,80,80]);
+  expect(rosterCost2026(army).total).toBe(230);
+  expect(DATASHEETS_2026.find(d=>d.unit==='Chronomancer')?.profile).toEqual({move:'5"',toughness:4,save:'4+',wounds:4,leadership:'6+',objectiveControl:1});
  });
  it('prices all three Convergence of Dominion sizes',()=>{
   for(const [size,points] of [[1,60],[2,120],[3,180]]){

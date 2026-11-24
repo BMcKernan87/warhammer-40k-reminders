@@ -18,9 +18,13 @@ describe('imported Necron Leader rules follow attachments and phases',()=>{
   const {attached}=withLeader('Technomancer','Canoptek Wraiths');
   expect(generate11thReminders(attached).filter(r=>r.title.includes('Rites of Reanimation')).map(r=>r.window)).toEqual(['Shooting','Fight']);
  });
- it('Chronomancer Chronometron requires an attached unit',()=>{
+ it('Chronomancer abilities apply to its own unit or actual attached formation',()=>{
   const {base,attached}=withLeader('Chronomancer','Immortals');
-  expect(generate11thReminders(base).some(r=>r.title.includes('Chronometron'))).toBe(false);
-  expect(generate11thReminders(attached).some(r=>r.title.includes('Chronometron'))).toBe(true);
+  expect(generate11thReminders(base).find(r=>r.title.includes('Chronometron'))?.units).toEqual(['Chronomancer#1']);
+  expect(generate11thReminders(attached).find(r=>r.title.includes('Chronometron'))?.units).toEqual(['Chronomancer#1','Immortals#1']);
+  const defence=generate11thReminders(attached).filter(r=>r.title.includes('Timesplinter Mantle'));
+  expect(defence.map(r=>r.window)).toEqual(['Shooting','Fight']);
+  expect(defence.every(r=>r.units?.join(',')==='Chronomancer#1,Immortals#1')).toBe(true);
+  expect(generate11thReminders(base).filter(r=>r.title.includes('Timesplinter Mantle')).every(r=>r.units?.join(',')==='Chronomancer#1')).toBe(true);
  });
 });

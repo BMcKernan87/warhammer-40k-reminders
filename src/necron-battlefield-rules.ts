@@ -108,6 +108,7 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('harbinger','Harbinger of Destruction','Plasmancer','shoot','A successful unmodified ranged Hit roll of 5+ scores a Critical Hit for the attached unit.',{scope:'leading'}),
   rule('lightning','Living Lightning','Plasmancer',atStart,'During Shooting, choose a visible enemy within 18″. An unattached Lone Operative must be within 12″. Roll four dice, inflicting a mortal wound for each 4+.',{phase:'Shooting',turn:'own'}),
   rule('chronometron','Chronometron','Chronomancer',['shot','shotHit'],'The unengaged unit may make a 5″ Normal move. Taking it prevents a charge this turn.',{scope:'formation',turn:'own',phase:'Shooting',when:c=>!!c.observation?.unengaged}),
+  rule('timesplinter-mantle','Timesplinter Mantle','Chronomancer','targeted','This unit has Stealth; subtract 1 from melee Hit rolls against it.',{scope:'formation'}),
   rule('terror','Harbinger of Despair','Psychomancer',atStart,'Choose an enemy unit within 18″. It takes a Battle-shock test with −1 to the result.',{turn:'own',limit:'turn'}),
   rule('geomancer','Tectonic Reverberations','Geomancer',atStart,'During Movement you may pin a visible enemy within 18″. It takes −2 Move and −2 to Charge rolls until your next Movement phase starts.',{phase:'Movement',turn:'own'}),
   rule('warden','Adaptive Strategy','Royal Warden','fallback','This unit may still shoot and declare a charge this turn.',{scope:'formation'}),

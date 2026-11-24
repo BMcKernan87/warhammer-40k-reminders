@@ -95,7 +95,6 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       if(rule.id==='doomsday-still')continue; // The shooting reminder already includes the stationary condition.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
-      if(rule.id==='chronometron'&&!body)continue;
       if(rule.id==='warden'&&!body)continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
@@ -112,10 +111,10 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
         const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
         const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
         ids.add(id);
-        output.push({id,title:squad.id+' · '+rule.title+((rule.scope==='leading'||rule.id==='chronometron'||rule.id==='warden')&&body?' → '+body.id:''),
+        output.push({id,title:squad.id+' · '+rule.title+((rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?' → '+body.id:''),
           window,timing:rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
           summary:referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
-          units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='warden')&&body?[squad.id,body.id]:[squad.id]});
+          units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?[squad.id,body.id]:[squad.id]});
       }
     }
   }
