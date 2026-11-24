@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "import:datasheets": "node scripts/import-datasheets.mjs",
     "check:datasheets": "node scripts/import-datasheets.mjs --check",
-    "pretest": "npm run check:datasheets"
+    "pretest": "npm run check:datasheets",
+    "import:wahapedia": "node scripts/import-wahapedia-11e.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
