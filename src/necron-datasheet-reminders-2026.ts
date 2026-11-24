@@ -23,6 +23,8 @@ const actionPhase:Partial<Record<Signal,Phase>>={
   chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',killed:'Fight',reanimate:'Command',
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
+  if(rule.id==='macro-projector'||rule.id==='reanimation-beam')return [...PHASES];
+  if(rule.id==='tomb-shield-save')return ['Shooting','Fight'];
   if(rule.id==='tunnelling')return ['End of opponent turn'];
   if(rule.id==='terror'||rule.id==='cover')return ['Shooting'];
   if(rule.id==='harbinger'||rule.id==='lokhust-lead')return ['Shooting'];
@@ -83,6 +85,7 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
   if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
   if(rule.id==='orb')text+=' Only one unit can resurrect in a turn.';
+  if(rule.gear&&['gloom','fabricator','plasmacyte','amulet','orb'].includes(rule.id))text+=' Apply only while the relevant equipped bearer survives or the applicable use remains available.';
   return [side+limit+intro,text].filter(Boolean).join(' ').trim();
 }
 export function necronDatasheetReminders2026(army:ArmySelection):GeneratedReminder[]{
