@@ -118,7 +118,9 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  ...NECRON_CHARACTER_BEARERS.flatMap(unit=>['Veil of Darkness','Nether-realm Casket','Phasal Subjugator','Enaegic Dermal Bond'].map(name=>({name,faction:'Necrons' as const,detachment:'Awakened Dynasty',unit,source:REMAINING_NECRON_SOURCE}))),
  ...NECRON_CHARACTER_BEARERS.flatMap(unit=>['Eternal Madness','Ingrained Superiority'].map(name=>({name,faction:'Necrons' as const,detachment:'Annihilation Legion',unit,source:REMAINING_NECRON_SOURCE}))),
  ...DESTROYER_BEARERS.flatMap(unit=>['Soulless Reaper','Eldritch Nightmare'].map(name=>({name,faction:'Necrons' as const,detachment:'Annihilation Legion',unit,source:REMAINING_NECRON_SOURCE}))),
- ...OVERLORD_BEARERS.flatMap(unit=>['Honourable Combatant','Unflinching Will','Warrior Noble','Eternal Conqueror'].map(name=>({name,faction:'Necrons' as const,detachment:'Obeisance Phalanx',unit,source:REMAINING_NECRON_SOURCE})))
+ ...OVERLORD_BEARERS.flatMap(unit=>['Honourable Combatant','Unflinching Will','Warrior Noble','Eternal Conqueror'].map(name=>({name,faction:'Necrons' as const,detachment:'Obeisance Phalanx',unit,source:REMAINING_NECRON_SOURCE}))),
+ ...['Prelocational Optimiser','Miniaturised Nebuloscope','Demanding Leader','Chrono-impedance Fields','Quantum Abacus','Gauntlet of Compression'].map(name=>({name,faction:'Necrons' as const,detachment:name==='Prelocational Optimiser'?"The Phaeron's Armoury":['Quantum Abacus','Gauntlet of Compression'].includes(name)?'Cryptek Conclave':'Starshatter Arsenal',unit:'Transcendent C’tan',source:REMAINING_NECRON_SOURCE})),
+ {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
  return UPGRADES_2026.filter(u=>u.faction===army.faction&&u.unit===unit&&(army.detachments2026||[]).includes(u.detachment));
