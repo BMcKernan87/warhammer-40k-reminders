@@ -1,6 +1,6 @@
 import {NECRON_LOADOUTS,slotLimit,validOptionalGear,currentEquipmentName} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
-import {leaderBodyguards,isModeledLeader} from './leader-eligibility';
+import {instanceBodyguards,validMurdermindFormation,isModeledLeader} from './leader-eligibility';
 import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
@@ -120,7 +120,7 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
  if(!leader||!isModeledLeader(army.faction,leader.unit))throw Error('Selected model is not a supported Leader');
  if(bodyguardId!==null){
   const body=instances.find(x=>x.id===bodyguardId);
-  if(!body||!leaderBodyguards(army.faction,leader.unit).includes(body.unit))throw Error('Leader cannot join this Bodyguard');
+  if(!body||!instanceBodyguards(army,leader).includes(body.unit))throw Error('Leader cannot join this Bodyguard');
   if(leader.id===body.id)throw Error('A Leader cannot attach to itself');
   leader.attachedTo=bodyguardId;
  }else delete leader.attachedTo;
@@ -150,9 +150,9 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  for(const x of army.instances){
   if(x.attachedTo===undefined)continue;
   const body=army.instances.find(b=>b.id===x.attachedTo);
-  if(!body||!leaderBodyguards(army.faction,x.unit).includes(body.unit))return false;
+  if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
-  if(leaders.length>2)return false;
+  if(leaders.length>2||!validMurdermindFormation(army,body,leaders))return false;
   if(leaders.length===2&&(army.faction!=='Necrons'||new Set(leaders.map(l=>necronAttachmentRole(l.unit))).size!==2))return false;
  }
  return true;
@@ -195,11 +195,29 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
  for(const leader of expandRoster(current)){
   if(leader.attachedTo||!necronAttachmentRole(leader.unit))continue;
   const candidates=expandRoster(current).filter(body=>
-   leaderBodyguards(current.faction,leader.unit).includes(body.unit)&&
+   instanceBodyguards(current,leader).includes(body.unit)&&
    !expandRoster(current).some(other=>other.attachedTo===body.id&&necronAttachmentRole(other.unit)===necronAttachmentRole(leader.unit))&&
    expandRoster(current).filter(other=>other.attachedTo===body.id).length<2
   );
   if(candidates.length===1)current=setInstanceAttachment(current,leader.id,candidates[0].id);
  }
  return current;
+}
+
+/** Remove only attachments that become illegal when a detachment or upgrade is removed. */
+export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
+ if(!army.instances)return army;
+ let instances=army.instances.map(s=>({...s}));
+ for(const leader of instances){
+  if(!leader.attachedTo)continue;
+  const body=instances.find(b=>b.id===leader.attachedTo);
+  if(!body||!instanceBodyguards(army,leader).includes(body.unit))delete leader.attachedTo;
+ }
+ for(const body of instances){
+  const leaders=instances.filter(l=>l.attachedTo===body.id);
+  if(!validMurdermindFormation(army,body,leaders)){
+   for(const l of leaders)if(!instanceBodyguards({...army,upgrades2026:{}},l).includes(body.unit))delete l.attachedTo;
+  }
+ }
+ return {...army,instances};
 }
