@@ -46,7 +46,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  }
  if(selected.includes('Hypercrypt Legion')){
   const infantry=matching(u=>k.INFANTRY.has(u)),vehicles=matching(u=>k.VEHICLE.has(u)),titanic=matching(u=>k.TITANIC.has(u)),nonmonsters=matching(u=>!k.MONSTER.has(u)),monolith=roster.some(s=>s.unit==='Monolith');
-  const size=army.battleSize2026??'Strike Force';
+  const size:string=army.battleSize2026??'Strike Force';
   const limit=size==='Incursion'?1:size==='Onslaught'?3:2;
   emit('hypercrypt-hyperphasing','Hypercrypt Legion · Hyperphasing','End of opponent turn','Remove up to '+limit+' unengaged Necron units from the battlefield into Strategic Reserves. Deep Strike does not permit arrival in battle round one.','end',formations.map(f=>f.id));
   for(const phase of ['Shooting','Fight'] as const){
