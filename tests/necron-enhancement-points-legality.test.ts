@@ -81,8 +81,8 @@ describe('11e enhancement points and limits',()=>{
   const a=army(['Starshatter Arsenal'],'Overlord with translocation shroud','Transcendent C’tan');
   const b=selectUpgrade2026(a,id(a,'Overlord with translocation shroud'),'Dread Majesty');
   expect(generate11thReminders(b).some(r=>r.title.includes('Dread Majesty'))).toBe(true);
-  const c=selectUpgrade2026(b,id(b,'Transcendent C’tan'),'Miniaturised Nebuloscope');
-  expect(generate11thReminders(c).some(r=>r.title.includes('Miniaturised Nebuloscope'))).toBe(true);
+  expect(()=>selectUpgrade2026(b,id(b,'Transcendent C’tan'),'Miniaturised Nebuloscope')).toThrow(/cannot take ordinary enhancements/);
+  expect(availableUpgrades2026(b,expandRoster(b).find(s=>s.unit==='Transcendent C’tan')!)).toEqual([]);
  });
  it('enforces current unique tags and Necron Incursion exception',()=>{
   expect(detachmentBudget('Necrons',['Hypercrypt Legion',"The Phaeron's Armoury"],'Strike Force').valid).toBe(false);
