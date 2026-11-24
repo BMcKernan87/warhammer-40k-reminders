@@ -1,4 +1,6 @@
 import React from 'react';
+import {legalWarlordCandidates,resolvedWarlord,selectWarlord} from './necron-muster-legality';
+import {NECRON_SUPPORTS} from './attachments';
 import type {ArmySelection} from './catalog';
 import {expandRoster,individualArmy,removeRosterInstance,setInstanceAttachment,setInstanceEquipment,setInstanceModelCount,setInstanceResurrectionOrb,setInstanceWargear,setInstanceWeaponCounts,type RosterInstance} from './roster-instances';
 import {NECRON_LOADOUTS,availableGearCount,currentEquipmentName,necronSource} from './necron-wargear';
@@ -59,7 +61,7 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
           {numbers(availableGearCount(slot,squad,option,models))}
         </select></label>))}
       {isModeledLeader('Necrons',squad.unit)&&<label>Attached to <select aria-label={'Attach squad '+squad.id} value={squad.attachedTo??''} onChange={e=>edit(a=>setInstanceAttachment(a,squad.id,e.target.value||null))}>
-        <option value="">Unattached</option>{bodies.map(b=><option key={b.id}>{b.id}</option>)}</select></label>}
+        <option value="">{NECRON_SUPPORTS.has(squad.unit)?'Bodyguard required':'Unattached'}</option>{bodies.map(b=><option key={b.id}>{b.id}</option>)}</select></label>}
       {binding&&<span>{binding.name} · mandatory +{binding.points} pts</span>}
       {upgrades.length>0&&<label>11th-edition enhancement <select aria-label={'11th upgrade for squad '+squad.id} value={army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit]??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>
         <option value="">None</option>{upgrades.map(u=><option key={u.name} value={u.name}>{u.name==='Prelocational Optimiser'?'Relocational Optimiser':u.name} (+{NECRON_ENHANCEMENT_POINTS[u.name]} pts)</option>)}</select></label>}
@@ -68,5 +70,6 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
   </section>;
 }
 export function NecronRoster({army,onChange}:{army:ArmySelection;onChange:Edit}) {
-  return <>{expandRoster(army).map(s=><Loadout key={s.id} squad={s} army={army} edit={fn=>onChange(a=>fn(individualArmy(a)))}/>)}</>;
+  const candidates=legalWarlordCandidates(army),warlord=resolvedWarlord(army);
+  return <>{candidates.length===1?<p>Warlord: {warlord?.id}</p>:candidates.length>1?<label>Warlord <select aria-label="Warlord" value={warlord?.id??''} onChange={e=>onChange(a=>selectWarlord(a,e.target.value||null))}><option value="">Select Warlord</option>{candidates.map(s=><option key={s.id} value={s.id}>{s.id}</option>)}</select></label>:null}{expandRoster(army).map(s=><Loadout key={s.id} squad={s} army={army} edit={fn=>onChange(a=>fn(individualArmy(a)))}/>)}</>;
 }

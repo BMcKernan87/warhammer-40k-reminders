@@ -1,3 +1,4 @@
+import {reconcileWarlord} from './necron-muster-legality';
 import {NECRON_LOADOUTS,slotLimit,validOptionalGear,currentEquipmentName} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 import {instanceBodyguards,validMurdermindFormation,isModeledLeader} from './leader-eligibility';
@@ -193,7 +194,7 @@ export function removeRosterInstance(army:ArmySelection,id:string):ArmySelection
  if(!units[target.unit])delete upgrades2026[target.unit];
  const updated={...army,units,instances,upgrades2026,retiredSquadNumbers:retiredSquadNumbers(army,[target])};
  if(!validateRosterInstances(updated))throw Error('Removing squad would invalidate roster');
- return updated;
+ return autoAttachUnambiguousInstances(reconcileWarlord(updated));
 }
 export function appendRosterInstances(army:ArmySelection,unit:string,count:number):RosterInstance[]{
  const instances=expandRoster(army);const existing=new Set(instances.map(x=>x.id));const next=[...instances];

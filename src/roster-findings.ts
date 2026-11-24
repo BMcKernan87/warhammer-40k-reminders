@@ -1,3 +1,4 @@
+import {necronUnitLimit,legalWarlordCandidates,resolvedWarlord,unresolvedSupports} from './necron-muster-legality';
 import {BATTLE_SIZES_2026,DETACHMENTS_2026,detachmentBudget} from './edition-2026';
 import type {ArmySelection} from './catalog';
 import {expandRoster} from './roster-instances';
@@ -13,17 +14,28 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
  const byUnit=new Map<string,typeof instances>();
  for(const instance of instances)byUnit.set(instance.unit,[...(byUnit.get(instance.unit)||[]),instance]);
  for(const [unit,group] of byUnit){
-  if(group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(army.faction,unit)?2:1)&&!isDedicatedTransport(army.faction,unit))
+  if(army.faction==='Necrons'){
+   const limit=necronUnitLimit(army,unit);
+   if(group.length>limit)findings.push({code:'rule-of-three',severity:'error',unit,message:unit+': '+group.length+' squads exceed the 11th-edition limit of '+limit+'.'});
+  }else if(group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(army.faction,unit)?2:1)&&!isDedicatedTransport(army.faction,unit))
    findings.push({code:'rule-of-three',severity:'warning',unit,message:unit+': '+group.length+' units exceed the baseline selected battle-size copy limit; check official datasheet-specific exceptions.'});
   const sizes=verifiedUnitSizes2026(army,unit);
   if(!sizes)findings.push({code:'size-unverified',severity:'info',unit,message:unit+': 11th-edition model-count legality has not been source-verified for this datasheet.'});
   for(const x of group)if(sizes&&!x.models&&sizes.length>1)findings.push({code:'size-default',severity:'info',unit,message:x.id+': using the minimum verified unit size ('+sizes[0]+') until you choose another size.'});
  }
  if(army.detachments2026?.length&&DETACHMENTS_2026[army.faction]){const budget=detachmentBudget(army.faction,army.detachments2026,army.battleSize2026||'Strike Force');if(!budget.valid)findings.push({code:'detachment-points',severity:'error',message:'Selected 2026 detachments exceed their DP budget or are invalid.'});else findings.push({code:'detachment-points',severity:'info',message:'2026 detachments: '+budget.spent+' of '+budget.limit+' DP used; Force Dispositions: '+budget.dispositions.join(', ')+'.'});}
+ if(army.faction==='Necrons'&&instances.length){
+  for(const support of unresolvedSupports(army))findings.push({code:'mandatory-support',severity:'error',unit:support.unit,message:support.id+' must join an eligible Bodyguard before battle.'});
+  const candidates=legalWarlordCandidates(army);
+  if(!candidates.length)findings.push({code:'warlord-required',severity:'error',message:'Include an eligible non-C’tan Character to serve as Warlord.'});
+  else if(!resolvedWarlord(army))findings.push({code:'warlord-required',severity:'error',message:'Choose an eligible Warlord from the roster.'});
+ }
  const attached=instances.filter(x=>x.attachedTo);
- if(attached.length)findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
+ if(attached.length&&army.faction!=='Necrons')findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
  if(!DETACHMENTS_2026[army.faction]?.length)findings.push({code:'detachment-unavailable',severity:'warning',message:'No 11th-edition detachments are available for this faction.'});
  const costs=rosterCost2026(army);
+ const pointLimit=BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].points;
+ if(army.faction==='Necrons'&&costs.knownPoints>pointLimit)findings.push({code:'points-limit',severity:'error',message:'Known roster points ('+costs.knownPoints+') exceed the '+pointLimit+' point battle limit.'});
  if(costs.unknownUnits.length)findings.push({code:'points-unavailable',severity:'info',message:costs.unknownUnits.length+' roster entries have no source-verified 11th-edition points. Total points and tournament legality cannot yet be validated.'});
  return findings;
 }
