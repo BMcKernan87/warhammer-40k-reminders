@@ -3,6 +3,7 @@ import type {RosterInstance} from './roster-instances';
 import {expandRoster} from './roster-instances';
 import {validSupportAttachment} from './necron-muster-legality';
 import {hasMurdermind,leaderBodyguards} from './leader-eligibility';
+import {NECRON_SUPPORTS} from './attachments';
 import {necronKeywords} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 
@@ -53,6 +54,6 @@ export function ghostArkPassengers(army:ArmySelection):RosterInstance[]{
   if(s.attachedTo||s.retinueTo)return false;
   const members=[s,...roster.filter(m=>m.attachedTo===s.id||m.retinueTo===s.id)];
   if(s.unit==='Necron Warriors')return (s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??0)<=10&&members.length<=2&&members.slice(1).every(m=>infantryCharacters.has(m.unit));
-  return members.length===1&&infantryCharacters.has(s.unit)&&!necronKeywords.CRYPTEK.has(s.unit)||members.length===1&&s.unit==='Illuminor Szeras';
+  return members.length===1&&infantryCharacters.has(s.unit)&&!NECRON_SUPPORTS.has(s.unit);
  });
 }
