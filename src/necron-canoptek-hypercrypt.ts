@@ -24,7 +24,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
    for(const phase of ['Command','Movement','Shooting','Charge','Fight'] as const)
     emit('court-matrix-'+phase,'Power Matrix · area control',phase,'Either turn, at phase start: your deployment zone always qualifies. No Man’s Land and the enemy deployment zone each qualify for this phase if they contain objectives and you control at least half of them.','start');
    for(const phase of ['Shooting','Fight'] as const){
-    emit('canoptek-power-matrix-'+phase.toLowerCase(),'Canoptek Court · Power Matrix',phase,'Cryptek or Canoptek formations re-roll Hit rolls of 1; if wholly inside the matrix, re-roll all Hit rolls.','during',courtUnits);
+    emit(phase==='Shooting'?'canoptek-power-matrix':'canoptek-power-matrix-fight','Canoptek Court · Power Matrix',phase,'Cryptek or Canoptek formations re-roll Hit rolls of 1; if wholly inside the matrix, re-roll all Hit rolls.','during',courtUnits);
     emit('court-cynosure-'+phase,'Cynosure of Eradication · 2CP',phase,(phase==='Shooting'?'Your Shooting phase: ':'Either Fight phase: ')+'Choose a qualifying unit wholly inside the matrix. Only its Cryptek or Canoptek models gain Devastating Wounds for this phase.','start',courtUnits);
     if(crypteks.length&&constructs.length)emit('court-curse-'+phase,'Curse of the Cryptek · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting phase: ':'Either Fight phase: ')+'After the attacker resolves attacks that destroyed a friendly Cryptek model, mark that attacker. Friendly Canoptek models gain +1 to Hit and Wound against it for the rest of the battle.','during',crypteks);
    }
