@@ -1,5 +1,5 @@
 import type {ArmySelection} from './catalog';
-import {expandRoster} from './roster-instances';
+import {expandRoster,reconcileInstanceAttachments} from './roster-instances';
 export interface Upgrade2026 {name:string;faction:'Necrons';detachment:string;unit:string;source:string}
 const NECRON_SOURCE='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
 export const UPGRADES_2026:readonly Upgrade2026[]=[
@@ -120,7 +120,7 @@ export function selectUpgrade2026(army:ArmySelection,key:string,name:string|null
  const upgrades2026={...army.upgrades2026};
  delete upgrades2026[key];
  if(name)upgrades2026[key]=name;
- return {...army,upgrades2026};
+ return reconcileInstanceAttachments({...army,upgrades2026});
 }
 export function validateUpgrades2026(army:ArmySelection):boolean{
  return Object.entries(army.upgrades2026||{}).every(([key,name])=>{
