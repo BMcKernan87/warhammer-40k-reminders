@@ -96,7 +96,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
    emit('obeisance-nano-'+phase,'Nanoassembly Protocols · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After enemy target selection, reduce incoming attack Damage by 1 against the targeted Vehicle unit this phase.',vehicles);
   }
   for(const phase of phases)emit('obeisance-time-'+phase,'Your Time Is Nigh · 1CP',phase,'Immediately after the enemy Warlord dies, target your surviving Necron Warlord. Enemy Battle-shock and Leadership tests suffer −1 for the remainder of the battle.',characterUnits);
-  emit('obeisance-sentinels','Sentinels of Eternity · 1CP','Fight','After enemy target selection, when a targeted Lychguard or Triarch Praetorians model dies before fighting, on 4+ it fights after the attacker finishes; then remove it. Lasts this phase.',sentinels);
+  emit('obeisance-sentinels','Sentinels of Eternity · 1CP','Fight','After enemy target selection, when any model in the targeted Lychguard or Triarch Praetorians unit dies before fighting, on 4+ it fights after the attacker finishes; then remove it. Lasts this phase.',sentinels);
   emit('obeisance-rival','Suffer No Rival · 1CP','Fight','Before a Lychguard or Triarch unit fights, its melee weapons gain Precision this phase.',guards);
   emit('obeisance-territory','Territorial Obsession · 1CP','Command','Your Command: select a Lychguard or Triarch unit; its models gain +1 OC, or +3 OC if the unit is a Vehicle, until your next Command phase.',guards);
   for(const s of roster.filter(s=>OVERLORD_BEARERS.some(u=>u===s.unit))){
