@@ -1,4 +1,5 @@
 import type {ArmySelection} from './catalog';
+import {resolvedWarlord} from './necron-muster-legality';
 import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {necronKeywords as k} from './necron-wargear';
@@ -54,7 +55,8 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
    if(monolith&&infantry.length)emit('hypercrypt-recall-'+phase,'Hyperphasic Recall · 2CP',phase,enemy+'After enemy attacks destroy at least one model in a friendly Infantry unit, relocate the surviving unit wholly within 6″ of a friendly Monolith and outside enemy Engagement Range.','during',infantry);
    if(vehicles.length)emit('hypercrypt-deflection-'+phase,'Quantum Deflection · 1CP',phase,enemy+'After enemy target selection, a targeted Vehicle unit gains a 4+ invulnerable save until phase end.','during',vehicles);
   }
-  emit('hypercrypt-crypts','Reanimation Crypts · 1CP','Command','Your Command phase: target your Necron Warlord; each friendly Necron unit in Reserves activates Reanimation Protocols.');
+  const warlord=resolvedWarlord(army);
+  if(warlord)emit('hypercrypt-crypts','Reanimation Crypts · 1CP','Command','Your Command phase: target your Necron Warlord; each friendly Necron unit in Reserves activates Reanimation Protocols.','during',[warlord.id]);
   if(nonmonsters.length)emit('hypercrypt-precision','Cosmic Precision · 1CP','Movement','Your turn: a non-Monster unit arriving via an ingress move may set up anywhere more than 6″ horizontally from enemies. No charge this turn; large-model setup rules still apply.','during',nonmonsters);
   if(monolith&&infantry.length)emit('hypercrypt-corridor','Dimensional Corridor · 2CP','Charge','Your turn: a unit arriving through Eternity Gate this turn may charge if its Monolith began the turn on the battlefield.','during',infantry);
   if(titanic.length)emit('hypercrypt-damping','Entropic Damping · 1CP','Shooting','Opponent’s turn: after target selection, if a targeted Titanic model is within 18″ of the attacker, that attacking unit’s weapons gain Hazardous for this phase.','during',titanic);
