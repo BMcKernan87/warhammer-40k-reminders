@@ -24,3 +24,21 @@ export function leaderBodyguards(faction:ArmySelection['faction'],leader:string)
 export function isModeledLeader(faction:ArmySelection['faction'],unit:string):boolean{
  return Object.prototype.hasOwnProperty.call(LEADER_BODYGUARDS[faction]||{},unit);
 }
+
+/** Cursed Legion grants a specific additional attachment route, not blanket eligibility. */
+export const MURDERMIND_BODYGUARDS=['Lokhust Destroyers','Lokhust Heavy Destroyers','Ophydian Destroyers','Skorpekh Destroyers'] as const;
+const MURDERMIND_BEARERS=['Chronomancer','Geomancer','Plasmancer','Psychomancer','Technomancer'];
+export function hasMurdermind(army:ArmySelection,leader:{id:string;unit:string}):boolean{
+ return army.faction==='Necrons'&&!!army.detachments2026?.includes('Cursed Legion')&&MURDERMIND_BEARERS.includes(leader.unit)&&(army.upgrades2026?.[leader.id]??army.upgrades2026?.[leader.unit])==='Murdermind';
+}
+export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:string}):readonly string[]{
+ const base=leaderBodyguards(army.faction,leader.unit);
+ return hasMurdermind(army,leader)?[...new Set([...base,...MURDERMIND_BODYGUARDS])]:base;
+}
+export function validMurdermindFormation(army:ArmySelection,body:{id:string;unit:string},leaders:readonly {id:string;unit:string}[]):boolean{
+ if(!leaders.some(l=>hasMurdermind(army,l)&&!leaderBodyguards(army.faction,l.unit).includes(body.unit)))return true;
+ return MURDERMIND_BODYGUARDS.some(u=>u===body.unit)&&leaders.every(l=>hasMurdermind(army,l)||['Skorpekh Lord','Lokhust Lord','Hexmark Destroyer','Nekrosor Ammentar'].includes(l.unit)||(_armyAnkh(army,l)));
+}
+function _armyAnkh(army:ArmySelection,l:{id:string;unit:string}):boolean{
+ return ['Overlord','Overlord with translocation shroud','Catacomb Command Barge'].includes(l.unit)&&(army.upgrades2026?.[l.id]??army.upgrades2026?.[l.unit])==='Destroyer Ankh';
+}
