@@ -288,7 +288,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  {name:"The Phaeron's Armoury",disposition:'Priority Assets',dp:1},
  {name:'Annihilation Legion',disposition:'Purge the Foe',dp:2},
  {name:'Awakened Dynasty',disposition:'Take and Hold',dp:3},
- {name:'Canoptek Court',disposition:'Take and Hold',dp:3},
+ {name:'Canoptek Court',disposition:'Take and Hold',dp:2},
  {name:'Cryptek Conclave',disposition:'Priority Assets',dp:2},
  {name:'Cursed Legion',disposition:'Purge the Foe',dp:2},
  {name:'Hypercrypt Legion',disposition:'Reconnaissance',dp:2},
