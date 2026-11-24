@@ -120,7 +120,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
     }
   }
   for(const s of roster.filter(s=>s.unit==='Cryptothralls'&&roster.some(leader=>necronKeywords.CRYPTEK.has(leader.unit)&&(leader.attachedTo===s.id||(s.attachedTo&&leader.attachedTo===s.attachedTo))))){
-    output.push({id:'11e-necron-cryptothralls-bound-'+s.id,title:s.id+' · Bound Creation',window:'Shooting',timing:'during',
+    for(const window of ['Shooting','Fight'] as const)output.push({id:'11e-necron-cryptothralls-bound-'+s.id+(window==='Fight'?'-fight':''),title:s.id+' · Bound Creation',window,timing:'during',
       summary:'A Cryptek model in the same unit as these Cryptothralls has Feel No Pain 4+.',
       source:necronSource(s.unit),origin:'unit',units:[s.id]});
   }
