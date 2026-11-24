@@ -129,6 +129,9 @@ export function upgradeName2026(army:ArmySelection,instance:{id:string;unit:stri
 export function upgradeError2026(army:ArmySelection):string|null{
  const values=army.upgrades2026;
  if(values!==undefined&&(!values||typeof values!=='object'||Array.isArray(values)))return 'Invalid enhancement assignments';
+ if(values===undefined||Object.keys(values).length===0)return null;
+ if(army.instances!==undefined&&(!Array.isArray(army.instances)||army.instances.some(s=>!s||typeof s.id!=='string'||typeof s.unit!=='string')))return 'Invalid enhancement roster';
+ if(!army.units||typeof army.units!=='object')return 'Invalid enhancement roster';
  const roster=expandRoster(army);
  if(Object.entries(values||{}).some(([key,name])=>typeof name!=='string'||!roster.some(s=>s.id===key||s.unit===key)))return 'Enhancement assigned to an absent unit';
  const counts=new Map<string,number>(),formations=new Set<string>();
@@ -137,7 +140,7 @@ export function upgradeError2026(army:ArmySelection):string|null{
   const binding=army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')&&PANTHEON_BINDINGS[s.unit];
   if(!name)continue;
   if(binding)return 'A C’tan with a mandatory Necrodermal Binding cannot take another enhancement';
-  if(!eligibleUpgrades2026(army,s.unit).some(x=>x.name===name)||NECRON_ENHANCEMENT_POINTS[name]===undefined)return 'Enhancement unavailable for this unit or detachment';
+  if(!eligibleUpgrades2026(army,s.unit).some(x=>x.name===name)||!Object.prototype.hasOwnProperty.call(NECRON_ENHANCEMENT_POINTS,name))return 'Enhancement unavailable for this unit or detachment';
   const formation=s.attachedTo??s.id;
   if(formations.has(formation))return 'Only one enhancement or Upgrade is allowed per attached formation';
   formations.add(formation);
@@ -145,7 +148,7 @@ export function upgradeError2026(army:ArmySelection):string|null{
   if(count>(REPEATABLE_NECRON_UPGRADES.has(name)?3:1))return name+' exceeds its allowed number of copies';
   counts.set(name,count);
  }
- if(counts.size>BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].enhancements)return 'Battle-size enhancement limit exceeded';
+ if(counts.size>(BATTLE_SIZES_2026[army.battleSize2026??'Strike Force']?.enhancements??0))return 'Battle-size enhancement limit exceeded';
  return null;
 }
 export function selectUpgrade2026(army:ArmySelection,key:string,name:string|null):ArmySelection{
