@@ -212,7 +212,8 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
    !expandRoster(current).some(other=>other.attachedTo===body.id&&necronAttachmentRole(other.unit)===necronAttachmentRole(leader.unit))&&
    expandRoster(current).filter(other=>other.attachedTo===body.id).length<2
   );
-  if(candidates.length===1)current=setInstanceAttachment(current,leader.id,candidates[0].id);
+  const legal=candidates.flatMap(body=>{try{return [setInstanceAttachment(current,leader.id,body.id)];}catch{return [];}});
+  if(legal.length===1)current=legal[0];
  }
  return current;
 }
