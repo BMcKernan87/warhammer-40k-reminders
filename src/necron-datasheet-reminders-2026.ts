@@ -22,7 +22,7 @@ const actionPhase:Partial<Record<Signal,Phase>>={
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.id==='tunnelling')return ['End of opponent turn'];
-  if(rule.id==='terror')return ['Shooting'];
+  if(rule.id==='terror'||rule.id==='cover')return ['Shooting'];
   if(rule.id==='harbinger'||rule.id==='lokhust-lead')return ['Shooting'];
   if(rule.id==='united')return ['Fight'];
   if(rule.id==='orikan-save')return ['Shooting','Fight'];
@@ -90,6 +90,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   const ids=new Set<string>();
   for(const squad of roster){
     for(const rule of BATTLEFIELD_RULES){
+      if(rule.id==='doomsday-still')continue; // The shooting reminder already includes the stationary condition.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!squad.attachedTo))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       if(rule.id==='chronometron'&&!squad.attachedTo)continue;
