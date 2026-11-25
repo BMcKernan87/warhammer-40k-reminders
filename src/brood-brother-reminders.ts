@@ -2,8 +2,7 @@ import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import type {KnightCardStats} from './knight-card-rules';
 import {GUARD_CARDS} from './brood-brother-cards.generated';
-import {gscAlliedMusterUnits,gscAlliedKeywords} from './gsc-allies';
-import {gscTransportOptions} from './gsc-army-transports';
+import {guardCardContext,type GuardCardContext} from './guard-card-context';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {expandRoster,type RosterInstance} from './roster-instances';
 import {broodBrotherSpecialReminders} from './brood-brother-special';
@@ -78,18 +77,16 @@ const rules:Readonly<Record<string,Rule>>={
  'Grim Demeanour':effect([shooting,fight],'If below Starting Strength add 1 to Hit. If below Half-strength also add 1 to Wound.'),
 };
 
-export function broodBrotherIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
- if(army.faction!=='Genestealer Cults')return [];
- const eligible=new Set(gscAlliedMusterUnits(army));
- const guard=roster.filter(s=>eligible.has(s.unit)&&Object.hasOwn(GUARD_CARDS,s.unit));
+export function sharedGuardNamedReminders(army:ArmySelection,context:GuardCardContext):GeneratedReminder[]{
+ const guard=context.guards.filter(s=>Object.hasOwn(GUARD_CARDS,s.unit));
  if(!guard.length)return [];
- const root=(s:RosterInstance)=>knightJoinedBodyguard(army,s)?.id??s.id;
- const guardRoots=[...new Set(guard.map(root))];
+ const root=(s:RosterInstance)=>context.groups.find(g=>g.members.some(m=>m.id===s.id))?.body.id??s.id;
+ const guardRoots=context.groups.map(g=>g.body.id);
  const result:GeneratedReminder[]=[];
- const transports=new Map(gscTransportOptions(army,[...roster]).map(o=>[o.transport.id,o.passengers]));
+ const transports=context.cargo;
  for(const s of guard){
   const card=GUARD_CARDS[s.unit],formation=root(s),led=knightJoinedBodyguard(army,s);
-  const tags=gscAlliedKeywords(s);
+  const tags=context.tags(s);
   const emit=(title:string,window:Stage,summary:string,targets:string[]=[formation])=>{
    if(!targets.length)return;
    const [phase,turn,timing]=window;
@@ -105,12 +102,17 @@ export function broodBrotherIntrinsicReminders(army:ArmySelection,roster:readonl
    for(const stage of rule.windows)emit(name,stage,rule.text+(rule.recipients==='cargo'||rule.recipients==='guard'||rule.recipients==='otherGuard'?' Eligible formations: '+targets.join(', ')+'.':''),targets);
   }
   if(card.named.includes('Covering Fire')){
-   const platoons=guard.filter(x=>gscAlliedKeywords(x).has('PLATOON')).map(root);
+   const platoons=context.guards.filter(x=>context.tags(x).has('PLATOON')).map(root);
    emit('Covering Fire',overwatch,'When targeted with Fire Overwatch, use unmodified 5+ to hit.'+(platoons.length?' Improve to 4+ while within 6″ of a friendly Platoon unit. Qualifying formations: '+[...new Set(platoons)].join(', ')+'.':''));
   }
   if(card.named.includes('Bring it Down!'))emit('Bring it Down!',overwatch,'When snap shooting a Monster or Vehicle, re-roll Wound rolls of 1. Snap shots cannot re-roll Hit rolls.');
   if(card.named.includes('Called Shots'))emit('Called Shots',overwatch,'When selected to snap shoot, you may re-roll one Wound roll and one Damage roll.');
   if(card.named.includes('Grim Demeanour'))emit('Grim Demeanour',overwatch,'Below Half-strength, add 1 to Wound when snap shooting. Hit modifiers do not affect snap shots.');
  }
- return [...result,...broodBrotherSpecialReminders(army,roster),...broodBrotherProfileReminders(army,roster)];
+ return result;
+}
+export function broodBrotherIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
+ if(army.faction!=='Genestealer Cults')return [];
+ const context=guardCardContext(army,roster);
+ return [...sharedGuardNamedReminders(army,context),...broodBrotherSpecialReminders(army,roster,context),...broodBrotherProfileReminders(army,roster)];
 }

@@ -1,3 +1,4 @@
+import {eligibleAstraMilitarumUpgrades} from './astra-militarum-detachment-data';
 import {eligibleGscUpgrades} from './gsc-detachment-data';
 import {eligibleWorldEatersUpgrades} from './world-eaters-detachment-data';
 import {eligibleAgentUpgrades} from './imperial-agent-detachments';
@@ -131,6 +132,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Astra Militarum')return eligibleAstraMilitarumUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Astra Militarum',source:'https://wahapedia.ru/wh40k11ed/factions/astra-militarum/'}));
  if(army.faction==='Imperial Agents')return eligibleAgentUpgrades(army,unit).map(u=>({...u,unit,faction:'Imperial Agents',source:'https://wahapedia.ru/wh40k11ed/factions/imperial-agents/'}));
  if(army.faction==='Chaos Daemons')return eligibleDaemonUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Daemons',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-daemons/'}));
  if(army.faction==='Orks')return eligibleOrkUpgrades(army,unit).map(u=>({...u,unit,faction:'Orks',source:'https://wahapedia.ru/wh40k11ed/factions/orks/'}));

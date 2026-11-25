@@ -1,3 +1,4 @@
+import {astraAgentName,astraMilitarumKeywords,astraMusterUnits} from './astra-muster-data';
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {IMPERIAL_KNIGHT_SHEETS,knightMusterUnits} from './imperial-knights-data';
@@ -21,22 +22,24 @@ function weaponEffect(raw:string,snap:boolean){
 }
 
 export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
- if(!['Imperial Knights','Imperial Agents','Adeptus Custodes'].includes(army.faction))return [];
+ if(!['Imperial Knights','Imperial Agents','Adeptus Custodes','Astra Militarum'].includes(army.faction))return [];
  const result:GeneratedReminder[]=[];
  const native=army.faction==='Imperial Agents';
+ const guard=army.faction==='Astra Militarum';
  const doubled=native&&army.detachments2026?.includes('Veiled Blade Elimination Force');
  const useLimit=doubled?'Twice per battle, at most once per battle round':'Once per battle';
  const roster=expandRoster(army);
  const traders=roster.filter(s=>s.unit==='Rogue Trader Entourage');
  for(const squad of roster){
-  const data=ASSIGNED_AGENT_DATA.find(row=>row.sheet.unit===squad.unit);
-  if(!data)continue;
-  const unit=squad.unit,source=data.sheet.source;
+  const unit=guard?astraAgentName(squad.unit):squad.unit;
+  const data=ASSIGNED_AGENT_DATA.find(row=>row.sheet.unit===unit);
+  if(!unit||!data)continue;
+  const source=data.sheet.source;
   const body=knightJoinedBodyguard(army,squad);
   const formation=body?[body.id,...roster.filter(m=>m.attachedTo===body.id&&knightJoinedBodyguard(army,m)).map(m=>m.id)]:[squad.id];
   const core:readonly string[]=data.core;
   const hasGear=(name:string)=>knightWeaponCount(squad,name)>0;
-  const configurable=!!knightLoadoutFor(army.faction,unit,squad.models);
+  const configurable=!!knightLoadoutFor(army.faction,squad.unit,squad.models);
   const membersLed=roster.filter(s=>knightJoinedBodyguard(army,s)?.id===squad.id);
   const wholeUnit=body?formation:[squad.id,...membersLed.map(s=>s.id)];
   const emit=(key:string,title:string,window:ReminderWindow,summary:string,turn:GeneratedReminder['turn']='either',timing:GeneratedReminder['timing']='during',units=[squad.id])=>{
@@ -72,9 +75,9 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    if(squad.id===traders[0]?.id){
     const led=traders.flatMap(t=>{const b=knightJoinedBodyguard(army,t);return b?[t.id,b.id]:[];});
     if(led.length)emit('deals','Backroom Deals','Pre-battle','When declaring formations, select one Rogue Trader Entourage that is leading. Its entire formation gains Infiltrators and can deploy more than 8″ horizontally from the enemy deployment zone and all enemies.','either','during',led);
-    const eligible=native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
+    const eligible=guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
     const battleline=roster.filter(s=>{
-     const keys=[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
+     const keys=guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
      return eligible.includes(s.unit)&&keys?.includes('IMPERIUM')&&(keys.includes('BATTLELINE')||(keys.includes('ARMIGER')&&army.detachments2026?.includes('Spearhead-at-arms')));
     });
     if(battleline.length)emit('warrant','Warrant of Trade','Pre-battle','After both armies deploy, redeploy up to D3 friendly Imperium Battleline units. They may enter Strategic Reserves even beyond its normal allowance. Eligible units: '+battleline.map(s=>s.id).join(', ')+'.','either','during',[squad.id,...battleline.map(s=>s.id)]);

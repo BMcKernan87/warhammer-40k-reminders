@@ -1,3 +1,5 @@
+import {ASTRA_ARMY_SHEETS,astraSheets} from './astra-army-data';
+import {astraAdditionalBodyguards,astraAttachmentSlots} from './astra-muster-data';
 import {GSC_SHEETS,GSC_UNITS} from './gsc-data';
 import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
 import {gscAlliedMusterUnits} from './gsc-allies';
@@ -18,6 +20,7 @@ import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 /** Explicitly modeled Leader -> Bodyguard compatibility. Unlisted Leaders remain unsupported. */
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
+ 'Astra Militarum':Object.fromEntries(ASTRA_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Genestealer Cults':Object.fromEntries(gscSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'World Eaters':Object.fromEntries(WORLD_EATERS_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Leagues of Votann':Object.fromEntries(VOTANN_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -55,6 +58,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
  if(army.faction==='Chaos Daemons'&&!daemonMusterUnits(army).includes(leader.unit))return [];
  if(army.faction==='Chaos Knights'&&!isDaemonicPactUnit(leader.unit)&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
+ if(army.faction==='Astra Militarum')return [...new Set([...base,...astraAdditionalBodyguards(army,leader)])];
  if(army.faction==='Genestealer Cults'){
   const available=[...GSC_UNITS,...gscAlliedMusterUnits(army)];
   return available.includes(leader.unit)?base.filter(u=>available.includes(u)):[];
@@ -82,6 +86,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
+ if(faction==='Astra Militarum')return astraSheets.get(unit)?.attachmentRole??null;
  if(faction==='Imperial Agents')return NATIVE_AGENT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Necrons')return necronAttachmentRole(unit);
  if(faction==='Chaos Daemons')return DAEMON_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -95,11 +100,12 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);
  if(!members.some(m=>m.id===leader.id)||members.some(m=>!instanceBodyguards(army,m).includes(body.unit)))return undefined;
+ if(army.faction==='Astra Militarum')return astraAttachmentSlots(body,members)?body:undefined;
  const roles=members.map(m=>rosterAttachmentRole(army.faction,m.unit));
  return roles.length<=2&&new Set(roles).size===roles.length?body:undefined;
 }

@@ -10,7 +10,7 @@ import {chassis,equippedItems,slot,type KnightEquipment} from './knight-gear-opt
 import {daemonLoadout} from './daemonic-pact-loadouts';
 import {orkLoadout,resizeOrkGear,validOrkGear} from './ork-loadouts';
 import {finalDayLoadout} from './final-day-loadouts';
-import {broodBrotherLoadout,resizeBroodBrotherGear,validBroodBrotherGear} from './astra-militarum-loadouts';
+import {astraMilitarumLoadout,broodBrotherLoadout,resizeAstraMilitarumGear,resizeBroodBrotherGear,validAstraMilitarumGear,validBroodBrotherGear} from './astra-militarum-loadouts';
 import {gscLoadout,resizeGscGear,validGscGear} from './gsc-loadouts';
 import {votannCharacterWeapons,votannLoadout,resizeVotannGear,validVotannGear} from './votann-loadouts';
 import {custodesLoadout} from './custodes-loadouts';
@@ -114,6 +114,7 @@ export function resizeKnightComposition(squad:RosterInstance,models:number,facti
   if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,models))return resizeWorldEaterGear(squad,models);
   if(isShadowMarine(squad.unit))return resizeShadowMarineGear(squad,models);
   if(!squad.knightGear)return undefined;
+  if(faction==='Astra Militarum'&&astraMilitarumLoadout(squad.unit,models))return resizeAstraMilitarumGear(squad.unit,squad.knightGear,models);
   const ork=resizeOrkGear(squad.knightGear,squad.unit,models);
   if(ork)return ork;
   const brood=resizeBroodBrotherGear(squad.unit,squad.knightGear,models);
@@ -171,6 +172,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   if(faction==='Orks')return orkLoadout(unit,models);
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
+  if(faction==='Astra Militarum')return astraMilitarumLoadout(unit,models)??agentLoadout(unit==='Ministorum Priest (Imperial Agents)'?'Ministorum Priest':unit,models);
   if(faction==='Genestealer Cults')return gscLoadout(unit,models)??finalDayLoadout(unit,models)??broodBrotherLoadout(unit,models);
   if(faction==='Leagues of Votann')return votannLoadout(unit,models);
   if(faction==='Adeptus Custodes')return custodesLoadout(unit,models)??agentLoadout(unit,models);
@@ -183,6 +185,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   return CHAOS_KNIGHT_LOADOUTS[unit];
 }
 function registeredLoadout(unit:string,models?:number) {
+  if(unit==='Ministorum Priest (Imperial Agents)')return agentLoadout('Ministorum Priest',models);
   if(isWarhound(unit))return warhoundEquipment;
   return orkLoadout(unit,models)??shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models)??custodesLoadout(unit,models)??votannLoadout(unit,models)??gscLoadout(unit,models)??finalDayLoadout(unit,models)??broodBrotherLoadout(unit,models);
 }
@@ -203,6 +206,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
   if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,squad.models))return validWorldEaterGear(squad.unit,gear,squad.models);
+  if(faction==='Astra Militarum'&&astraMilitarumLoadout(squad.unit,squad.models))return validAstraMilitarumGear(squad.unit,gear,squad.models);
   if(!validOrkGear(squad.unit,gear,squad.models))return false;
   if(!validBroodBrotherGear(squad.unit,gear,squad.models))return false;
   if(!validGscGear(squad.unit,gear,squad.models))return false;

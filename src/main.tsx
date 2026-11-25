@@ -1,3 +1,5 @@
+import {astraMusterUnits} from './astra-muster-data';
+import {astraUnitLimit} from './astra-muster';
 import {migrateGscDetachments} from './gsc-saved-army';
 import {gscMusterUnits,gscUnitLimit} from './gsc-muster';
 import {alliedTitanAndKnightNames,freebladeSlotsRemaining,isWarhound} from './titan-support-data';
@@ -84,12 +86,12 @@ function App(){
    try{setArmy(edit);setError('');}catch(cause){setError(cause instanceof Error?cause.message:'Invalid roster change');}
  };
  const resetEditor=()=>{setSelectedUnit('');setSelectedCount(1);setError('');};
- const knightEditor=['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction);
+ const knightEditor=['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction);
  const individualEditor=army.faction==='Necrons'||knightEditor;
- const nativeAvailable=army.faction==='World Eaters'?worldEatersMusterUnits(army):army.faction==='Genestealer Cults'?gscMusterUnits(army):army.faction==='Imperial Agents'?ASSIGNED_AGENT_UNITS:army.faction==='Chaos Daemons'?daemonMusterUnits(army):army.faction==='Chaos Knights'?chaosKnightMusterUnits(army):army.faction==='Imperial Knights'?knightMusterUnits(army):CATALOG[army.faction].units;
+ const nativeAvailable=army.faction==='Astra Militarum'?astraMusterUnits(army):army.faction==='World Eaters'?worldEatersMusterUnits(army):army.faction==='Genestealer Cults'?gscMusterUnits(army):army.faction==='Imperial Agents'?ASSIGNED_AGENT_UNITS:army.faction==='Chaos Daemons'?daemonMusterUnits(army):army.faction==='Chaos Knights'?chaosKnightMusterUnits(army):army.faction==='Imperial Knights'?knightMusterUnits(army):CATALOG[army.faction].units;
  const availableUnits=[...new Set([...nativeAvailable.filter(name=>!isWarhound(name)),...alliedTitanAndKnightNames(army)])];
  const copiesLeft=(unit:string)=>{
-   const limit=army.faction==='World Eaters'?worldEatersUnitLimit(army,unit):army.faction==='Genestealer Cults'?gscUnitLimit(army,unit):army.faction==='Leagues of Votann'?votannUnitLimit(army,unit):army.faction==='Orks'?orkUnitLimit(army,unit):army.faction==='Adeptus Custodes'?custodesUnitLimit(army,unit):army.faction==='Imperial Agents'?agentUnitLimit(army,unit):army.faction==='Chaos Daemons'?daemonUnitLimit(army,unit):army.faction==='Chaos Knights'?chaosKnightUnitLimit(army,unit):army.faction==='Necrons'?necronUnitLimit(army,unit):army.faction==='Imperial Knights'?knightUnitLimit(army,unit):30;
+   const limit=army.faction==='Astra Militarum'?astraUnitLimit(army,unit):army.faction==='World Eaters'?worldEatersUnitLimit(army,unit):army.faction==='Genestealer Cults'?gscUnitLimit(army,unit):army.faction==='Leagues of Votann'?votannUnitLimit(army,unit):army.faction==='Orks'?orkUnitLimit(army,unit):army.faction==='Adeptus Custodes'?custodesUnitLimit(army,unit):army.faction==='Imperial Agents'?agentUnitLimit(army,unit):army.faction==='Chaos Daemons'?daemonUnitLimit(army,unit):army.faction==='Chaos Knights'?chaosKnightUnitLimit(army,unit):army.faction==='Necrons'?necronUnitLimit(army,unit):army.faction==='Imperial Knights'?knightUnitLimit(army,unit):30;
    return Math.min(freebladeSlotsRemaining(army,unit)??Infinity,Math.max(0,limit-(army.units[unit]??0)));
  };
  const remainingCopies=selectedUnit&&availableUnits.includes(selectedUnit)?copiesLeft(selectedUnit):0;

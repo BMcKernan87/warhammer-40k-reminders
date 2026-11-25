@@ -1,3 +1,5 @@
+import {astraAttachmentSlots,astraCanPromote} from './astra-muster-data';
+import {autoAstraProtector} from './astra-protectors';
 import {validKnightGear,resizeKnightComposition} from './knight-loadouts';
 import {applyModelLoadouts,modelLoadoutRows,validModelLoadouts,type ModelLoadout} from './necron-model-loadouts';
 import {reconcileRetinues,validRetinues} from './necron-retinues';
@@ -11,7 +13,7 @@ import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];knightGear?:Record<string,string>;enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];knightGear?:Record<string,string>;enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;characterPromotion?:boolean;wargear?:Record<string,number>}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances.map(squad=>{
   // Earlier saves can retain a unit-wide weapon alongside individual squad IDs.
@@ -185,6 +187,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
+  if(x.characterPromotion!==undefined&&(x.characterPromotion!==true||!astraCanPromote(army,x)))return false;
   if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||rosterAttachmentRole(army.faction,x.unit)!=='leader'))return false;
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
@@ -206,6 +209,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   const body=army.instances.find(b=>b.id===x.attachedTo);
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
+  if(army.faction==='Astra Militarum'){if(!astraAttachmentSlots(body,leaders))return false;continue;}
   if(leaders.length>2)return false;
   if(leaders.length===2&&new Set(leaders.map(l=>rosterAttachmentRole(army.faction,l.unit))).size!==2)return false;
  }
@@ -244,7 +248,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction))return army;
+ if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){
@@ -269,13 +273,13 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
    changed=true;
   }
  }
- return current;
+ return autoAstraProtector(current);
 }
 
 /** Remove only attachments that become illegal when a detachment or upgrade is removed. */
 export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
  if(!army.instances)return army;
- let instances=army.instances.map(s=>({...s}));
+ let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy))delete copy.characterPromotion;return copy;});
  for(const leader of instances){
   if(!leader.attachedTo)continue;
   const body=instances.find(b=>b.id===leader.attachedTo);

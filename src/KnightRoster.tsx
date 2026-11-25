@@ -1,3 +1,6 @@
+import {astraCanPromote,astraWarlordCandidates,loyalProtectors,resolvedAstraWarlord} from './astra-muster-data';
+import {selectAstraWarlord,setAstraCharacter} from './astra-muster';
+import {astraProtectorHosts,setAstraProtector} from './astra-protectors';
 import {acolyteVariants,formerAcolyte,identifySavedAcolytes,gscWarlordCandidates,resolvedGscWarlord,selectGscWarlord} from './gsc-muster';
 import type {ArmySelection} from './catalog';
 import {DATASHEETS_2026,verifiedUnitSizes2026} from './datasheets-2026';
@@ -29,12 +32,13 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
+  const guard=army.faction==='Astra Militarum';
   const eaters=army.faction==='World Eaters';
   const cult=army.faction==='Genestealer Cults';
   const votann=army.faction==='Leagues of Votann';
-  const warlords=eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>
@@ -56,6 +60,10 @@ export function KnightRoster({army,onChange}:Props) {
       return <section key={squad.id} className="loadout" aria-label={'Squad '+squad.id}>
         <div className="squad-heading"><strong>{squad.id}</strong>{sheet&&<a href={sheet.source} target="_blank" rel="noreferrer">Datasheet</a>}</div>
         <div className="loadout-controls">
+          {guard&&astraCanPromote(army,squad)&&<label><input type="checkbox" aria-label={'Promote '+squad.id+' to Character'} checked={!!squad.characterPromotion} onChange={e=>edit(a=>setAstraCharacter(a,squad.id,e.target.checked))}/> Steel Hammer Character</label>}
+          {guard&&loyalProtectors.has(squad.unit)&&<label>Command Squad <select aria-label={'Command Squad for '+squad.id} value={squad.retinueTo??''} onChange={e=>edit(a=>setAstraProtector(a,squad.id,e.target.value||null))}>
+            <option value="">Command Squad required</option>{astraProtectorHosts(army,squad.id).map(s=><option key={s.id}>{s.id}</option>)}
+          </select></label>}
           {cult&&squad.unit===formerAcolyte&&<label>Current datasheet <select aria-label={'Identify saved squad '+squad.id} value="" onChange={e=>edit(a=>identifySavedAcolytes(a,squad.id,e.target.value))}>
             <option value="">Choose datasheet</option>{acolyteVariants.map(name=><option key={name}>{name}</option>)}
           </select></label>}
