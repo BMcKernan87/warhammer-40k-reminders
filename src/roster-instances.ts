@@ -1,4 +1,4 @@
-import {astraAttachmentSlots,astraCanPromote} from './astra-muster-data';
+import {astraAttachmentSlots,astraCanPromote,usesAstraAttachmentSlots} from './astra-muster-data';
 import {autoAstraProtector} from './astra-protectors';
 import {validKnightGear,resizeKnightComposition} from './knight-loadouts';
 import {applyModelLoadouts,modelLoadoutRows,validModelLoadouts,type ModelLoadout} from './necron-model-loadouts';
@@ -209,7 +209,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   const body=army.instances.find(b=>b.id===x.attachedTo);
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
-  if(army.faction==='Astra Militarum'){if(!astraAttachmentSlots(body,leaders))return false;continue;}
+  if(usesAstraAttachmentSlots(army,body)){if(!astraAttachmentSlots(body,leaders))return false;continue;}
   if(leaders.length>2)return false;
   if(leaders.length===2&&new Set(leaders.map(l=>rosterAttachmentRole(army.faction,l.unit))).size!==2)return false;
  }
@@ -248,7 +248,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children'].includes(army.faction))return army;
+ if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){
@@ -266,7 +266,18 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
    proposals.set(key,[...(proposals.get(key)??[]),{leader,bodyId:legal[0].id}]);
   }
   // Required Supports take precedence when upgrades on two candidates conflict across roles.
-  const choices=[...proposals.values()].filter(group=>group.length===1).map(group=>group[0]);
+  const choices=[...proposals.values()].filter(group=>{
+   if(group.length===1)return true;
+   if(group.length!==2)return false;
+   // A printed two-Leader exception can make both destinations unambiguous.
+   // Check the pair together, including enhancement and per-datasheet limits.
+   try{
+    const [first,second]=group;
+    const assigned=setInstanceAttachment(current,first.leader.id,first.bodyId);
+    setInstanceAttachment(assigned,second.leader.id,second.bodyId);
+    return true;
+   }catch{return false;}
+  }).map(group=>group[0]);
   const forced=choices.find(choice=>rosterAttachmentRole(army.faction,choice.leader.unit)==='support')??choices[0];
   if(forced){
    current=setInstanceAttachment(current,forced.leader.id,forced.bodyId);
