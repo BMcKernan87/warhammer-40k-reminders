@@ -1,6 +1,6 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {instanceBodyguards} from './leader-eligibility';
+import {validSupportAttachment} from './necron-muster-legality';
 import {eligibleRetinueBodies,retinueCrypteks,formationBodyguardStrength,ghostArkPassengers} from './necron-retinues';
 import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
@@ -94,11 +94,11 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   const output:GeneratedReminder[]=[];
   const ids=new Set<string>();
   for(const squad of roster){
-    const body=roster.find(s=>s.id===squad.attachedTo&&s.id!==squad.id&&instanceBodyguards(army,squad).includes(s.unit));
+    const body=roster.find(s=>s.id===squad.attachedTo&&validSupportAttachment(army,squad));
     for(const rule of BATTLEFIELD_RULES){
       if(rule.id==='doomsday-still')continue; // The shooting reminder already includes the stationary condition.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
-      if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
+      if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&validSupportAttachment(army,leader)&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       if(rule.id==='warden'&&!body)continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
