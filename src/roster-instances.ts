@@ -1,3 +1,4 @@
+import {tauAdditionalLeaderPair} from './tau-muster-data';
 import {deathGuardAdditionalLeaderPair} from './death-guard-data';
 import {astraAttachmentSlots,astraCanPromote,usesAstraAttachmentSlots} from './astra-muster-data';
 import {autoAstraProtector} from './astra-protectors';
@@ -210,6 +211,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   const body=army.instances.find(b=>b.id===x.attachedTo);
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
+  if(army.faction==='T’au Empire'&&leaders.length===2&&tauAdditionalLeaderPair(body,leaders[0].unit,leaders[1].unit))continue;
   if(army.faction==='Death Guard'&&leaders.length===2&&deathGuardAdditionalLeaderPair(body.unit,leaders[0].unit,leaders[1].unit))continue;
   if(usesAstraAttachmentSlots(army,body)){if(!astraAttachmentSlots(body,leaders))return false;continue;}
   if(leaders.length>2)return false;
@@ -250,7 +252,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'].includes(army.faction))return army;
+ if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){

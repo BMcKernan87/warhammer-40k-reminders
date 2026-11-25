@@ -1,3 +1,4 @@
+import {TAU_UNITS} from './tau-data';
 import {MECHANICUS_ARMY_UNITS} from './mechanicus-army-data';
 import {SORORITAS_ARMY_UNITS} from './sororitas-army-data';
 import {GREY_KNIGHTS_UNITS} from './grey-knights-data';
@@ -54,7 +55,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Imperial Knights':{detachments:['Select detachment (unverified)'],units:IMPERIAL_KNIGHT_UNITS,enhancements:[]},
  'Leagues of Votann':{detachments:['Select detachment (unverified)'],units:VOTANN_UNITS,enhancements:[]},
  'Space Wolves':{detachments:['Select detachment (unverified)'],units:["Thunderwolf Cavalry","Blood Claws","Logan Grimnar"],enhancements:[]},
- 'T’au Empire':{detachments:['Select detachment (unverified)'],units:["Breacher Team","Strike Team","Crisis Battlesuits","Riptide Battlesuit"],enhancements:[]},
+ 'T’au Empire':{detachments:['Select detachment (unverified)'],units:TAU_UNITS,enhancements:[]},
  'Thousand Sons':{detachments:['Select detachment (unverified)'],units:THOUSAND_SONS_UNITS,enhancements:[]},
  'World Eaters':{detachments:['Select detachment (unverified)'],units:WORLD_EATERS_UNITS,enhancements:[]},
  'Space Marines':{
