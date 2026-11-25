@@ -7,7 +7,7 @@ describe('Necron imported defensive ability windows',()=>{
  it('puts Ctan Necrodermis only in attack resolution phases',()=>{
   const army=addSelectionUnit(newSelection('Necrons'),'C’tan Shard of the Void Dragon');
   const reminders=generate11thReminders(army).filter(r=>r.title.includes('Necrodermis'));
-  expect(reminders.map(r=>r.window)).toEqual(['Command','Movement','Shooting','Charge','Fight']);
+  expect(reminders.map(r=>r.window)).toEqual(['Shooting','Fight']);
  });
  it('applies attached Technomancer Feel No Pain whenever wounds would be lost',()=>{
   const army=individualArmy(addSelectionUnit(addSelectionUnit(newSelection('Necrons'),'Technomancer'),'Canoptek Wraiths'));
