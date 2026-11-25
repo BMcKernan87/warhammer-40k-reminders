@@ -32,7 +32,7 @@ function indexByName(items,label){
  }
  return map;
 }
-function readPrices(rows,unit,mfm){
+export function readPrices(rows,unit,mfm){
  // The weapon surcharge section follows, and is independent of, all unit copy brackets.
  const sorted=[...rows].sort((a,b)=>Number(a.line)-Number(b.line));
  const separator=sorted.findIndex(row=>row.description.trim().toUpperCase()==='WARGEAR OPTIONS');
@@ -53,7 +53,7 @@ function readPrices(rows,unit,mfm){
   nextCopy=last+1;
   expected[range[1]]=Object.fromEntries(band.costs.map(cost=>[cost.models,cost.points]));
  }
- if(nextCopy!==Infinity||!isDeepStrictEqual(expected,pricesByCopy)||!isDeepStrictEqual(gear,mfm.wargear??[]))fail(unit+' has inconsistent CSV/MFM pricing');
+ if(nextCopy!==Infinity||!isDeepStrictEqual(expected,pricesByCopy)||!isDeepStrictEqual(gear.map(g=>({...g,item:nameKey(g.item)})),(mfm.wargear??[]).map(g=>({...g,item:nameKey(g.item)}))))fail(unit+' has inconsistent CSV/MFM pricing');
  return {...prices,...(gear.length?{wargearPoints:Object.fromEntries(gear.map(g=>[g.item,g.points]))}:{})};
 }
 export function importKnights(tables,manual,allyManual){

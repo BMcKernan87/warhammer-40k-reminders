@@ -1,3 +1,5 @@
+import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
+import {agentUnitLimit} from './agent-muster';
 import {KnightRoster} from './KnightRoster';
 import {chaosKnightMusterUnits} from './chaos-knights-data';
 import {chaosKnightUnitLimit} from './chaos-knight-muster';
@@ -70,11 +72,11 @@ function App(){
    try{setArmy(edit);setError('');}catch(cause){setError(cause instanceof Error?cause.message:'Invalid roster change');}
  };
  const resetEditor=()=>{setSelectedUnit('');setSelectedCount(1);setError('');};
- const knightEditor=army.faction==='Imperial Knights'||army.faction==='Chaos Knights';
+ const knightEditor=army.faction==='Imperial Knights'||army.faction==='Chaos Knights'||army.faction==='Imperial Agents';
  const individualEditor=army.faction==='Necrons'||knightEditor;
- const availableUnits=army.faction==='Chaos Knights'?chaosKnightMusterUnits(army):army.faction==='Imperial Knights'?knightMusterUnits(army):CATALOG[army.faction].units;
+ const availableUnits=army.faction==='Imperial Agents'?ASSIGNED_AGENT_UNITS:army.faction==='Chaos Knights'?chaosKnightMusterUnits(army):army.faction==='Imperial Knights'?knightMusterUnits(army):CATALOG[army.faction].units;
  const copiesLeft=(unit:string)=>{
-   const limit=army.faction==='Chaos Knights'?chaosKnightUnitLimit(army,unit):army.faction==='Necrons'?necronUnitLimit(army,unit):army.faction==='Imperial Knights'?knightUnitLimit(army,unit):30;
+   const limit=army.faction==='Imperial Agents'?agentUnitLimit(army,unit):army.faction==='Chaos Knights'?chaosKnightUnitLimit(army,unit):army.faction==='Necrons'?necronUnitLimit(army,unit):army.faction==='Imperial Knights'?knightUnitLimit(army,unit):30;
    return Math.max(0,limit-(army.units[unit]??0));
  };
  const remainingCopies=selectedUnit&&availableUnits.includes(selectedUnit)?copiesLeft(selectedUnit):0;

@@ -1,5 +1,6 @@
+import {agentExtremisPoints,eligibleAgentUpgrades} from './imperial-agent-detachments';
 import type {ArmySelection} from './catalog';
-import {ASSIGNED_AGENT_SHEETS} from './assigned-agent-data';
+import {ASSIGNED_AGENT_SHEETS,NATIVE_AGENT_SHEETS} from './assigned-agent-data';
 import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
 import {eligibleChaosKnightUpgrades} from './chaos-knight-detachments';
 import {IMPERIAL_KNIGHT_SHEETS} from './imperial-knights-data';
@@ -20,6 +21,7 @@ export interface Datasheet2026 {
  sizes:readonly number[];
  attachmentRole?:'leader'|'support';
  bodyguards?:readonly string[];
+ compositionBySize?:Readonly<Record<number,Readonly<Record<string,number>>>>;
  composition?:readonly {model:string;min:number;max:number}[];
  keywords?:readonly string[];
  modelKeywords?:Readonly<Record<string,readonly string[]>>;
@@ -30,8 +32,8 @@ export interface Datasheet2026 {
  verified:'sizes'|'sizes-and-points';
 }
 /** Incremental 11th-edition registry: no estimated point costs. */
-export const DATASHEETS_2026:readonly Datasheet2026[]=[...IMPORTED_DATASHEETS_2026,...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS];
-export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string;basePoints?:number|null;enhancementPoints?:number;bindingPoints?:number;wargearPoints?:number}[]}
+export const DATASHEETS_2026:readonly Datasheet2026[]=[...IMPORTED_DATASHEETS_2026,...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS];
+export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string;basePoints?:number|null;enhancementPoints?:number;bindingPoints?:number;extremisPoints?:number;wargearPoints?:number}[]}
 export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet2026[]=DATASHEETS_2026):RosterCost2026{
  const copies=new Map<string,number>();
  const entries=expandRoster(army).map(instance=>{
@@ -48,19 +50,22 @@ export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet202
   const chosen=army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit];
   let enhancementPoints:number|null=0;
   if(chosen&&army.faction==='Necrons')enhancementPoints=NECRON_ENHANCEMENT_POINTS[chosen]??null;
+  if(chosen&&army.faction==='Imperial Agents')enhancementPoints=eligibleAgentUpgrades(army,instance.unit).find(u=>u.name===chosen)?.points??null;
   if(chosen&&army.faction==='Imperial Knights')enhancementPoints=eligibleKnightUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Knights')enhancementPoints=eligibleChaosKnightUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
-  const wargearPoints=(army.faction==='Imperial Knights'||army.faction==='Chaos Knights')?Object.entries(sheet?.wargearPoints??{}).reduce(
+  const wargearPoints=(army.faction==='Imperial Agents'||army.faction==='Imperial Knights'||army.faction==='Chaos Knights')?Object.entries(sheet?.wargearPoints??{}).reduce(
    (points,[item,cost])=>points+cost*knightWeaponCount(instance,item),0):0;
   const bindingPoints=army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')?PANTHEON_BINDINGS[instance.unit]?.points??0:0;
-  const points=basePoints===null||enhancementPoints===null?null:basePoints+enhancementPoints+bindingPoints+wargearPoints;
-  return {id:instance.id,unit:instance.unit,models,points,source:sheet?.pointsSource||sheet?.source,...(wargearPoints?{wargearPoints}:{}),...(enhancementPoints||bindingPoints||wargearPoints?{basePoints,enhancementPoints:enhancementPoints??undefined,bindingPoints}:{})};
+  const extremisPoints=agentExtremisPoints(army,instance.unit);
+  const points=basePoints===null||enhancementPoints===null?null:basePoints+enhancementPoints+bindingPoints+wargearPoints+extremisPoints;
+  return {id:instance.id,unit:instance.unit,models,points,source:sheet?.pointsSource||sheet?.source,...(wargearPoints?{wargearPoints}:{}),...(extremisPoints?{extremisPoints}:{}),...(enhancementPoints||bindingPoints||wargearPoints?{basePoints,enhancementPoints:enhancementPoints??undefined,bindingPoints}:{})};
  });
  const unknownUnits=entries.filter(x=>x.points===null).map(x=>x.id);
  const knownPoints=entries.reduce((sum,x)=>sum+(x.points??0),0);
  return {total:unknownUnits.length?null:knownPoints,knownPoints,unknownUnits,entries};
 }
 function unitSizes(sheet:Datasheet2026):readonly number[]{
+ if(sheet.compositionBySize)return Object.keys(sheet.compositionBySize).map(Number).sort((a,b)=>a-b);
  if(!sheet.composition)return sheet.sizes;
  const min=sheet.composition.reduce((n,row)=>n+row.min,0);
  const max=sheet.composition.reduce((n,row)=>n+row.max,0);

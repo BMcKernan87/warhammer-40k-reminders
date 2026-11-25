@@ -168,11 +168,11 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Talons of the Emperor",disposition:"Take and Hold",dp:3},
  ],
  "Imperial Agents":[
-  {name:"Imperialis Fleet",disposition:"Disruption",dp:3},
-  {name:"Ordo Hereticus, Purgation Force",disposition:"Priority Assets",dp:3},
-  {name:"Ordo Malleus, Daemon Hunters",disposition:"Reconnaissance",dp:3},
-  {name:"Ordo Xenos, Alien Hunters",disposition:"Purge the Foe",dp:3},
-  {name:"Veiled Blade Elimination Force",disposition:"Purge the Foe",dp:3},
+  {name:"Imperialis Fleet",disposition:"Reconnaissance",dp:2},
+  {name:"Ordo Hereticus, Purgation Force",disposition:"Take and Hold",dp:2},
+  {name:"Ordo Malleus, Daemon Hunters",disposition:"Priority Assets",dp:2},
+  {name:"Ordo Xenos, Alien Hunters",disposition:"Purge the Foe",dp:2},
+  {name:"Veiled Blade Elimination Force",disposition:"Disruption",dp:1},
  ],
  "Aeldari":[
   {name:"Armoured Warhost",disposition:"Reconnaissance",dp:1},
