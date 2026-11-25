@@ -30,7 +30,7 @@ test('builds and prints a complete 1995-point Awakened Dynasty from the producti
  await expect(cues.getByText(/Veil of Darkness/).first()).toBeVisible();
  await page.emulateMedia({media:'print'});
  await expect(page.locator('.print-sheet')).toBeVisible();
- await expect(page.locator('.print-sheet h3')).toHaveCount(9);
+ await expect(page.locator('.print-sheet h3')).toHaveCount(11);
  await expect(page.locator('.print-sheet').getByText('Command Protocols',{exact:true})).toHaveCount(2);
  expect(errors).toEqual([]);
 });

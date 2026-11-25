@@ -8,7 +8,7 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  const prefix=army.faction==='Necrons'?'11e-necron-':'11e-formation-';
  const source='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
  function add(id:string,title:string,window:ReminderWindow,timing:GeneratedReminder['timing'],summary:string,units:string[]){
-  if(units.length)out.push({id:prefix+id,title,window,timing,turn:window==='Movement'?'own':window==='Shooting'?'opponent':'either',summary,units,source,origin:'army'});
+  if(units.length)out.push({id:prefix+id,title,window,timing,turn:window==='Movement'||window==='End of your turn'?'own':window==='Shooting'||window==='End of opponent turn'?'opponent':'either',summary,units,source,origin:'army'});
  }
  const reserveEligible=formations.filter(f=>!keywords(f.body.unit).includes('FORTIFICATION')).map(f=>f.id);
  const reserveLimit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].points/2;
@@ -17,7 +17,11 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  add('reserve-arrival','Strategic Reserves · ingress','Movement','during',
   'In your Move Units step, select a unit in Strategic Reserves to arrive, normally from round two. Set it up wholly within 6″ of a battlefield edge and more than 8″ horizontally from enemies. Until round three, stay outside the enemy deployment zone. Apply any specific alternative placement or first-turn ability. An arriving unit normally cannot move again until the Charge phase. Embarked units arrive aboard their transport.',reserveEligible);
  add('reserve-deadline','Strategic Reserves · round three deadline','End of battle round','end',
-  'At the end of battle round three, destroy reserves that have never made an ingress move. Exempt repositioned units and passengers aboard a transport that made ingress. At the end of the final turn, destroy any units still in Strategic Reserves without triggering destruction rules.',reserveEligible);
+  'At the end of battle round three, destroy reserves that have never made an ingress move. Exempt repositioned units and passengers aboard a transport that made ingress.',reserveEligible);
+ for(const window of ['End of your turn','End of opponent turn'] as const){
+  add('final-reserves-'+window,'Strategic Reserves · final turn',window,'end',
+   'Only if this is the final player turn of the battle, destroy any units still in Strategic Reserves. Their destruction does not trigger rules for destroyed units.',reserveEligible);
+ }
  const attached=formations.filter(f=>f.members.some(m=>m.attachedTo===f.id)).map(f=>f.id);
  for(const phase of ['Shooting','Fight'] as const){
   add('attached-defence-'+phase,'Attacks against attached units',phase,'during',

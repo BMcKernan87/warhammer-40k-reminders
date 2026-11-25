@@ -6,8 +6,8 @@ import {selectedEquipment} from './equipment';
 import type {ArmySelection} from './catalog';
 import type {Phase} from './engine';
 import {factionSource} from './sources';
-export type ReminderWindow=Phase|'Pre-battle'|'Start of battle round'|'End of opponent turn'|'End of battle round';
-export const REMINDER_WINDOWS:readonly ReminderWindow[]=['Pre-battle','Start of battle round','Command','Movement','Shooting','Charge','Fight','End of opponent turn','End of battle round'];
+export type ReminderWindow=Phase|'Pre-battle'|'Start of battle round'|'Start of turn'|'End of your turn'|'End of opponent turn'|'End of battle round';
+export const REMINDER_WINDOWS:readonly ReminderWindow[]=['Pre-battle','Start of battle round','Start of turn','Command','Movement','Shooting','Charge','Fight','End of your turn','End of opponent turn','End of battle round'];
 export interface GeneratedReminder {id:string;turn?:'own'|'opponent'|'either';sourceRuleId?:string;title:string;window:ReminderWindow;timing:'start'|'during'|'end';summary:string;source:string;origin:'army'|'detachment'|'unit';units?:string[];previousSheetEntry?:{window:ReminderWindow;units:string[]}}
 export function generateReminders(army:ArmySelection):GeneratedReminder[]{
  const source=factionSource(army).url;

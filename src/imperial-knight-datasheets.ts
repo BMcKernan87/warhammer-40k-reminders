@@ -5,13 +5,8 @@ import {PHASES} from './engine';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {knightWeaponCount} from './imperial-knight-loadouts';
 import {KNIGHT_CARD_STATS} from './imperial-knight-weapon-data.generated';
-import {weaponAbilityText} from './weapon-abilities-11th';
+import {equippedWeaponText} from './knight-card-rules';
 
-interface WeaponProfile {name:string; phase:'Shooting'|'Fight'; abilities:readonly string[]; mode?:boolean}
-export interface KnightCardStats {
-  source:string; save:number|null; rangedSave:boolean; demise:string|null;
-  damage:{threshold:number;oc:number}|null; conversion:number|null; weapons:readonly WeaponProfile[];
-}
 export function knightHasRangedWeapon(squad:RosterInstance):boolean{
   return KNIGHT_CARD_STATS[squad.unit]?.weapons.some(w=>w.phase==='Shooting'&&knightWeaponCount(squad,w.name)>0)??false;
 }
@@ -66,19 +61,6 @@ const personal:Readonly<Record<string,Rule[]>>={
   'Tech-priest Dominus':[duty('Data-spike',fight,'At the start of either Fight phase choose an enemy Vehicle engaged with this model’s unit. On a 4+ it suffers D6 mortal wounds and worsens its melee Weapon Skill by 1 for the phase.','start')],
 };
 
-function keywordTitle(value:string):string{
-  return value.split(/( |[-])/).map(word=>/^d\d/i.test(word)?word.toUpperCase():word.charAt(0).toUpperCase()+word.slice(1).toLowerCase()).join('');
-}
-
-function profileText(profile:WeaponProfile,stats:KnightCardStats,snap:boolean):string[]{
-  return profile.abilities.flatMap(value=>{
-    const title=keywordTitle(value);
-    if(title==='Conversion')return snap||!stats.conversion?[]:['Conversion (at more than '+stats.conversion+'″, a successful unmodified 4+ to Hit is critical)'];
-    const effect=weaponAbilityText(title,snap);
-    return effect?[effect]:[];
-  });
-}
-
 export function imperialKnightDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[]{
   if(army.faction!=='Imperial Knights')return [];
   const output:GeneratedReminder[]=[];
@@ -110,16 +92,8 @@ export function imperialKnightDatasheetReminders(army:ArmySelection,roster:reado
       const snap=window==='Movement';
       if(snap&&stats.demise&&!s.unit.startsWith('Armiger '))continue;
       const phase=window==='Fight'?'Fight':'Shooting';
-      const descriptions:string[]=[];
-      for(const profile of stats.weapons){
-        if(profile.phase!==phase)continue;
-        const count=knightWeaponCount(s,profile.name);
-        if(!count)continue;
-        const abilities=profileText(profile,stats,snap);
-        if(!abilities.length&&!profile.mode)continue;
-        descriptions.push(count+' × '+profile.name+(profile.mode?' (choose one profile per weapon)':'')+(abilities.length?' — '+abilities.join(', '):'')+'.');
-      }
-      if(descriptions.length)emit(phase==='Fight'?'Melee weapon profiles':'Ranged weapon profiles',window,(snap?'When firing Overwatch at the end of the opponent’s Movement phase: ':'')+descriptions.join(' '),snap?'end':'during');
+      const descriptions=equippedWeaponText(s,stats,phase,snap);
+      if(descriptions.length)emit(phase==='Fight'?'Melee weapon profiles':'Ranged weapon profiles',window,(snap?'When firing Overwatch at the end of the opponent’s Movement phase: ':'')+descriptions,snap?'end':'during');
     }
     if(s.unit==='Knight Destrier'&&knightWeaponCount(s,'Thundershock spear')&&knightWeaponCount(s,'Bellatus reaper chainsword'))emit('Thundercharge','Fight','With both the thundershock spear and bellatus reaper chainsword equipped, add 2 to this model’s melee weapon Attacks.');
     if((s.unit==='Knight Castellan'||s.unit==='Knight Valiant')&&armigers.length)for(const window of movingAndShooting)emit('Ion Aegis (Aura)',window,'An Armiger within 6″ of this model gains cover against ranged attacks. Eligible models: '+armigers.join(', ')+'.','during',armigers);

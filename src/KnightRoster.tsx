@@ -1,6 +1,9 @@
 import type {ArmySelection} from './catalog';
 import {DATASHEETS_2026,verifiedUnitSizes2026} from './datasheets-2026';
-import {ImperialKnightLoadout} from './ImperialKnightLoadout';
+import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
+import {chaosKnightWarlordCandidates,resolvedChaosKnightWarlord,selectChaosKnightWarlord} from './chaos-knight-muster';
+import {houndpackDogs,changeHoundpackCharacter} from './houndpack-selection';
+import {KnightLoadout} from './ImperialKnightLoadout';
 import {knightWarlordCandidates,resolvedKnightWarlord,selectKnightWarlord} from './imperial-knight-muster';
 import {instanceBodyguards,isModeledLeader,rosterAttachmentRole} from './leader-eligibility';
 import {expandRoster,individualArmy,removeRosterInstance,setInstanceAttachment,setInstanceModelCount} from './roster-instances';
@@ -11,13 +14,22 @@ interface Props {
   onChange:(edit:(army:ArmySelection)=>ArmySelection)=>void;
 }
 
-export function ImperialKnightRoster({army,onChange}:Props) {
+export function KnightRoster({army,onChange}:Props) {
   const roster=expandRoster(army);
   const edit:Props['onChange']=change=>onChange(current=>change(individualArmy(current)));
-  const warlords=knightWarlordCandidates(army);
+  const chaos=army.faction==='Chaos Knights';
+  const warlords=chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const dogs=houndpackDogs(army);
+  const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>
+    {dogs.length>3&&<fieldset><legend>Houndpack Characters · choose three War Dogs</legend>
+      {dogs.map(s=><label key={s.id}><input type="checkbox" aria-label={'Nominate '+s.id+' as a Houndpack Character'} checked={promoted.includes(s.id)}
+        disabled={promoted.length===3&&!promoted.includes(s.id)} onChange={e=>edit(a=>changeHoundpackCharacter(a,s.id,e.target.checked))}/> {s.id} </label>)}
+    </fieldset>}
     {warlords.length===1 && <p>Warlord: {warlords[0].id}</p>}
-    {warlords.length>1 && <label>Warlord <select aria-label="Warlord" value={resolvedKnightWarlord(army)?.id??''} onChange={e=>edit(a=>selectKnightWarlord(a,e.target.value||null))}>
+    {warlords.length>1 && <label>Warlord <select aria-label="Warlord" value={warlord?.id??''} onChange={e=>edit(a=>selectWarlord(a,e.target.value||null))}>
       <option value="">Select Warlord</option>{warlords.map(s=><option key={s.id}>{s.id}</option>)}
     </select></label>}
     {roster.map(squad=>{
@@ -39,7 +51,7 @@ export function ImperialKnightRoster({army,onChange}:Props) {
             <option value="">{rosterAttachmentRole(army.faction,squad.unit)==='support'?'Bodyguard required':'Unattached'}</option>{bodies.map(b=><option key={b.id}>{b.id}</option>)}
           </select></label>}
         </div>
-        <ImperialKnightLoadout army={army} squad={squad} onChange={edit}/>
+        <KnightLoadout army={army} squad={squad} onChange={edit}/>
         <button className="secondary" aria-label={'Remove squad '+squad.id} onClick={()=>edit(a=>removeRosterInstance(a,squad.id))}>Remove squad</button>
       </section>;
     })}

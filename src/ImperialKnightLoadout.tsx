@@ -1,16 +1,16 @@
 import React from 'react';
 import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
-import {IMPERIAL_KNIGHT_LOADOUTS,knightItemsLabel,setKnightGear,validKnightGear} from './imperial-knight-loadouts';
+import {knightLoadoutFor,knightItemsLabel,setKnightGear,validKnightGear} from './knight-loadouts';
 
 interface Props {
   army: ArmySelection;
   squad: RosterInstance;
   onChange: (edit:(army:ArmySelection)=>ArmySelection)=>void;
 }
-export function ImperialKnightLoadout({army,squad,onChange}:Props) {
-  const sheet=IMPERIAL_KNIGHT_LOADOUTS[squad.unit];
-  if(!sheet||army.faction!=='Imperial Knights')return null;
+export function KnightLoadout({army,squad,onChange}:Props) {
+  const sheet=knightLoadoutFor(army.faction,squad.unit,squad.models);
+  if(!sheet)return null;
   return <>
     {sheet.fixed.length>0&&<p className="fixed-gear">{knightItemsLabel(sheet.fixed)}</p>}
     {sheet.slots.length>0&&<div className="loadout-controls">{sheet.slots.map(slot=><label key={slot.name}>{slot.name}
@@ -22,3 +22,5 @@ export function ImperialKnightLoadout({army,squad,onChange}:Props) {
     </label>)}</div>}
   </>;
 }
+
+export {KnightLoadout as ImperialKnightLoadout};

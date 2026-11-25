@@ -32,7 +32,7 @@ test('a Scout army can use any phase immediately and print every phase after che
  await expect(sheet.getByRole('heading',{name:'End of opponent turn'})).toBeVisible();
  await expect(sheet.getByRole('heading',{name:'Pre-battle'})).toHaveCount(0);
  await page.emulateMedia({media:'print'});
- await expect(page.locator('.print-sheet h3')).toHaveCount(9);
+ await expect(page.locator('.print-sheet h3')).toHaveCount(11);
  await expect(page.locator('.print-sheet strong').filter({hasText:/Scout/i}).first()).toBeVisible();
 });
 

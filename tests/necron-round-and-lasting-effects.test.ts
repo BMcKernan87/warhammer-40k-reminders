@@ -12,7 +12,7 @@ describe('army-specific timing and persistent effects',()=>{
  it('orders the Triarch choice before either player’s turn and lists only legal targets for each alternative',()=>{
   const army=roster(unit('king','The Silent King'),unit('shard','Transcendent C’tan'),unit('body','Immortals'),{...unit('chrono','Chronomancer'),attachedTo:'body'});
   const groups=grouped11thReminders(army);
-  expect(groups.slice(0,3).map(g=>g.window)).toEqual(['Pre-battle','Start of battle round','Command']);
+  expect(groups.slice(0,4).map(g=>g.window)).toEqual(['Pre-battle','Start of battle round','Start of turn','Command']);
   expect(sheets(army,'Triarch Abilities')).toMatchObject([{window:'Start of battle round',timing:'start',units:['king']}]);
   expect(sheets(army,'Relentless March')[0].units).toEqual(['king','shard','body']);
   for(const reminder of [...sheets(army,'Phaeron of the Blades'),...sheets(army,'Phaeron of the Stars')]){
