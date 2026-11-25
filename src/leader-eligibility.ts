@@ -1,3 +1,6 @@
+import {GSC_SHEETS,GSC_UNITS} from './gsc-data';
+import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
+import {gscAlliedMusterUnits} from './gsc-allies';
 import {VOTANN_SHEETS} from './votann-data.generated';
 import {DAEMON_SHEETS,daemonMusterUnits} from './chaos-daemons-data';
 import {isDaemonicPactUnit} from './daemonic-pact';
@@ -6,6 +9,7 @@ import {ORK_SHEETS,orkAdditionalBodyguards} from './ork-data';
 import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
 import {IMPERIAL_KNIGHT_SHEETS,knightMusterUnits} from './imperial-knights-data';
 import {ASSIGNED_AGENT_SHEETS,BATTLELINE_INQUISITORS,NATIVE_AGENT_SHEETS} from './assigned-agent-data';
+const gscSheets=[...GSC_SHEETS,...GSC_ALLIED_SHEETS];
 const knightSheets=[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS];
 import {expandRoster,type RosterInstance} from './roster-instances';
 import type {ArmySelection} from './catalog';
@@ -13,6 +17,7 @@ import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 /** Explicitly modeled Leader -> Bodyguard compatibility. Unlisted Leaders remain unsupported. */
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
+ 'Genestealer Cults':Object.fromEntries(gscSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Leagues of Votann':Object.fromEntries(VOTANN_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Imperial Agents':Object.fromEntries(NATIVE_AGENT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Chaos Daemons':Object.fromEntries(DAEMON_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -48,6 +53,10 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
  if(army.faction==='Chaos Daemons'&&!daemonMusterUnits(army).includes(leader.unit))return [];
  if(army.faction==='Chaos Knights'&&!isDaemonicPactUnit(leader.unit)&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
+ if(army.faction==='Genestealer Cults'){
+  const available=[...GSC_UNITS,...gscAlliedMusterUnits(army)];
+  return available.includes(leader.unit)?base.filter(u=>available.includes(u)):[];
+ }
  if(army.faction==='Adeptus Custodes'&&BATTLELINE_INQUISITORS.has(leader.unit)){
   // MFM v1.6 lists 'Battleline Imperium Infantry' for these four allied Leaders.
   const native=CUSTODES_SHEETS.filter(s=>{
@@ -71,6 +80,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
  if(faction==='Necrons')return necronAttachmentRole(unit);
  if(faction==='Chaos Daemons')return DAEMON_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Orks')return ORK_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
+ if(faction==='Genestealer Cults')return gscSheets.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Leagues of Votann')return VOTANN_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Adeptus Custodes')return CUSTODES_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Chaos Knights')return CHAOS_KNIGHT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -78,7 +88,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);

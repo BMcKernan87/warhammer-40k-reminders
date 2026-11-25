@@ -1,3 +1,4 @@
+import {acolyteVariants,formerAcolyte,identifySavedAcolytes,gscWarlordCandidates,resolvedGscWarlord,selectGscWarlord} from './gsc-muster';
 import type {ArmySelection} from './catalog';
 import {DATASHEETS_2026,verifiedUnitSizes2026} from './datasheets-2026';
 import {agentWarlordCandidates,resolvedAgentWarlord,selectAgentWarlord} from './agent-muster';
@@ -27,10 +28,11 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
+  const cult=army.faction==='Genestealer Cults';
   const votann=army.faction==='Leagues of Votann';
-  const warlords=votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>
@@ -52,6 +54,9 @@ export function KnightRoster({army,onChange}:Props) {
       return <section key={squad.id} className="loadout" aria-label={'Squad '+squad.id}>
         <div className="squad-heading"><strong>{squad.id}</strong>{sheet&&<a href={sheet.source} target="_blank" rel="noreferrer">Datasheet</a>}</div>
         <div className="loadout-controls">
+          {cult&&squad.unit===formerAcolyte&&<label>Current datasheet <select aria-label={'Identify saved squad '+squad.id} value="" onChange={e=>edit(a=>identifySavedAcolytes(a,squad.id,e.target.value))}>
+            <option value="">Choose datasheet</option>{acolyteVariants.map(name=><option key={name}>{name}</option>)}
+          </select></label>}
           {sizes&&sizes.length>1?<label>Models <select aria-label={'Models for squad '+squad.id} value={squad.models??sizes[0]} onChange={e=>edit(a=>setInstanceModelCount(a,squad.id,Number(e.target.value)))}>
             {sizes.map(n=><option key={n}>{n}</option>)}</select></label>:sheet&&<span>{sheet.sizes[0]} {sheet.sizes[0]===1?'model':'models'}</span>}
           {upgrades.length>0&&<label>Enhancement <select aria-label={'11th upgrade for squad '+squad.id} value={upgradeName2026(army,squad)??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>

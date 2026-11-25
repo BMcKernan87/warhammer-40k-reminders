@@ -1,7 +1,8 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {parse} from 'yaml';
 import {loadExport} from './import-wahapedia-11e.mjs';
-import {importNativeMuster, nativeNameKey} from './import-native-muster.mjs';
+import {applyModelComposition} from './import-mfm-composition.mjs';
+import {importNativeMuster} from './import-native-muster.mjs';
 
 const [directory, manualPath, unitPath, compositionPath, destination] = process.argv.slice(2);
 if (!destination) throw Error('Usage: node scripts/import-votann.mjs CSV_DIR MFM_YAML UNITS_JSON COMPOSITIONS_JSON OUTPUT_TS');
@@ -10,39 +11,8 @@ const manual = parse(readFileSync(manualPath, 'utf8'));
 const sheets = importNativeMuster(tables, manual, {
   name: 'Leagues of Votann', slug: 'leagues-of-votann', factionId: 'LoV', packAircraftOrModels: [],
 });
-const units = JSON.parse(readFileSync(unitPath, 'utf8'));
-const groups = new Map(JSON.parse(readFileSync(compositionPath, 'utf8')).map(row => [row.unit_id, row]));
-for (const sheet of sheets) {
-  const matches = units.filter(row => nativeNameKey(row.name) === nativeNameKey(sheet.unit) &&
-    row.external_refs?.some(ref => ref.namespace === 'mfm'));
-  if (matches.length !== 1) throw Error('Unresolved MFM identity for '+sheet.unit);
-  const group = groups.get(matches[0].id);
-  if (group?.faction_id !== 'leagues-of-votann' || group.game_version.edition !== '11th' ||
-    group.game_version.dataslate !== manual.firstSeen) throw Error('Unverified model composition for '+sheet.unit);
-  // The five-model Iron-master card has fixed escorts and no alternative tiers.
-  const tiers = group.tiers ?? [{models:group.models}];
-  if (!group.tiers && group.models.some(m => m.min !== m.max)) throw Error('Unresolved model alternatives for '+sheet.unit);
-  const sizes = {};
-  for (const tier of tiers) {
-    let alternatives = [{}];
-    for (const {name,min,max} of tier.models) {
-      if (!name || !Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min) {
-        throw Error('Invalid model role for '+sheet.unit);
-      }
-      alternatives = alternatives.flatMap(group => Array.from({length:max-min+1}, (_,i) => ({...group,[name]:min+i})));
-    }
-    for (const models of alternatives) {
-      const n = Object.values(models).reduce((total,count) => total+count, 0);
-      if (sizes[n]) throw Error('Ambiguous squad of '+n+' in '+sheet.unit);
-      sizes[n] = models;
-    }
-  }
-  const legal = Object.keys(sizes).map(Number).sort((a,b) => a-b);
-  if (legal[0] !== sheet.sizes[0] || legal.at(-1) !== sheet.sizes.at(-1) || sheet.sizes.some(n => !sizes[n])) {
-    throw Error('MFM strength and point bands disagree for '+sheet.unit);
-  }
-  sheet.compositionBySize = sizes;
-}
+const json=path=>JSON.parse(readFileSync(path,'utf8'));
+applyModelComposition(sheets,json(unitPath),json(compositionPath),manual.slug,manual.firstSeen);
 const revision = {
   pack:'https://assets.warhammer-community.com/eng_14-10_wh40k_faction_pack_leagues_of_votann-os3nsdjlao-buac8a7pzn.pdf',
   manual:manual.version, exportUpdated:tables.Last_update[0].last_update,

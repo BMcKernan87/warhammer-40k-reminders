@@ -1,3 +1,4 @@
+import {eligibleGscUpgrades} from './gsc-detachment-data';
 import {eligibleAgentUpgrades} from './imperial-agent-detachments';
 import {eligibleDaemonUpgrades} from './chaos-daemon-detachments';
 import {eligibleOrkUpgrades} from './ork-detachments';
@@ -132,6 +133,7 @@ export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):
  if(army.faction==='Imperial Agents')return eligibleAgentUpgrades(army,unit).map(u=>({...u,unit,faction:'Imperial Agents',source:'https://wahapedia.ru/wh40k11ed/factions/imperial-agents/'}));
  if(army.faction==='Chaos Daemons')return eligibleDaemonUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Daemons',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-daemons/'}));
  if(army.faction==='Orks')return eligibleOrkUpgrades(army,unit).map(u=>({...u,unit,faction:'Orks',source:'https://wahapedia.ru/wh40k11ed/factions/orks/'}));
+ if(army.faction==='Genestealer Cults')return eligibleGscUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Genestealer Cults',source:'https://wahapedia.ru/wh40k11ed/factions/genestealer-cults/'}));
  if(army.faction==='Leagues of Votann')return eligibleVotannUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Leagues of Votann',source:'https://wahapedia.ru/wh40k11ed/factions/leagues-of-votann/'}));
  if(army.faction==='Adeptus Custodes')return eligibleCustodesUpgrades(army,unit).map(u=>({...u,unit,faction:'Adeptus Custodes',source:'https://wahapedia.ru/wh40k11ed/factions/adeptus-custodes/'}));
  if(army.faction==='Chaos Knights')return eligibleChaosKnightUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Knights',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-knights/'}));

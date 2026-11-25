@@ -1,3 +1,4 @@
+import {canFillTransports} from './transport-matching';
 import type {ArmySelection} from './catalog';
 import {DATASHEETS_2026} from './datasheets-2026';
 import type {GeneratedReminder} from './generated-reminders';
@@ -62,17 +63,7 @@ export function agentTransports(army:ArmySelection){
     const state=JSON.stringify([transports.map(t=>t.unit),remaining.map(p=>[p.body.unit,space(p.body),p.members.map(m=>m.unit).sort()]).sort(),halves.map(h=>[h.size,h.members.map(s=>s.unit).sort()]).sort()]);
     if(failed.has(state))return false;
     const options=remaining.map(p=>(t:Transport)=>fits(t.unit,p)).concat(halves.map(h=>(t:Transport)=>fits(t.unit,h.party,h.size,h.members)));
-    const taken=new Map<number,number>();
-    function seat(t:number,seen:Set<number>):boolean{
-      for(let i=0;i<options.length;i++){
-        if(seen.has(i)||!options[i](transports[t]))continue;
-        seen.add(i);
-        const prior=taken.get(i);
-        if(prior===undefined||seat(prior,seen)){taken.set(i,t);return true;}
-      }
-      return false;
-    }
-    if(transports.every((_,t)=>seat(t,new Set())))return true;
+    if(canFillTransports(transports,options,(vehicle,accepts)=>accepts(vehicle)))return true;
     const anchor=transports.find(t=>t.unit===immolator);
     if(!anchor)return false;
     for(const p of remaining.filter(p=>sisters.includes(p))){
