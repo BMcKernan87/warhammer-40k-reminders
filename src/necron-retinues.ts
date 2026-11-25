@@ -2,7 +2,6 @@ import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
 import {expandRoster} from './roster-instances';
 import {validSupportAttachment} from './necron-muster-legality';
-import {hasMurdermind,leaderBodyguards} from './leader-eligibility';
 import {NECRON_SUPPORTS} from './attachments';
 import {necronKeywords} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
@@ -11,10 +10,7 @@ export const NECRON_RETINUES=new Set(['Cryptothralls','Canoptek Tomb Crawlers'])
 export function retinueCrypteks(army:ArmySelection,bodyId:string):RosterInstance[]{
  const roster=expandRoster(army),body=roster.find(s=>s.id===bodyId);
  if(!body||body.attachedTo||body.retinueTo||NECRON_RETINUES.has(body.unit))return [];
- const crypteks=roster.filter(s=>s.attachedTo===bodyId&&necronKeywords.CRYPTEK.has(s.unit)&&validSupportAttachment(army,s));
- // Murdermind's special Destroyer-only formation cannot include non-Destroyer retinue models.
- if(crypteks.some(s=>hasMurdermind(army,s)&&!leaderBodyguards('Necrons',s.unit).includes(body.unit)))return [];
- return crypteks;
+ return roster.filter(s=>s.attachedTo===bodyId&&necronKeywords.CRYPTEK.has(s.unit)&&validSupportAttachment(army,s));
 }
 export function eligibleRetinueBodies(army:ArmySelection,id:string):RosterInstance[]{
  if(army.faction!=='Necrons')return [];

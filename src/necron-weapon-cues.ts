@@ -273,6 +273,50 @@ function equipped(squad:RosterInstance, options:WeaponCue[]):WeaponCue[]{
   });
 }
 
+// Core 10.05–10.07, 15.09 and chapter 24. The text differs by shooting type:
+// snap shots cannot generate critical hits or take a Heavy hit modifier.
+function keywordText(keyword:string,snap:boolean):string|undefined{
+  if(keyword.startsWith('Sustained Hits '))return snap?undefined:keyword+' (each critical hit scores '+keyword.slice('Sustained Hits '.length)+' extra hit'+(keyword.endsWith(' 1')?'':'s')+')';
+  if(keyword.startsWith('Rapid Fire '))return keyword+' (+'+keyword.slice('Rapid Fire '.length)+' attacks within half range)';
+  if(keyword.startsWith('Melta '))return keyword+' (+'+keyword.slice(6)+' Damage within half range)';
+  if(keyword.startsWith('Anti-')){
+    const [target,roll]=keyword.slice(5).split(' ');
+    return keyword+' (an unmodified Wound roll of '+roll+' scores a critical wound against '+target+' units)';
+  }
+  switch(keyword){
+    case 'Heavy': return snap?undefined:'Heavy (+1 to Hit in your Shooting phase if unengaged, no models moved more than 3″ this turn, and the unit was not set up this turn)';
+    case 'Lethal Hits': return snap?undefined:'Lethal Hits (on a critical hit, you may skip the Wound roll and wound automatically)';
+    case 'Assault': return snap?undefined:'Assault (after an Advance, an unengaged unit can use assault shooting with Assault weapons only and cannot then start an action this phase)';
+    case 'Indirect Fire': return snap?undefined:'Indirect Fire (if unengaged and you did not Advance, indirect shooting can target unseen enemies. The target gets cover, Hit rolls cannot be re-rolled, and unmodified 1–5 fails, or 1–3 if stationary with a friendly spotter)';
+    case 'Blast': return 'Blast (+1 attack per five models in the target when selected)';
+    case 'Devastating Wounds': return 'Devastating Wounds (on a critical wound, deal the weapon’s Damage as mortal wounds to one model after normal damage)';
+    case 'Extra Attacks': return 'Extra Attacks (fight with this weapon in addition to your chosen melee weapon)';
+    case 'Ignores Cover': return 'Ignores Cover (deny the target the Benefit of Cover)';
+    case 'Pistol': return snap?'Pistol (each non-Monster, non-Vehicle firing model chooses Pistols or other ranged weapons)':'Pistol (can use close-quarters shooting against an engaged target if the unit did not Advance. With other shooting types, a non-Monster, non-Vehicle model chooses Pistols or other ranged weapons)';
+    case 'Precision': return 'Precision (when allocating attacks, the active player may select the allocation group containing a visible enemy Character)';
+    case 'Torrent': return 'Torrent (hits automatically)';
+    case 'Twin-Linked': return 'Twin-Linked (may re-roll the Wound roll)';
+    default: return keyword;
+  }
+}
+
+export function weaponSummary(squad:RosterInstance,phase:keyof WeaponPhases,snap=false):string{
+  const choices=equipped(squad,profiles[squad.unit]?.[phase]??[]);
+  const descriptions:string[]=[];
+  for(const profile of choices){
+    const abilities=profile.abilities.split(', ').map(k=>keywordText(k,snap)).filter(Boolean);
+    if(!abilities.length)continue;
+    let count:number|undefined;
+    if(profile.optional)count=squad.wargear?.[profile.optional];
+    else if(profile.primary&&squad.weaponCounts)count=squad.weaponCounts[profile.primary];
+    else if(profile.primary&&squad.unit==='Canoptek Macrocytes')count=(squad.models??5)-(squad.wargear?.['Atomiser beam and nanoscarab projector']??0)-(squad.wargear?.['Accelerator mandible']??0);
+    else if(squad.unit==='Canoptek Tomb Crawlers')count=squad.equipment==='One twin gauss reaper and one transdimensional isolator'?1:2;
+    const bearers=count===undefined?'':' ('+count+' originally equipped model'+(count===1?'':'s')+'; apply to surviving bearers)';
+    descriptions.push(profile.weapon+bearers+' — '+abilities.join(', ')+(profile.note?'. '+profile.note:'')+'.');
+  }
+  return descriptions.join(' ');
+}
+
 export const weaponRules:TriggerRule[]=Object.entries(profiles).flatMap(([unit,phases])=>
   (['shoot','fight'] as const).flatMap(phase=>{
     const options=phases[phase];
@@ -281,13 +325,7 @@ export const weaponRules:TriggerRule[]=Object.entries(profiles).flatMap(([unit,p
       id:'weapons-'+unit+'-'+phase,title:phase==='shoot'?'Ranged weapon abilities':'Melee weapon abilities',units:[unit],
       signal:phase==='shoot'?['shoot','overwatch'] as const:'fight',
       gear:(squad:RosterInstance)=>equipped(squad,options).length>0,
-      text:({bearer})=>equipped(bearer,options).map(p=>{
-        let count:number|undefined;
-        if(p.optional)count=bearer.wargear?.[p.optional];
-        else if(p.primary&&bearer.weaponCounts)count=bearer.weaponCounts[p.primary];
-        else if(p.primary&&bearer.unit==='Canoptek Macrocytes')count=(bearer.models??5)-(bearer.wargear?.['Atomiser beam and nanoscarab projector']??0)-(bearer.wargear?.['Accelerator mandible']??0);
-        return p.weapon+' — '+p.abilities+(count!==undefined?' ('+count+' originally equipped model'+(count===1?'':'s')+'; apply to surviving bearers)':'')+(p.note?'. '+p.note:'');
-      }).join('. ')+'.',
+      text:({bearer,observation})=>weaponSummary(bearer,phase,observation?.action==='overwatch'),
     }];
   })
 );

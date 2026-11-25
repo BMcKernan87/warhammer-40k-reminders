@@ -20,7 +20,7 @@ describe('11e Cryptek Retinue',()=>{
   expect(formationBodyguardStrength(b,body)).toBe((expandRoster(a).find(s=>s.id===body)!.models??10)+2);
   expect(rosterCost2026(b).total).toBe(rosterCost2026(a).total);
   expect(generate11thReminders(b).find(r=>r.title.includes('Cryptek Retinue'))?.window).toBe('Pre-battle');
-  expect(generate11thReminders(b).filter(r=>r.title.includes('Bound Creation')).map(r=>r.units)).toEqual([[thralls,body,tech],[thralls,body,tech]]);
+  expect(generate11thReminders(b).filter(r=>r.title.includes('Bound Creation')).map(r=>r.units)).toEqual(Array.from({length:5},()=>[thralls,body,tech]));
   expect(generate11thReminders(a).some(r=>r.title.includes('Bound Creation'))).toBe(false);
  });
  it('rejects duplicate retinues, invalid Bodyguards, and non-Cryptek attachments',()=>{
@@ -44,11 +44,18 @@ describe('11e Cryptek Retinue',()=>{
    expect(validateSelection(b)).toBe(true);
   }
  });
- it('does not violate the Murdermind Destroyer-only formation',()=>{
-  let a={...army('Technomancer','Skorpekh Destroyers','Cryptothralls'),detachments2026:['Cursed Legion']};
+ it.each(['Cryptothralls','Canoptek Tomb Crawlers'])('permits a %s retinue on a Murdermind Cryptek-led Destroyer unit',retinue=>{
+  let a={...army('Technomancer','Skorpekh Destroyers','Skorpekh Lord',retinue),detachments2026:['Cursed Legion']};
   a=selectUpgrade2026(a,id(a,'Technomancer'),'Murdermind');
   a=setInstanceAttachment(a,id(a,'Technomancer'),id(a,'Skorpekh Destroyers'));
-  expect(eligibleRetinueBodies(a,id(a,'Cryptothralls'))).toEqual([]);
+  const body=id(a,'Skorpekh Destroyers');
+  a=setInstanceAttachment(a,id(a,'Skorpekh Lord'),body);
+  a=setRetinue(a,id(a,retinue),body);
+  expect(validateSelection(a)).toBe(true);
+  expect(formationBodyguardStrength(a,body)).toBe(5);
+  expect(generate11thReminders(a).some(r=>r.id==='11e-necron-retinue-'+id(a,retinue))).toBe(true);
+  a=selectUpgrade2026(a,id(a,'Technomancer'),null);
+  expect(expandRoster(a).find(s=>s.unit===retinue)?.retinueTo).toBeUndefined();
  });
 });
 describe('Ghost Ark prebattle passenger requirement',()=>{

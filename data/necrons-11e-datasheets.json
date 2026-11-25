@@ -1,939 +1,8 @@
 {
   "edition": 11,
   "faction": "Necrons",
-  "revision": "october-2026-v1.2-copy-pricing-reconciled",
+  "revision": "wahapedia-2026-11-23 01:43:36",
   "sourceStatus": "mixed-source-unreconciled",
-  "datasheets": [
-    {
-      "faction": "Necrons",
-      "unit": "Chronomancer",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Chronomancer",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 70
-      },
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 80
-        }
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Chronomancer",
-      "verified": "sizes-and-points",
-      "profile": {
-        "move": "5\"",
-        "toughness": 4,
-        "save": "4+",
-        "wounds": 4,
-        "leadership": "6+",
-        "objectiveControl": 1
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Immortals",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Immortals",
-      "sizes": [
-        5,
-        10
-      ],
-      "pointsBySize": {
-        "5": 65,
-        "10": 130
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Immortals",
-      "verified": "sizes-and-points",
-      "profile": {
-        "move": "5\"",
-        "toughness": 5,
-        "save": "3+",
-        "wounds": 1,
-        "leadership": "7+",
-        "objectiveControl": 2
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "C’tan Shard of the Nightbringer",
-      "profile": {
-        "move": "10\"",
-        "toughness": 11,
-        "save": "3+",
-        "wounds": 16,
-        "leadership": "6+",
-        "objectiveControl": 4
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 360
-      },
-      "pointsSource": "https://tactical40k.com/codex/necrons",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "C’tan Shard of the Void Dragon",
-      "profile": {
-        "move": "10\"",
-        "toughness": 11,
-        "save": "3+",
-        "wounds": 16,
-        "leadership": "6+",
-        "objectiveControl": 4
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 345
-      },
-      "pointsSource": "https://tactical40k.com/codex/necrons",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Macrocytes",
-      "profile": {
-        "move": "8\"",
-        "toughness": 3,
-        "save": "4+",
-        "wounds": 1,
-        "leadership": "8+",
-        "objectiveControl": 1
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        5
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "5": 70
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Tomb Crawlers",
-      "profile": {
-        "move": "5\"",
-        "toughness": 4,
-        "save": "3+",
-        "wounds": 3,
-        "leadership": "8+",
-        "objectiveControl": 1
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        2
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "2": 60
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Geomancer",
-      "profile": {
-        "move": "8\"",
-        "toughness": 4,
-        "save": "4+",
-        "wounds": 4,
-        "leadership": "6+",
-        "objectiveControl": 1
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 75
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "C’tan Shard of the Deceiver",
-      "profile": {
-        "move": "8\"",
-        "toughness": 11,
-        "save": "3+",
-        "wounds": 16,
-        "leadership": "6+",
-        "objectiveControl": 4
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 330
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Transcendent C’tan",
-      "profile": {
-        "move": "8\"",
-        "toughness": 11,
-        "save": "3+",
-        "wounds": 16,
-        "leadership": "6+",
-        "objectiveControl": 4
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 340
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 360
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Nekrosor Ammentar",
-      "profile": {
-        "move": "10\"",
-        "toughness": 8,
-        "save": "3+",
-        "wounds": 9,
-        "leadership": "6+",
-        "objectiveControl": 3
-      },
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 195
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Seraptek Heavy Construct",
-      "source": "https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 540
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points",
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 570
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Wraiths",
-      "sizes": [
-        3,
-        6
-      ],
-      "pointsBySize": {
-        "3": 95,
-        "6": 220
-      },
-      "laterCopyPointsBySize": {
-        "2": {
-          "3": 115,
-          "6": 240
-        }
-      },
-      "profile": {
-        "move": "10\"",
-        "toughness": 6,
-        "save": "3+",
-        "wounds": 4,
-        "leadership": "8+",
-        "objectiveControl": 2
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Wraiths",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Wraiths",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Necron Warriors",
-      "sizes": [
-        10,
-        20
-      ],
-      "pointsBySize": {
-        "10": 85,
-        "20": 190
-      },
-      "profile": {
-        "move": "5\"",
-        "toughness": 4,
-        "save": "4+",
-        "wounds": 1,
-        "leadership": "7+",
-        "objectiveControl": 2
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Necron-Warriors",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Necron-Warriors",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Lokhust Heavy Destroyers",
-      "sizes": [
-        1,
-        2,
-        3
-      ],
-      "pointsBySize": {
-        "1": 50,
-        "2": 100,
-        "3": 165
-      },
-      "laterCopyPointsBySize": {
-        "3": {
-          "1": 60,
-          "2": 110,
-          "3": 175
-        }
-      },
-      "profile": {
-        "move": "8\"",
-        "toughness": 6,
-        "save": "3+",
-        "wounds": 4,
-        "leadership": "7+",
-        "objectiveControl": 2
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Technomancer",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 80
-      },
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 90
-        }
-      },
-      "profile": {
-        "move": "10\"",
-        "toughness": 4,
-        "save": "4+",
-        "wounds": 4,
-        "leadership": "6+",
-        "objectiveControl": 1
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Technomancer",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Technomancer",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Plasmancer",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 60
-      },
-      "profile": {
-        "move": "5\"",
-        "toughness": 4,
-        "save": "4+",
-        "wounds": 4,
-        "leadership": "6+",
-        "objectiveControl": 1
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Plasmancer",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Plasmancer",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Illuminor Szeras",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 175
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Imotekh the Stormlord",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 100
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "The Silent King",
-      "sizes": [
-        3
-      ],
-      "pointsBySize": {
-        "3": 420
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Ghost Ark",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 100
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Doom Scythe",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 200
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Scarab Swarms",
-      "sizes": [
-        3,
-        6
-      ],
-      "pointsBySize": {
-        "3": 40,
-        "6": 80
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Cryptothralls",
-      "sizes": [
-        2
-      ],
-      "pointsBySize": {
-        "2": 60
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Flayed Ones",
-      "sizes": [
-        5,
-        10
-      ],
-      "pointsBySize": {
-        "5": 55,
-        "10": 100
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Lychguard",
-      "sizes": [
-        5,
-        10
-      ],
-      "pointsBySize": {
-        "5": 80,
-        "10": 160
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Annihilation Barge",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 100
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Spyders",
-      "sizes": [
-        1,
-        2
-      ],
-      "pointsBySize": {
-        "1": 65,
-        "2": 110
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Doomstalker",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 130
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Canoptek Reanimator",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 75
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Ophydian Destroyers",
-      "sizes": [
-        3,
-        6
-      ],
-      "pointsBySize": {
-        "3": 80,
-        "6": 150
-      },
-      "laterCopyPointsBySize": {
-        "3": {
-          "3": 90,
-          "6": 160
-        }
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Skorpekh Destroyers",
-      "sizes": [
-        3,
-        6
-      ],
-      "pointsBySize": {
-        "3": 85,
-        "6": 170
-      },
-      "laterCopyPointsBySize": {
-        "3": {
-          "3": 95,
-          "6": 180
-        }
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Tomb Blades",
-      "sizes": [
-        3,
-        6
-      ],
-      "pointsBySize": {
-        "3": 70,
-        "6": 140
-      },
-      "laterCopyPointsBySize": {
-        "3": {
-          "3": 80,
-          "6": 150
-        }
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Lokhust Destroyers",
-      "sizes": [
-        1,
-        2,
-        3,
-        6
-      ],
-      "pointsBySize": {
-        "1": 40,
-        "2": 55,
-        "3": 80,
-        "6": 190
-      },
-      "laterCopyPointsBySize": {
-        "3": {
-          "1": 70,
-          "2": 85,
-          "3": 110,
-          "6": 220
-        }
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Monolith",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 420
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points",
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 440
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Doomsday Ark",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 200
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points",
-      "laterCopyPointsBySize": {
-        "3": {
-          "1": 230
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Tesseract Vault",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 465
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points",
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 505
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Hexmark Destroyer",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 75
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Orikan the Diviner",
-      "sizes": [
-        1
-      ],
-      "pointsBySize": {
-        "1": 90
-      },
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "verified": "sizes-and-points"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Catacomb Command Barge",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 120
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Convergence Of Dominion",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1,
-        2,
-        3
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 60,
-        "2": 120,
-        "3": 180
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Deathmarks",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        5,
-        10
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "5": 60,
-        "10": 120
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "laterCopyPointsBySize": {
-        "3": {
-          "5": 70,
-          "10": 130
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Lokhust Lord",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 80
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Night Scythe",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 125
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Obelisk",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 280
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "laterCopyPointsBySize": {
-        "2": {
-          "1": 310
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Overlord",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 90
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Overlord with translocation shroud",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 90
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Psychomancer",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 65
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Royal Warden",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 50
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Skorpekh Lord",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 95
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "laterCopyPointsBySize": {
-        "3": {
-          "1": 105
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Triarch Praetorians",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        5,
-        10
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "5": 80,
-        "10": 160
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Triarch Stalker",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 110
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "laterCopyPointsBySize": {
-        "3": {
-          "1": 120
-        }
-      }
-    },
-    {
-      "faction": "Necrons",
-      "unit": "Trazyn the Infinite",
-      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
-      "sizes": [
-        1
-      ],
-      "verified": "sizes-and-points",
-      "pointsBySize": {
-        "1": 60
-      },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
-    }
-  ],
   "expectedUnits": [
     "Annihilation Barge",
     "Canoptek Doomstalker",
@@ -987,5 +56,2060 @@
     "Trazyn the Infinite",
     "Triarch Praetorians",
     "Triarch Stalker"
+  ],
+  "datasheets": [
+    {
+      "faction": "Necrons",
+      "unit": "Annihilation Barge",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Annihilation-Barge",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Annihilation-Barge",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 100
+      },
+      "composition": [
+        {
+          "model": "Annihilation Barge",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "ANNIHILATION BARGE",
+        "FLY",
+        "FRAME",
+        "NECRONS",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 8,
+        "save": "3+",
+        "wounds": 9,
+        "leadership": "7+",
+        "objectiveControl": 3
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Doomstalker",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Doomstalker",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Doomstalker",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 130
+      },
+      "composition": [
+        {
+          "model": "Canoptek Doomstalker",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CANOPTEK",
+        "DOOMSTALKER",
+        "NECRONS",
+        "VEHICLE",
+        "WALKER"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 8,
+        "save": "3+",
+        "wounds": 12,
+        "leadership": "8+",
+        "objectiveControl": 4
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Macrocytes",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Macrocytes",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Macrocytes",
+      "verified": "sizes-and-points",
+      "sizes": [
+        5
+      ],
+      "pointsBySize": {
+        "5": 70
+      },
+      "composition": [
+        {
+          "model": "Canoptek Macrocytes",
+          "min": 5,
+          "max": 5
+        }
+      ],
+      "keywords": [
+        "BEASTS",
+        "CANOPTEK",
+        "FLY",
+        "MACROCYTES",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 3,
+        "save": "4+",
+        "wounds": 1,
+        "leadership": "8+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Reanimator",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Reanimator",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Reanimator",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 75
+      },
+      "composition": [
+        {
+          "model": "Canoptek Reanimator",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CANOPTEK",
+        "NECRONS",
+        "REANIMATOR",
+        "VEHICLE",
+        "WALKER"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 6,
+        "leadership": "8+",
+        "objectiveControl": 3
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Scarab Swarms",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Scarab-Swarms",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Scarab-Swarms",
+      "verified": "sizes-and-points",
+      "sizes": [
+        3,
+        6
+      ],
+      "pointsBySize": {
+        "3": 40,
+        "6": 80
+      },
+      "composition": [
+        {
+          "model": "Canoptek Scarab Swarms",
+          "min": 3,
+          "max": 6
+        }
+      ],
+      "keywords": [
+        "CANOPTEK",
+        "FLY",
+        "NECRONS",
+        "SCARAB SWARMS",
+        "SWARM"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 2,
+        "save": "6+",
+        "wounds": 4,
+        "leadership": "8+",
+        "objectiveControl": 0
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Spyders",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Spyders",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Spyders",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1,
+        2
+      ],
+      "pointsBySize": {
+        "1": 65,
+        "2": 110
+      },
+      "composition": [
+        {
+          "model": "Canoptek Spyders",
+          "min": 1,
+          "max": 2
+        }
+      ],
+      "keywords": [
+        "CANOPTEK",
+        "FLY",
+        "NECRONS",
+        "SPYDERS",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 7,
+        "save": "3+",
+        "wounds": 6,
+        "leadership": "8+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Tomb Crawlers",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Tomb-Crawlers",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Tomb-Crawlers",
+      "verified": "sizes-and-points",
+      "sizes": [
+        2
+      ],
+      "pointsBySize": {
+        "2": 60
+      },
+      "composition": [
+        {
+          "model": "Canoptek Tomb Crawlers",
+          "min": 2,
+          "max": 2
+        }
+      ],
+      "keywords": [
+        "BEASTS",
+        "CANOPTEK",
+        "NECRONS",
+        "TOMB CRAWLERS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "3+",
+        "wounds": 3,
+        "leadership": "8+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Canoptek Wraiths",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Wraiths",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Canoptek-Wraiths",
+      "verified": "sizes-and-points",
+      "sizes": [
+        3,
+        6
+      ],
+      "pointsBySize": {
+        "3": 95,
+        "6": 220
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "3": 115,
+          "6": 240
+        }
+      },
+      "composition": [
+        {
+          "model": "Canoptek Wraiths",
+          "min": 3,
+          "max": 6
+        }
+      ],
+      "keywords": [
+        "BEASTS",
+        "CANOPTEK",
+        "FLY",
+        "NECRONS",
+        "WRAITHS"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 4,
+        "leadership": "8+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Catacomb Command Barge",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Catacomb-Command-Barge",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Catacomb-Command-Barge",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 120
+      },
+      "composition": [
+        {
+          "model": "Catacomb Command Barge",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CATACOMB COMMAND BARGE",
+        "CHARACTER",
+        "FLY",
+        "FRAME",
+        "NECRONS",
+        "NOBLE",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 8,
+        "save": "3+",
+        "wounds": 9,
+        "leadership": "6+",
+        "objectiveControl": 3
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Chronomancer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Chronomancer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Chronomancer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 70
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 80
+        }
+      },
+      "composition": [
+        {
+          "model": "Chronomancer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CHRONOMANCER",
+        "CRYPTEK",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "support"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Convergence Of Dominion",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Convergence-Of-Dominion",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Convergence-Of-Dominion",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1,
+        2,
+        3
+      ],
+      "pointsBySize": {
+        "1": 60,
+        "2": 120,
+        "3": 180
+      },
+      "composition": [
+        {
+          "model": "Convergence of Dominion Starsteles",
+          "min": 1,
+          "max": 3
+        }
+      ],
+      "keywords": [
+        "CONVERGENCE OF DOMINION",
+        "FORTIFICATION",
+        "FRAME",
+        "NECRONS",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "-",
+        "toughness": 9,
+        "save": "3+",
+        "wounds": 7,
+        "leadership": "8+",
+        "objectiveControl": 0
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Cryptothralls",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Cryptothralls",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Cryptothralls",
+      "verified": "sizes-and-points",
+      "sizes": [
+        2
+      ],
+      "pointsBySize": {
+        "2": 60
+      },
+      "composition": [
+        {
+          "model": "Cryptothralls",
+          "min": 2,
+          "max": 2
+        }
+      ],
+      "keywords": [
+        "CRYPTOTHRALLS",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "3+",
+        "wounds": 3,
+        "leadership": "8+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "C’tan Shard of the Deceiver",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/C-tan-Shard-of-the-Deceiver",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/C-tan-Shard-of-the-Deceiver",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 330
+      },
+      "composition": [
+        {
+          "model": "C’tan Shard of the Deceiver",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "C’TAN SHARD OF THE DECEIVER",
+        "EPIC HERO",
+        "FLY",
+        "MONSTER",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 11,
+        "save": "3+",
+        "wounds": 16,
+        "leadership": "6+",
+        "objectiveControl": 4
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "C’tan Shard of the Nightbringer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/C-tan-Shard-of-the-Nightbringer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/C-tan-Shard-of-the-Nightbringer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 360
+      },
+      "composition": [
+        {
+          "model": "C’tan Shard of the Nightbringer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "C’TAN SHARD OF THE NIGHTBRINGER",
+        "EPIC HERO",
+        "FLY",
+        "MONSTER",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 11,
+        "save": "3+",
+        "wounds": 16,
+        "leadership": "6+",
+        "objectiveControl": 4
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "C’tan Shard of the Void Dragon",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/C-tan-Shard-of-the-Void-Dragon",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/C-tan-Shard-of-the-Void-Dragon",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 345
+      },
+      "composition": [
+        {
+          "model": "C’tan Shard of the Void Dragon",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "C’TAN SHARD OF THE VOID DRAGON",
+        "EPIC HERO",
+        "FLY",
+        "MONSTER",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 11,
+        "save": "3+",
+        "wounds": 16,
+        "leadership": "6+",
+        "objectiveControl": 4
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Deathmarks",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Deathmarks",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Deathmarks",
+      "verified": "sizes-and-points",
+      "sizes": [
+        5,
+        10
+      ],
+      "pointsBySize": {
+        "5": 60,
+        "10": 120
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "5": 70,
+          "10": 130
+        }
+      },
+      "composition": [
+        {
+          "model": "Deathmarks",
+          "min": 5,
+          "max": 10
+        }
+      ],
+      "keywords": [
+        "DEATHMARKS",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 1,
+        "leadership": "7+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Doom Scythe",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Doom-Scythe",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Doom-Scythe",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 200
+      },
+      "composition": [
+        {
+          "model": "Doom Scythe",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "AIRCRAFT",
+        "DOOM SCYTHE",
+        "FLY",
+        "NECRONS",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "-",
+        "toughness": 9,
+        "save": "3+",
+        "wounds": 12,
+        "leadership": "7+",
+        "objectiveControl": "-"
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Doomsday Ark",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Doomsday-Ark",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Doomsday-Ark",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 200
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 230
+        }
+      },
+      "composition": [
+        {
+          "model": "Doomsday Ark",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "DOOMSDAY ARK",
+        "FLY",
+        "FRAME",
+        "NECRONS",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 9,
+        "save": "3+",
+        "wounds": 14,
+        "leadership": "7+",
+        "objectiveControl": 5
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Flayed Ones",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Flayed-Ones",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Flayed-Ones",
+      "verified": "sizes-and-points",
+      "sizes": [
+        5,
+        10
+      ],
+      "pointsBySize": {
+        "5": 55,
+        "10": 100
+      },
+      "composition": [
+        {
+          "model": "Flayed Ones",
+          "min": 5,
+          "max": 10
+        }
+      ],
+      "keywords": [
+        "FLAYED ONES",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 1,
+        "leadership": "7+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Geomancer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Geomancer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Geomancer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 75
+      },
+      "composition": [
+        {
+          "model": "Geomancer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CRYPTEK",
+        "GEOMANCER",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Canoptek Macrocytes",
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "support"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Ghost Ark",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Ghost-Ark",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Ghost-Ark",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 100
+      },
+      "composition": [
+        {
+          "model": "Ghost Ark",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "DEDICATED TRANSPORT",
+        "FLY",
+        "FRAME",
+        "GHOST ARK",
+        "NECRONS",
+        "TRANSPORT",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 9,
+        "save": "3+",
+        "wounds": 14,
+        "leadership": "7+",
+        "objectiveControl": 3
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Hexmark Destroyer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Hexmark-Destroyer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Hexmark-Destroyer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 75
+      },
+      "composition": [
+        {
+          "model": "Hexmark Destroyer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "DESTROYER CULT",
+        "HEXMARK DESTROYER",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 5,
+        "leadership": "6+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Illuminor Szeras",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Illuminor-Szeras",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Illuminor-Szeras",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 175
+      },
+      "composition": [
+        {
+          "model": "Illuminor Szeras",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CRYPTEK",
+        "EPIC HERO",
+        "ILLUMINOR SZERAS",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 8,
+        "save": "2+",
+        "wounds": 9,
+        "leadership": "6+",
+        "objectiveControl": 3
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Immortals",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Immortals",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Immortals",
+      "verified": "sizes-and-points",
+      "sizes": [
+        5,
+        10
+      ],
+      "pointsBySize": {
+        "5": 65,
+        "10": 130
+      },
+      "composition": [
+        {
+          "model": "Immortals",
+          "min": 5,
+          "max": 10
+        }
+      ],
+      "keywords": [
+        "BATTLELINE",
+        "IMMORTALS",
+        "INFANTRY",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 1,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Imotekh the Stormlord",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Imotekh-The-Stormlord",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Imotekh-The-Stormlord",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 100
+      },
+      "composition": [
+        {
+          "model": "Imotekh the Stormlord",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "EPIC HERO",
+        "IMOTEKH THE STORMLORD",
+        "INFANTRY",
+        "NECRONS",
+        "NOBLE"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "2+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Lychguard",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Lokhust Destroyers",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lokhust-Destroyers",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lokhust-Destroyers",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1,
+        2,
+        3,
+        6
+      ],
+      "pointsBySize": {
+        "1": 40,
+        "2": 55,
+        "3": 80,
+        "6": 190
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 70,
+          "2": 85,
+          "3": 110,
+          "6": 220
+        }
+      },
+      "composition": [
+        {
+          "model": "Lokhust Destroyers",
+          "min": 1,
+          "max": 6
+        }
+      ],
+      "keywords": [
+        "DESTROYER CULT",
+        "FLY",
+        "LOKHUST DESTROYERS",
+        "MOUNTED",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 3,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Lokhust Heavy Destroyers",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lokhust-Heavy-Destroyers",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lokhust-Heavy-Destroyers",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1,
+        2,
+        3
+      ],
+      "pointsBySize": {
+        "1": 50,
+        "2": 100,
+        "3": 165
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 60,
+          "2": 110,
+          "3": 175
+        }
+      },
+      "composition": [
+        {
+          "model": "Lokhust Heavy Destroyers",
+          "min": 1,
+          "max": 3
+        }
+      ],
+      "keywords": [
+        "DESTROYER CULT",
+        "FLY",
+        "LOKHUST HEAVY DESTROYERS",
+        "MOUNTED",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 4,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Lokhust Lord",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lokhust-Lord",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lokhust-Lord",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 80
+      },
+      "composition": [
+        {
+          "model": "Lokhust Lord",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "DESTROYER CULT",
+        "FLY",
+        "LOKHUST LORD",
+        "MOUNTED",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objectiveControl": 2
+      },
+      "bodyguards": [
+        "Lokhust Destroyers",
+        "Lokhust Heavy Destroyers"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Lychguard",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lychguard",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Lychguard",
+      "verified": "sizes-and-points",
+      "sizes": [
+        5,
+        10
+      ],
+      "pointsBySize": {
+        "5": 80,
+        "10": 160
+      },
+      "composition": [
+        {
+          "model": "Lychguard",
+          "min": 5,
+          "max": 10
+        }
+      ],
+      "keywords": [
+        "INFANTRY",
+        "LYCHGUARD",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 2,
+        "leadership": "7+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Monolith",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Monolith",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Monolith",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 420
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 440
+        }
+      },
+      "composition": [
+        {
+          "model": "Monolith",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "FLY",
+        "FRAME",
+        "MONOLITH",
+        "NECRONS",
+        "TITANIC",
+        "TOWERING",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 13,
+        "save": "2+",
+        "wounds": 22,
+        "leadership": "7+",
+        "objectiveControl": 8
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Necron Warriors",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Necron-Warriors",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Necron-Warriors",
+      "verified": "sizes-and-points",
+      "sizes": [
+        10,
+        20
+      ],
+      "pointsBySize": {
+        "10": 85,
+        "20": 190
+      },
+      "composition": [
+        {
+          "model": "Necron Warriors",
+          "min": 10,
+          "max": 20
+        }
+      ],
+      "keywords": [
+        "BATTLELINE",
+        "INFANTRY",
+        "NECRON WARRIORS",
+        "NECRONS"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 1,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Nekrosor Ammentar",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Nekrosor-Ammentar",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Nekrosor-Ammentar",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 195
+      },
+      "composition": [
+        {
+          "model": "Nekrosor Ammentar",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "DESTROYER CULT",
+        "EPIC HERO",
+        "INFANTRY",
+        "NECRONS",
+        "NEKROSOR AMMENTAR"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 8,
+        "save": "3+",
+        "wounds": 9,
+        "leadership": "6+",
+        "objectiveControl": 3
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Night Scythe",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Night-Scythe",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Night-Scythe",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 125
+      },
+      "composition": [
+        {
+          "model": "Night Scythe",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "FLY",
+        "NECRONS",
+        "NIGHT SCYTHE",
+        "TRANSPORT",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "14\"",
+        "toughness": 9,
+        "save": "3+",
+        "wounds": 12,
+        "leadership": "7+",
+        "objectiveControl": 0
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Obelisk",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Obelisk",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Obelisk",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 280
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 310
+        }
+      },
+      "composition": [
+        {
+          "model": "Obelisk",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "FLY",
+        "FRAME",
+        "NECRONS",
+        "OBELISK",
+        "TITANIC",
+        "TOWERING",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 13,
+        "save": "2+",
+        "wounds": 24,
+        "leadership": "7+",
+        "objectiveControl": 8
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Ophydian Destroyers",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Ophydian-Destroyers",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Ophydian-Destroyers",
+      "verified": "sizes-and-points",
+      "sizes": [
+        3,
+        6
+      ],
+      "pointsBySize": {
+        "3": 80,
+        "6": 150
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "3": 90,
+          "6": 160
+        }
+      },
+      "composition": [
+        {
+          "model": "Ophydian Destroyers",
+          "min": 3,
+          "max": 6
+        }
+      ],
+      "keywords": [
+        "DESTROYER CULT",
+        "INFANTRY",
+        "NECRONS",
+        "OPHYDIAN DESTROYERS"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 5,
+        "save": "4+",
+        "wounds": 3,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Orikan the Diviner",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Orikan-The-Diviner",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Orikan-The-Diviner",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 90
+      },
+      "composition": [
+        {
+          "model": "Orikan the Diviner",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CHRONOMANCER",
+        "CRYPTEK",
+        "EPIC HERO",
+        "INFANTRY",
+        "NECRONS",
+        "ORIKAN THE DIVINER"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "support"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Overlord",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Overlord",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Overlord",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 90
+      },
+      "composition": [
+        {
+          "model": "Overlord",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "INFANTRY",
+        "NECRONS",
+        "NOBLE",
+        "OVERLORD"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "2+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Lychguard",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Overlord with translocation shroud",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Overlord-with-translocation-shroud",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Overlord-with-translocation-shroud",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 90
+      },
+      "composition": [
+        {
+          "model": "Overlord with Translocation Shroud",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "INFANTRY",
+        "NECRONS",
+        "NOBLE",
+        "OVERLORD",
+        "OVERLORD WITH TRANSLOCATION SHROUD"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "2+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Lychguard",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Plasmancer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Plasmancer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Plasmancer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 60
+      },
+      "composition": [
+        {
+          "model": "Plasmancer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CRYPTEK",
+        "INFANTRY",
+        "NECRONS",
+        "PLASMANCER"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "support"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Psychomancer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Psychomancer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Psychomancer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 65
+      },
+      "composition": [
+        {
+          "model": "Psychomancer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CRYPTEK",
+        "INFANTRY",
+        "NECRONS",
+        "PSYCHOMANCER"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "support"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Royal Warden",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Royal-Warden",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Royal-Warden",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 50
+      },
+      "composition": [
+        {
+          "model": "Royal Warden",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "INFANTRY",
+        "NECRONS",
+        "ROYAL WARDEN"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Seraptek Heavy Construct",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Seraptek-Heavy-Construct",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Seraptek-Heavy-Construct",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 540
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 570
+        }
+      },
+      "composition": [
+        {
+          "model": "Seraptek Heavy Construct",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "FRAME",
+        "NECRONS",
+        "SERAPTEK HEAVY CONSTRUCT",
+        "TITANIC",
+        "TOWERING",
+        "VEHICLE",
+        "WALKER"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 12,
+        "save": "3+",
+        "wounds": 24,
+        "leadership": "7+",
+        "objectiveControl": 10
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Skorpekh Destroyers",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Skorpekh-Destroyers",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Skorpekh-Destroyers",
+      "verified": "sizes-and-points",
+      "sizes": [
+        3,
+        6
+      ],
+      "pointsBySize": {
+        "3": 85,
+        "6": 170
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "3": 95,
+          "6": 180
+        }
+      },
+      "composition": [
+        {
+          "model": "Skorpekh Destroyers",
+          "min": 3,
+          "max": 6
+        }
+      ],
+      "keywords": [
+        "DESTROYER CULT",
+        "INFANTRY",
+        "NECRONS",
+        "SKORPEKH DESTROYERS"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 6,
+        "save": "3+",
+        "wounds": 3,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Skorpekh Lord",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Skorpekh-Lord",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Skorpekh-Lord",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 95
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 105
+        }
+      },
+      "composition": [
+        {
+          "model": "Skorpekh Lord",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "DESTROYER CULT",
+        "INFANTRY",
+        "NECRONS",
+        "SKORPEKH LORD"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 7,
+        "save": "3+",
+        "wounds": 7,
+        "leadership": "6+",
+        "objectiveControl": 2
+      },
+      "bodyguards": [
+        "Skorpekh Destroyers"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Technomancer",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Technomancer",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Technomancer",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 80
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 90
+        }
+      },
+      "composition": [
+        {
+          "model": "Technomancer",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "CRYPTEK",
+        "FLY",
+        "INFANTRY",
+        "NECRONS",
+        "TECHNOMANCER"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 4,
+        "save": "4+",
+        "wounds": 4,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Canoptek Wraiths",
+        "Immortals",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "support"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Tesseract Vault",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Tesseract-Vault",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Tesseract-Vault",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 465
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 505
+        }
+      },
+      "composition": [
+        {
+          "model": "Tesseract Vault",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "FLY",
+        "FRAME",
+        "NECRONS",
+        "TESSERACT VAULT",
+        "TITANIC",
+        "TOWERING",
+        "VEHICLE"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 12,
+        "save": "2+",
+        "wounds": 24,
+        "leadership": "7+",
+        "objectiveControl": 8
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "The Silent King",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/The-Silent-King",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/The-Silent-King",
+      "verified": "sizes-and-points",
+      "sizes": [
+        3
+      ],
+      "pointsBySize": {
+        "3": 420
+      },
+      "composition": [
+        {
+          "model": "Szarekh",
+          "min": 1,
+          "max": 1
+        },
+        {
+          "model": "Triarchal Menhirs",
+          "min": 2,
+          "max": 2
+        }
+      ],
+      "keywords": [
+        "EPIC HERO",
+        "NECRONS",
+        "TRIARCH",
+        "VEHICLE"
+      ],
+      "modelKeywords": {
+        "Szarekh": [
+          "CHARACTER",
+          "THE SILENT KING"
+        ]
+      },
+      "modelProfiles": {
+        "SZAREKH": {
+          "move": "8\"",
+          "toughness": 10,
+          "save": "2+",
+          "wounds": 16,
+          "leadership": "6+",
+          "objectiveControl": 6
+        },
+        "TRIARCHAL MENHIR": {
+          "move": "8\"",
+          "toughness": 10,
+          "save": "2+",
+          "wounds": 5,
+          "leadership": "6+",
+          "objectiveControl": 1
+        }
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Tomb Blades",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Tomb-Blades",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Tomb-Blades",
+      "verified": "sizes-and-points",
+      "sizes": [
+        3,
+        6
+      ],
+      "pointsBySize": {
+        "3": 70,
+        "6": 140
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "3": 80,
+          "6": 150
+        }
+      },
+      "composition": [
+        {
+          "model": "Tomb Blades",
+          "min": 3,
+          "max": 6
+        }
+      ],
+      "keywords": [
+        "FLY",
+        "MOUNTED",
+        "NECRONS",
+        "TOMB BLADES"
+      ],
+      "profile": {
+        "move": "12\"",
+        "toughness": 5,
+        "save": "4+",
+        "wounds": 2,
+        "leadership": "7+",
+        "objectiveControl": 2
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Transcendent C’tan",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Transcendent-C-tan",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Transcendent-C-tan",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 340
+      },
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 360
+        }
+      },
+      "composition": [
+        {
+          "model": "Transcendent C’tan",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "FLY",
+        "MONSTER",
+        "NECRONS",
+        "TRANSCENDENT C’TAN"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 11,
+        "save": "3+",
+        "wounds": 16,
+        "leadership": "6+",
+        "objectiveControl": 4
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Trazyn the Infinite",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Trazyn-The-Infinite",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Trazyn-The-Infinite",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 60
+      },
+      "composition": [
+        {
+          "model": "Trazyn the Infinite",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "CHARACTER",
+        "EPIC HERO",
+        "INFANTRY",
+        "NECRONS",
+        "NOBLE",
+        "TRAZYN THE INFINITE"
+      ],
+      "profile": {
+        "move": "5\"",
+        "toughness": 5,
+        "save": "2+",
+        "wounds": 6,
+        "leadership": "6+",
+        "objectiveControl": 1
+      },
+      "bodyguards": [
+        "Immortals",
+        "Lychguard",
+        "Necron Warriors"
+      ],
+      "attachmentRole": "leader"
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Triarch Praetorians",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Triarch-Praetorians",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Triarch-Praetorians",
+      "verified": "sizes-and-points",
+      "sizes": [
+        5,
+        10
+      ],
+      "pointsBySize": {
+        "5": 80,
+        "10": 160
+      },
+      "composition": [
+        {
+          "model": "Triarch Praetorians",
+          "min": 5,
+          "max": 10
+        }
+      ],
+      "keywords": [
+        "FLY",
+        "INFANTRY",
+        "NECRONS",
+        "PRAETORIANS",
+        "TRIARCH"
+      ],
+      "profile": {
+        "move": "10\"",
+        "toughness": 5,
+        "save": "3+",
+        "wounds": 2,
+        "leadership": "7+",
+        "objectiveControl": 1
+      }
+    },
+    {
+      "faction": "Necrons",
+      "unit": "Triarch Stalker",
+      "source": "https://wahapedia.ru/wh40k11ed/factions/necrons/Triarch-Stalker",
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/Triarch-Stalker",
+      "verified": "sizes-and-points",
+      "sizes": [
+        1
+      ],
+      "pointsBySize": {
+        "1": 110
+      },
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 120
+        }
+      },
+      "composition": [
+        {
+          "model": "Triarch Stalker",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "keywords": [
+        "FRAME",
+        "NECRONS",
+        "STALKER",
+        "TRIARCH",
+        "VEHICLE",
+        "WALKER"
+      ],
+      "profile": {
+        "move": "8\"",
+        "toughness": 8,
+        "save": "3+",
+        "wounds": 12,
+        "leadership": "7+",
+        "objectiveControl": 4
+      }
+    }
   ]
 }

@@ -24,9 +24,29 @@ function source(v,label){
 function prices(v,sizes,label){
  if(!object(v)||Object.keys(v).length!==sizes.length||sizes.some(s=>!integer(v[s]))||Object.keys(v).some(k=>!sizes.includes(Number(k))||String(Number(k))!==k))fail(label+' missing or invalid price for legal model size');
 }
+function keywords(list,label){
+ if(!Array.isArray(list)||!list.length||list.some(k=>!string(k)||k!==k.toUpperCase())||new Set(list).size!==list.length)fail(label+' invalid keywords');
+}
+function composition(d){
+ if(!Array.isArray(d.composition)||!d.composition.length)fail(d.unit+' missing model composition');
+ const names=new Set();let min=0,max=0;
+ for(const row of d.composition){
+  keys(row,['model','min','max'],d.unit+' composition');
+  if(!string(row.model)||names.has(row.model)||!integer(row.min)||!integer(row.max,row.min))fail(d.unit+' invalid model composition');
+  names.add(row.model);min+=row.min;max+=row.max;
+ }
+ if(min!==d.sizes[0]||max!==d.sizes.at(-1))fail(d.unit+' composition and price brackets disagree');
+ if(d.modelKeywords!==undefined){
+  if(!object(d.modelKeywords)||!Object.keys(d.modelKeywords).length)fail(d.unit+' invalid model keywords');
+  for(const [name,values] of Object.entries(d.modelKeywords)){
+   if(!names.has(name))fail(d.unit+' unknown keyword bearer '+name);
+   keywords(values,d.unit+' '+name);
+  }
+ }
+}
 function profile(v,label){
  keys(v,['move','toughness','save','wounds','leadership','objectiveControl'],label);
- if(!string(v.move)||!string(v.save)||!string(v.leadership)||!integer(v.toughness)||!integer(v.wounds)||!integer(v.objectiveControl,0))fail(label+' invalid profile');
+ if(!string(v.move)||!string(v.save)||!string(v.leadership)||!integer(v.toughness)||!integer(v.wounds)||(!integer(v.objectiveControl,0)&&v.objectiveControl!=='-'))fail(label+' invalid profile');
 }
 const canonical=v=>Array.isArray(v)?v.map(canonical):object(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
 export function generateDatasheets(snapshot){
@@ -36,12 +56,21 @@ export function generateDatasheets(snapshot){
  if(!Array.isArray(snapshot.expectedUnits)||snapshot.expectedUnits.length===0||snapshot.expectedUnits.some(u=>!string(u))||new Set(snapshot.expectedUnits).size!==snapshot.expectedUnits.length)fail('invalid expected unit manifest');
  const seen=new Set();
  for(const d of snapshot.datasheets){
-  keys(d,['faction','unit','source','sizes','pointsBySize','laterCopyPointsBySize','pointsSource','verified','profile'],'datasheet');
+  keys(d,['faction','unit','source','sizes','pointsBySize','laterCopyPointsBySize','pointsSource','verified','profile','modelProfiles','keywords','modelKeywords','composition','attachmentRole','bodyguards'],'datasheet');
   if(d.faction!==snapshot.faction||!string(d.unit)||seen.has(d.unit))fail('invalid faction, missing or duplicate unit: '+d.unit);
   seen.add(d.unit);
   source(d.source,d.unit);
   source(d.pointsSource,d.unit+' points');
   if(d.verified!=='sizes-and-points'||!Array.isArray(d.sizes)||d.sizes.length===0||d.sizes.some(n=>!integer(n))||new Set(d.sizes).size!==d.sizes.length)fail(d.unit+' invalid or incomplete model sizes');
+  if(d.sizes.some((n,i)=>i>0&&n<=d.sizes[i-1]))fail(d.unit+' unordered price brackets');
+  if(d.keywords!==undefined)keywords(d.keywords,d.unit);
+  if(d.composition!==undefined||d.modelKeywords!==undefined)composition(d);
+  if(d.bodyguards!==undefined||d.attachmentRole!==undefined){
+   if(!['leader','support'].includes(d.attachmentRole)||!Array.isArray(d.bodyguards)||!d.bodyguards.length||
+     new Set(d.bodyguards).size!==d.bodyguards.length||d.bodyguards.some(unit=>unit===d.unit||!snapshot.expectedUnits.includes(unit))){
+    fail(d.unit+' invalid attachment role or bodyguard');
+   }
+  }
   prices(d.pointsBySize,d.sizes,d.unit);
   if(d.laterCopyPointsBySize!==undefined){
    if(!object(d.laterCopyPointsBySize)||!Object.keys(d.laterCopyPointsBySize).length)fail(d.unit+' invalid copy tiers');
@@ -51,6 +80,13 @@ export function generateDatasheets(snapshot){
    }
   }
   if(d.profile!==undefined)profile(d.profile,d.unit);
+  if(d.modelProfiles!==undefined){
+   if(d.profile||!object(d.modelProfiles)||Object.keys(d.modelProfiles).length<2)fail(d.unit+' invalid model profiles');
+   for(const [name,value] of Object.entries(d.modelProfiles)){
+    if(!string(name))fail(d.unit+' unnamed model profile');
+    profile(value,d.unit+' '+name);
+   }
+  }
  }
  if(seen.size!==snapshot.expectedUnits.length||snapshot.expectedUnits.some(u=>!seen.has(u)))fail('datasheet set does not match expected unit manifest');
  const ordered=[...snapshot.datasheets].sort((a,b)=>a.unit<b.unit?-1:a.unit>b.unit?1:0).map(canonical);

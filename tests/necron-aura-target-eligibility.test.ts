@@ -9,10 +9,11 @@ describe('imported Necron aura target eligibility',()=>{
   expect(has(base,'Mechanical Augmentation')).toBe(false);
   expect(has(addSelectionUnit(base,'Immortals'),'Mechanical Augmentation')).toBe(true);
  });
- it('Fabricator Claw Array needs another friendly Vehicle',()=>{
+ it('an equipped Spyder is a Vehicle within range of its own Fabricator Claw Array',()=>{
   const base=individualArmy(addSelectionUnit(newSelection('Necrons'),'Canoptek Spyders'));
   const equipped=setInstanceWargear(base,base.instances![0].id,'Fabricator claw array',1);
-  expect(has(equipped,'Fabricator Claw Array')).toBe(false);
+  expect(has(base,'Fabricator Claw Array')).toBe(false);
+  expect(has(equipped,'Fabricator Claw Array')).toBe(true);
   expect(has(addSelectionUnit(equipped,'Doomsday Ark'),'Fabricator Claw Array')).toBe(true);
  });
  it('Reanimation Nodes needs friendly Infantry',()=>{

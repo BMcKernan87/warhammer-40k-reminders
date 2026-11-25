@@ -50,7 +50,16 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
      bearer(s,'awakened-veil','Veil of Darkness','End of opponent turn','Once per battle per army: if unengaged, put this formation in Strategic Reserves and give it temporary Deep Strike.','end');
      bearer(s,'awakened-veil-ingress','Veil of Darkness · arrival','Movement','If Veil was used, the formation must arrive by ingress this Movement phase, even on your first turn. Deep Strike expires at the start of Shooting.');break;
     case 'Nether-realm Casket':if(legal.has(s.id))bearer(s,'awakened-casket','Nether-realm Casket','Shooting','While the bearer is leading, all models in the unit gain Stealth; ranged attacks against a unit whose every surviving model has Stealth grant the Benefit of Cover.');break;
-    case 'Phasal Subjugator':for(const phase of attackPhases)bearer(s,'awakened-subjugator-'+phase,'Phasal Subjugator (Aura)',phase,'While the bearer survives, friendly Necron units within 6″ gain +1 to attack Hit rolls, excluding units with the Character keyword (including attached Character formations).');break;
+    case 'Phasal Subjugator': {
+     // A different Bodyguard can become eligible if its last Character is lost.
+     // The bearer’s own formation cannot lose every Character while the aura is active.
+     const targets=formations.filter(f=>!characters.has(f.body.unit)&&!f.members.some(m=>m.id===s.id));
+     const joined=targets.filter(f=>f.members.some(m=>characters.has(m.unit))).map(f=>f.id);
+     const afterLoss=joined.length?' '+joined.join(', ')+' can qualify only after losing all attached Characters.':'';
+     for(const phase of attackPhases)emit('awakened-subjugator-'+phase+'-'+s.id,s.id+' · Phasal Subjugator (Aura)',phase,
+      'Friendly units without the Character keyword within 6″ of the living bearer gain +1 to Hit.'+afterLoss,targets.map(f=>f.id));
+     break;
+    }
     case 'Enaegic Dermal Bond':for(const phase of phases)bearer(s,'awakened-bond-'+phase,'Enaegic Dermal Bond',phase,'Only the bearer has Feel No Pain 4+.','during',true);break;
    }
   }

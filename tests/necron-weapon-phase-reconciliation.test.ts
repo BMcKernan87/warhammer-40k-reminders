@@ -20,7 +20,7 @@ describe('11e source reconciled vehicle and weapon reminders',()=>{
   expect(named(a,'Inescapable Death').every(r=>r.window==='Movement'&&r.timing==='end')).toBe(true);
   expect(named(a,'Sentinel Construct').every(r=>r.window==='Movement'&&r.timing==='end')).toBe(true);
   expect(named(a,'Ranged weapon abilities').filter(r=>r.title.startsWith('Seraptek')).map(r=>r.window)).toEqual(['Shooting']);
-  expect(named(a,'Ranged weapon abilities').filter(r=>r.title.startsWith('Immortals')).map(r=>r.window)).toEqual(['Shooting','Movement']);
+  expect(named(a,'Ranged weapon abilities').filter(r=>r.title.startsWith('Immortals')).map(r=>r.window)).toEqual(['Shooting']);
  });
  it('uses source-specific Seraptek and vehicle defenses, damage states and Deadly Demise',()=>{
   const a=army('Seraptek Heavy Construct','Doom Scythe','Annihilation Barge','Canoptek Spyders','Triarch Stalker','Doomsday Ark','Canoptek Doomstalker');

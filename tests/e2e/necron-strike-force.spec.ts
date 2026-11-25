@@ -30,7 +30,7 @@ test('builds and prints a complete 1995-point Awakened Dynasty from the producti
  await expect(cues.getByText(/Veil of Darkness/).first()).toBeVisible();
  await page.emulateMedia({media:'print'});
  await expect(page.locator('.print-sheet')).toBeVisible();
- await expect(page.locator('.print-sheet h3')).toHaveCount(7);
+ await expect(page.locator('.print-sheet h3')).toHaveCount(8);
  await expect(page.locator('.print-sheet').getByText('Command Protocols',{exact:true})).toHaveCount(2);
  expect(errors).toEqual([]);
 });
@@ -52,6 +52,6 @@ test('retinue assignment, mixed weapons and enhancement choices persist and driv
  await expect(page.getByLabel('Particle caster in Canoptek Wraiths#1',{exact:true})).toHaveValue('2');
  await page.getByRole('button',{name:'Play reminders'}).click();
  await expect(panel(page).getByText(/Cryptothralls#1 · Cryptek Retinue → Immortals#1/)).toBeVisible();
- await expect(panel(page).getByText(/Bound Creation/)).toHaveCount(2);
+ await expect(panel(page).getByText(/Bound Creation/)).toHaveCount(5);
  await expect(panel(page).getByText(/Hyperphasic Fulcrum/)).toHaveCount(2);
 });

@@ -4,6 +4,7 @@ import {validSupportAttachment} from './necron-muster-legality';
 import {NECRON_RETINUES,necronFormationRoots,eligibleRetinueBodies,retinueCrypteks,formationBodyguardStrength,ghostArkPassengers} from './necron-retinues';
 import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
+import {weaponSummary} from './necron-weapon-cues';
 import {ACTIONS,type Signal} from './battlefield-events';
 import {PHASES,createBattle,type Phase} from './engine';
 import {necronSource,NECRON_LOADOUTS,necronKeywords} from './necron-wargear';
@@ -23,13 +24,15 @@ const actionPhase:Partial<Record<Signal,Phase>>={
   chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',killed:'Fight',reanimate:'Command',
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
-  if(['macro-projector','reanimation-beam','legion','nullstone','gloom','rites','amulet'].includes(rule.id))return [...PHASES];
+  if(['macro-projector','reanimation-beam','legion','nullstone','gloom','rites','amulet','nodes','fabricator','terror'].includes(rule.id))return [...PHASES];
   if(rule.id==='command-king')return ['Command'];
   if(rule.id==='murder')return ['Shooting','Fight'];
   if(rule.id==='doomsday-still')return ['Movement'];
   if(rule.id==='tomb-shield-save')return ['Shooting','Fight'];
   if(rule.id==='tunnelling')return ['End of opponent turn'];
-  if(rule.id==='terror'||rule.id==='cover')return ['Shooting'];
+  if(rule.id==='warden')return ['Movement','Shooting','Charge'];
+  if(rule.id==='praetorian-fallback')return ['Movement','Charge'];
+  if(rule.id==='cover')return ['Shooting'];
   if(rule.id==='harbinger'||rule.id==='lokhust-lead')return ['Shooting'];
   if(rule.id==='united')return ['Fight'];
   if(rule.id==='orikan-save')return ['Shooting','Fight'];
@@ -48,6 +51,15 @@ const circumstances:Record<string,string>={
   legion:'Whenever this unit’s Reanimation Protocols activate, including stratagems or Resurrection Orbs.',
   hunters:'During the opponent’s Reinforcements step, after a visible enemy arrives within 18″.',
   'wraith-form':'After a Normal move over an enemy.',
+  'warden':'If this unit Fell Back this turn.',
+  'praetorian-fallback':'If this unit Fell Back this turn.',
+  'skorpekh-lord':'When the Lord itself finishes a Charge move.',
+  'will':'When this model’s unit is targeted by a Stratagem, one unit with this ability across your army can claim the discount.',
+  'shroud':'When this model’s unit moves.',
+  'murder':'When Nekrosor destroys an enemy unit.',
+  'monolith':'During your Movement phase, from the second battle round.',
+  'orb':'At the end of any phase.',
+  'displace':'When selected to Advance in your Movement phase.',
   'ghost-repair':'After enemy attacks cost a Warriors squad within 3″ one or more wounds. Each Warriors squad can be selected once per turn.',
   'reanimation-beam':'When friendly Reanimation Protocols activate within 3″.',
   'macro-projector':'When friendly Reanimation Protocols activate within 3″ of the bearer.',
@@ -62,7 +74,6 @@ const circumstances:Record<string,string>={
   'gloom':'When a friendly unit within 6″ suffers mortal wounds or a Psychic attack.',
   'chronometron':'After this unit shoots in your Shooting phase while unengaged.',
   'hatred':'Against an enemy below half-strength.',
-  'monolith':'From the second battle round.',
   'nekrosor-aura':'When a friendly non-Monster, non-Titanic Necrons unit within 6″ attacks the closest eligible target or attacks with Destroyer Cult models.',
   'nodes':'When a Necrons Infantry unit within 6″ would lose a wound.',
   'fabricator':'When a Necrons Vehicle within 6″ of the bearer would lose a wound.',
@@ -95,7 +106,7 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   if(rule.id==='timesplinter-mantle')text='This formation has Stealth (Benefit of Cover against ranged attacks if every model has Stealth); incoming melee attacks suffer −1 to Hit.';
   if(rule.id==='szeras')text='While the friendly Battleline unit is within the aura, improve the AP of its outgoing attacks by 1 and worsen AP of incoming attacks by 1. The aura starts at 3″; both effects apply when their respective conditions occur.';
   if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
-  if(rule.id==='orb')text+=' A given unit can be affected by a Resurrection Orb at most once per turn (FAQ).';
+  if(rule.id==='orb')text+=' Across your army, you can resurrect at most one unit each turn. A given unit can benefit from an Orb only once that turn.';
   if(rule.id==='vault')text+=' Available powers: Antimatter Meteor (Blast, Devastating Wounds, Indirect Fire); Cosmic Fire (Ignores Cover, Devastating Wounds, Torrent); Time’s Arrow (Anti-Character 4+, Devastating Wounds, Precision). These keywords apply only to the chosen weapons.';
   if(rule.id==='command-king')return 'Start of the battle round, before either turn: choose one Triarch ability until next round. See its conditional phase reminders.';
   if(rule.gear&&['gloom','fabricator','plasmacyte','amulet','orb'].includes(rule.id))text+=' Apply only while the relevant equipped bearer survives or the applicable use remains available.';
@@ -113,35 +124,41 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       // Include the decision in Movement as well as its consequence in Shooting.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&validSupportAttachment(army,leader)&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
-      if(rule.id==='warden'&&!body)continue;
       if(rule.id==='murder'&&!roster.some(other=>other.id!==squad.id&&necronKeywords['DESTROYER CULT'].has(other.unit)))continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
       if(rule.id==='szeras'&&!roster.some(other=>other.unit==='Necron Warriors'||other.unit==='Immortals'))continue;
-      if(rule.id==='fabricator'&&!roster.some(other=>other.id!==squad.id&&necronKeywords.VEHICLE.has(other.unit)))continue;
       if(rule.id==='nodes'&&!roster.some(other=>other.id!==squad.id&&necronKeywords.INFANTRY.has(other.unit)))continue;
+      if(rule.id==='orb'&&squad.unit==='Catacomb Command Barge'&&!roster.some(s=>necronKeywords.INFANTRY.has(s.unit)||necronKeywords.MOUNTED.has(s.unit)))continue;
       if((rule.id==='invasion'||rule.id==='monolith')&&!roster.some(other=>necronKeywords.INFANTRY.has(other.unit)))continue;
       if(rule.id==='trazyn'&&!roster.some(other=>other.id!==squad.id&&['Overlord','Overlord with translocation shroud','Chronomancer','Geomancer','Hexmark Destroyer','Plasmancer','Psychomancer','Royal Warden','Technomancer'].includes(other.unit)))continue;
 
       let suffix=existingIds[rule.id]??rule.id;
       if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
       if(rule.id==='rites'&&body?.unit==='Canoptek Wraiths')suffix='technomancer-wraiths';
+      const affectsFormation=rule.scope==='leading'||['chronometron','timesplinter-mantle','warden','will','shroud'].includes(rule.id)||(rule.id==='orb'&&squad.unit!=='Catacomb Command Barge');
+      const joined=affectsFormation&&body?formations.find(f=>f.id===body.id):undefined;
+      const affected=joined?[squad.id,...joined.members.filter(m=>m.id!==squad.id).map(m=>m.id)]:[squad.id];
       for(const window of referenceWindows(rule)){
         if(window==='Movement'&&rule.id.startsWith('weapons-')&&necronKeywords.TITANIC.has(squad.unit))continue;
+        const weapon=rule.id.startsWith('weapons-');
+        const summary=weapon?weaponSummary(squad,window==='Fight'?'fight':'shoot',window==='Movement'):referenceText(rule,squad,roster);
+        if(!summary)continue;
+        const overwatch=window==='Movement'&&(weapon||['sentinel','hex-hits','hex-overwatch'].includes(rule.id));
         const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
         const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
         ids.add(id);
-        output.push({id,title:squad.id+' · '+rule.title+((rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?' → '+body.id:''),
-          window,timing:window==='Movement'&&(rule.id.startsWith('weapons-')||['sentinel','hex-hits','hex-overwatch'].includes(rule.id))?'end':rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
-          summary:(window==='Movement'&&(rule.id.startsWith('weapons-')||['sentinel','hex-hits','hex-overwatch'].includes(rule.id))?'Opponent’s Movement phase, end of phase; Fire Overwatch snap shooting. ':'')+referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
-          units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?[squad.id,body.id,...(formations.find(f=>f.id===body.id)?.members.filter(m=>m.retinueTo===body.id).map(m=>m.id)??[])]:[squad.id]});
+        output.push({id,title:squad.id+' · '+rule.title+(joined?' → '+joined.id:''),
+          window,timing:overwatch||rule.signal==='phaseEnd'?'end':['monolith','geomancer','lightning','spyder-swarm'].includes(rule.id)?'during':rule.signal==='phaseStart'?'start':'during',
+          summary:(overwatch?'End of the opponent’s Movement phase, when using Fire Overwatch. ':'')+summary,source:necronSource(squad.unit),origin:'unit',
+          units:affected});
       }
     }
   }
   for(const s of roster.filter(s=>NECRON_RETINUES.has(s.unit)&&s.retinueTo&&eligibleRetinueBodies(army,s.id).some(b=>b.id===s.retinueTo))){
     const body=s.retinueTo!,crypteks=retinueCrypteks(army,body);
     output.push({id:'11e-necron-retinue-'+s.id,title:s.id+' · '+(s.unit==='Cryptothralls'?'Cryptek Retinue':'Canoptek Retinue')+' → '+body,window:'Pre-battle',timing:'start',summary:'Declare Battle Formations: join this Bodyguard for the battle; its Starting Strength becomes '+formationBodyguardStrength(army,body)+'.',source:necronSource(s.unit),origin:'unit',units:[s.id,body]});
-    if(s.unit==='Cryptothralls')for(const window of ['Shooting','Fight'] as const)output.push({id:'11e-necron-cryptothralls-bound-'+s.id+(window==='Fight'?'-fight':''),title:s.id+' · Bound Creation → '+crypteks.map(l=>l.id).join(', '),window,timing:'during',summary:'While these Cryptothralls and the Cryptek remain in the same formation, the Cryptek model has Feel No Pain 4+.',source:necronSource(s.unit),origin:'unit',units:[s.id,body,...crypteks.map(l=>l.id)]});
+    if(s.unit==='Cryptothralls')for(const window of PHASES)output.push({id:'11e-necron-cryptothralls-bound-'+s.id+(window==='Shooting'?'':'-'+window.toLowerCase()),title:s.id+' · Bound Creation → '+crypteks.map(l=>l.id).join(', '),window,timing:'during',summary:'While these Cryptothralls and the Cryptek remain in the same formation, the Cryptek model has Feel No Pain 4+.',source:necronSource(s.unit),origin:'unit',units:[s.id,body,...crypteks.map(l=>l.id)]});
   }
   const arks=roster.filter(s=>s.unit==='Ghost Ark');
   if(arks.length)output.push({id:'11e-necron-ghost-ark-embark',title:'Ghost Ark · Dedicated Transport',window:'Pre-battle',timing:'start',summary:'Declare Battle Formations: each Ghost Ark must begin with at least one eligible whole unit embarked, or be destroyed without destruction triggers. Capacity: 10 Warriors and one Necrons Infantry Character. Eligible formation candidates: '+(ghostArkPassengers(army).map(s=>s.id).join(', ')||'none')+'. Do not assign the same unit to multiple transports.',source:necronSource('Ghost Ark'),origin:'unit',units:arks.map(s=>s.id)});
@@ -153,7 +170,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
 // datasheets are reconciled here; absence from these tables is not a coverage claim.
 const ctans=['C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','Transcendent C’tan'];
 const deepStrike=new Set([...ctans,'Nekrosor Ammentar','Hexmark Destroyer','Deathmarks','Ophydian Destroyers','Triarch Praetorians','Monolith','Obelisk','Night Scythe']);
-const invulnerable=new Set([...ctans,'Canoptek Wraiths','Overlord','Imotekh the Stormlord','Orikan the Diviner','Illuminor Szeras','Skorpekh Lord','Lokhust Lord','Catacomb Command Barge','The Silent King','Ghost Ark','Tesseract Vault','Annihilation Barge','Triarch Stalker','Canoptek Doomstalker','Doomsday Ark']);
+const invulnerable=new Set([...ctans,'Nekrosor Ammentar','Trazyn the Infinite','Chronomancer','Overlord with translocation shroud','Canoptek Wraiths','Overlord','Imotekh the Stormlord','Orikan the Diviner','Illuminor Szeras','Skorpekh Lord','Lokhust Lord','Catacomb Command Barge','The Silent King','Ghost Ark','Tesseract Vault','Annihilation Barge','Triarch Stalker','Canoptek Doomstalker','Doomsday Ark']);
 const fnp:Record<string,number>={...Object.fromEntries(ctans.map(u=>[u,5])),'Canoptek Reanimator':4,'Illuminor Szeras':4};
 const demise:Record<string,string>={...Object.fromEntries(ctans.map(u=>[u,'D6'])),'The Silent King':'D6+3','Monolith':'D6','Obelisk':'D6','Tesseract Vault':'D6+3','Ghost Ark':'D3','Night Scythe':'D3','Doomsday Ark':'D3','Canoptek Doomstalker':'D3','Catacomb Command Barge':'1','Annihilation Barge':'1','Canoptek Spyders':'1','Triarch Stalker':'D3','Doom Scythe':'D3','Seraptek Heavy Construct':'D6+2'};
 const damaged:Record<string,number>={'The Silent King':6,'Monolith':7,'Obelisk':8,'Tesseract Vault':8,'Doomsday Ark':5,'Canoptek Doomstalker':4,'Night Scythe':4,'Doom Scythe':4,'Seraptek Heavy Construct':9};
@@ -176,6 +193,13 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    const threshold=damaged[s.unit];
    for(const window of combat)if(s.unit!=='Tesseract Vault'||window==='Shooting')emit('damaged','Damaged profile',window,'While '+(s.unit==='The Silent King'?'Szarekh':'this model')+' has 1–'+threshold+' wounds remaining: '+(s.unit==='Tesseract Vault'?'select at most one C’tan Powers weapon rather than two.':s.unit==='The Silent King'?'halve Szarekh’s weapon Attacks and subtract 1 from this unit’s Hit rolls.':'subtract 1 from this model’s Hit rolls.'));
    if(['Monolith','Obelisk','Tesseract Vault','Seraptek Heavy Construct'].includes(s.unit))emit('damaged-oc','Damaged profile · OC','Command','While this model has 1–'+threshold+' wounds remaining, subtract '+(s.unit==='Seraptek Heavy Construct'?5:4)+' from its OC. Re-evaluate when scoring.');
+  }
+  if(s.unit==='Psychomancer')emit('nightmare-shroud','Nightmare Shroud (Aura)','Command','In the Battle-shock step of the opponent’s Command phase, each enemy below Starting Strength within 6″ of this model must test with −1 to its Battle-shock result.');
+  if(s.unit==='Royal Warden')for(const window of PHASES)emit('engrammatic-logic','Engrammatic Logic',window,'Once per battle, at the start of either player’s phase, clear Battle-shock from one friendly Necron unit within 12″ of this model.','start');
+  if(s.unit==='Convergence Of Dominion'){
+   if((s.models??1)>1)emit('starsteles','Starsteles','Pre-battle','When first setting up this unit, place each model wholly within 12″ of another model from the unit in place of normal coherency. Each model then operates as a separate unit.','during');
+   emit('fortification-fallback','Fortification','Movement','When an enemy is engaged only with friendly Fortifications, being battle-shocked does not force Desperate Escape tests on Fall Back. Models moving over enemies must still test.');
+   emit('fortification-shooting','Fortification','Shooting','You can target an enemy engaged only with your Fortifications. Subtract 1 from ranged Hit rolls against it unless the attack uses a Pistol or equivalent Close-quarters weapon.');
   }
   if(s.unit==='Seraptek Heavy Construct')emit('super-heavy','Super-heavy Walker','Movement','Normal, Advance and Fall Back moves may pass through non-Titanic models and terrain sections up to 4″ tall. Optionally gain Mobile for that move; if chosen, roll D6 after moving and become battle-shocked on 1.');
   if(s.unit==='Trazyn the Infinite'&&f&&f.id!==s.id)emit('ancient-collector','Ancient Collector','Command','End of your Command phase: while Trazyn leads this formation, if it is within range of an objective you control, retain that objective until the opponent exceeds your Level of Control at the end of a phase.','end',[s.id,f.id]);

@@ -1,3 +1,4 @@
+import {IMPORTED_DATASHEETS_2026} from './datasheets-2026.generated';
 import type {RosterInstance} from './roster-instances';
 
 export interface GearSlot {
@@ -73,8 +74,24 @@ export const NECRON_LOADOUTS: Readonly<Record<string, NecronLoadout>> = {
   'Convergence Of Dominion': {wounds: 7, fixed: 'Transdimensional abductor'},
 };
 
+// Ranged profiles on the matched-play Necron datasheets. Count a formation as
+// able to make ranged attacks if any surviving member has one (core 04.01.01).
+const meleeOnly = new Set(['Orikan the Diviner', 'Trazyn the Infinite', 'Overlord with translocation shroud',
+  'Flayed Ones', 'Lychguard', 'Ophydian Destroyers', 'Skorpekh Destroyers', 'Canoptek Scarab Swarms']);
+export function hasNecronRangedWeapon(squad: RosterInstance): boolean {
+  if (!Object.prototype.hasOwnProperty.call(NECRON_LOADOUTS, squad.unit) || meleeOnly.has(squad.unit)) return false;
+  if (squad.unit === 'Overlord') return squad.equipment !== 'Voidscythe';
+  if (squad.unit === 'Lokhust Lord') return squad.equipment !== 'Lord’s blade';
+  if (squad.unit === 'Canoptek Spyders') return (squad.wargear?.['Pair of particle beamers'] ?? 0) > 0;
+  if (squad.unit === 'Canoptek Wraiths') {
+    return (squad.wargear?.['Particle caster'] ?? 0) + (squad.wargear?.['Transdimensional beamer'] ?? 0) > 0;
+  }
+  return true;
+}
+
 export function necronSource(unit: string): string {
-  const name = unit === 'Imotekh the Stormlord' ? 'Imotekh The Stormlord' : unit.replace('Of Dominion', 'of Dominion');
+  const name = ['Imotekh the Stormlord', 'Orikan the Diviner', 'Trazyn the Infinite'].includes(unit)
+    ? unit.replace(' the ', ' The ') : unit;
   return 'https://wahapedia.ru/wh40k11ed/factions/necrons/' + name.replaceAll('’', '-').replaceAll(' ', '-');
 }
 
@@ -108,12 +125,14 @@ export function currentEquipmentName(unit: string, choice: string): string {
   return unit === 'Triarch Stalker' && choice === 'Twin heavy gauss cannon' ? 'Heavy gauss cannon array' : choice;
 }
 
-export const necronKeywords = {
-  'INFANTRY': new Set<string>(["Chronomancer", "Cryptothralls", "Deathmarks", "Flayed Ones", "Geomancer", "Hexmark Destroyer", "Illuminor Szeras", "Immortals", "Imotekh the Stormlord", "Lychguard", "Necron Warriors", "Nekrosor Ammentar", "Ophydian Destroyers", "Orikan the Diviner", "Overlord", "Overlord with translocation shroud", "Plasmancer", "Psychomancer", "Royal Warden", "Skorpekh Destroyers", "Skorpekh Lord", "Technomancer", "Trazyn the Infinite", "Triarch Praetorians"]),
-  'VEHICLE': new Set<string>(["Annihilation Barge", "Canoptek Doomstalker", "Canoptek Reanimator", "Canoptek Spyders", "Catacomb Command Barge", "Convergence Of Dominion", "Doom Scythe", "Doomsday Ark", "Ghost Ark", "Monolith", "Night Scythe", "Obelisk", "Seraptek Heavy Construct", "Tesseract Vault", "Triarch Stalker", "The Silent King"]),
-  'MONSTER': new Set<string>(["C’tan Shard of the Deceiver", "C’tan Shard of the Nightbringer", "C’tan Shard of the Void Dragon", "Transcendent C’tan"]),
-  'TITANIC': new Set<string>(["Monolith", "Obelisk", "Seraptek Heavy Construct", "Tesseract Vault"]),
-  'DESTROYER CULT': new Set<string>(["Hexmark Destroyer", "Lokhust Destroyers", "Lokhust Heavy Destroyers", "Lokhust Lord", "Nekrosor Ammentar", "Ophydian Destroyers", "Skorpekh Destroyers", "Skorpekh Lord"]),
-  'CRYPTEK': new Set<string>(["Chronomancer", "Geomancer", "Illuminor Szeras", "Orikan the Diviner", "Plasmancer", "Psychomancer", "Technomancer"]),
-  'MOUNTED': new Set<string>(["Lokhust Destroyers", "Lokhust Heavy Destroyers", "Lokhust Lord", "Tomb Blades"]),
-};
+// A unit has the keywords of all its constituent models. A model-specific effect must
+// still check the bearer (e.g. CHARACTER belongs to Szarekh, not his Menhirs).
+function unitsByKeyword():Readonly<Record<string,ReadonlySet<string>>> {
+ const index:Record<string,Set<string>>={};
+ for(const sheet of IMPORTED_DATASHEETS_2026){
+  const keywords=[...(sheet.keywords??[]),...Object.values(sheet.modelKeywords??{}).flat()];
+  for(const keyword of keywords)(index[keyword]??=new Set()).add(sheet.unit);
+ }
+ return index;
+}
+export const necronKeywords=unitsByKeyword();

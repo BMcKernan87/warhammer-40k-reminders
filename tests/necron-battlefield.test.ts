@@ -182,7 +182,7 @@ describe('weapon keywords follow the actual weapons being used',()=>{
    const second=battlefieldReminders(army,at('Shooting'),'shoot',{action:'shoot',squadId:two});
    expect(first.map(r=>r.text).join(' ')).toContain('Gauss blaster — Lethal Hits');
    expect(first.map(r=>r.ruleId)).not.toContain('harbinger');
-   expect(second.map(r=>r.text).join(' ')).toContain('Tesla carbine — Assault, Sustained Hits 2');
+   expect(second.map(r=>r.text).join(' ')).toMatch(/Tesla carbine — Assault.*Sustained Hits 2/);
    expect(second.map(r=>r.text).join(' ')).not.toContain('Gauss blaster');
    expect(second.map(r=>r.ruleId)).toContain('harbinger');
  });

@@ -12,7 +12,7 @@ export function validateStore(value:unknown):value is ProfileStore{
 export function updateProfile(store:ProfileStore,id:string,patch:Partial<Pick<ArmyProfile,'army'|'battle'|'completed'|'name'>>):ProfileStore{return {...store,profiles:store.profiles.map(p=>p.id===id?{...p,...patch}:p)};}
 export function createProfile(store:ProfileStore,id:string,name:string):ProfileStore{
  if(!id||store.profiles.some(p=>p.id===id)||!name.trim()||store.profiles.length>=100)throw Error('Invalid army profile');
- return {activeId:id,profiles:[...store.profiles,{id,name:name.trim(),army:newSelection(),battle:createBattle(),completed:[]}]};
+ return {activeId:id,profiles:[...store.profiles,{id,name:name.trim().slice(0,100),army:newSelection(),battle:createBattle(),completed:[]}]};
 }
 export function deleteProfile(store:ProfileStore,id:string):ProfileStore{
  if(store.profiles.length===1)throw Error('Keep at least one army');
