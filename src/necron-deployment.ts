@@ -1,3 +1,4 @@
+import {aircraftCoreReminders} from './aircraft-core';
 import {transportMovementReminders} from './transport-movement';
 import {NECRON_SUPPORTS} from './attachments';
 import type {ArmySelection} from './catalog';
@@ -16,13 +17,7 @@ export function necronDeploymentReminders(army:ArmySelection,roster:RosterInstan
   if(units.length)out.push({id:'11e-necron-'+id,title,window,timing,turn:window==='End of opponent turn'?'opponent':undefined,summary,units,source,origin:'army'});
  }
  const aircraft=formations.filter(f=>necronKeywords.AIRCRAFT.has(f.body.unit)).map(f=>f.id);
- add('aircraft-deployment','Aircraft · compulsory reserves','Pre-battle','start',
-  'Place each Aircraft in Strategic Reserves when declaring formations. Include its points in the starting allowance.',aircraft);
- add('aircraft-ingress','Aircraft · movement','Movement','during','An Aircraft can make only ingress moves. Models can move through it. Being engaged solely with Aircraft allows a unit to make a Normal or Advance move.',aircraft);
- add('aircraft-shooting','Aircraft · Plunging Fire','Shooting','during','Plunging Fire does not apply to attacks made by or targeting an Aircraft.',aircraft);
- add('aircraft-charge','Aircraft · charge targets','Charge','during','An Aircraft cannot declare a charge. Only Flying units can charge it.',aircraft);
- add('aircraft-fight','Aircraft · melee targets','Fight','during','An Aircraft can target only Flying units with melee attacks. Only Flying models can attack it in melee. Non-Flying units disregard Aircraft when choosing the closest enemy for pile-in, consolidation and surge moves.',aircraft);
- add('aircraft-return','Aircraft · return to Strategic Reserves','End of opponent turn','end','Return every friendly Aircraft that is on the battlefield to Strategic Reserves.',aircraft);
+ out.push(...aircraftCoreReminders('11e-necron-',aircraft));
 
  const arks=roster.filter(s=>s.unit==='Ghost Ark');
  const scythes=roster.filter(s=>s.unit==='Night Scythe');

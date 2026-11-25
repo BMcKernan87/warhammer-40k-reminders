@@ -1,6 +1,9 @@
 // Core 10.05–10.07, 15.09 and chapter 24. The text differs by shooting type:
 // snap shots cannot generate critical hits or take a Heavy hit modifier.
 export function weaponAbilityText(keyword:string,snap:boolean):string|undefined{
+  if(keyword==='Lethal Hits: Non-Monster/vehicle')return snap?undefined:'Lethal Hits (against targets with neither Monster nor Vehicle, critical hits can wound automatically)';
+  if(keyword==='Devastating Wounds: Infantry')return 'Devastating Wounds (against Infantry only, a critical wound inflicts the weapon’s Damage as mortal wounds on one model after normal damage)';
+  if(keyword==='Sustained Hits 2: Monster/vehicle')return snap?undefined:'Sustained Hits 2 (against a Monster or Vehicle, each critical hit scores two extra hits)';
   if(keyword==='Sustained Hits 1: Non-Monster/vehicle')return snap?undefined:'Sustained Hits 1 (against a target with neither Monster nor Vehicle, each critical hit scores one extra hit)';
   if(keyword==='Lethal Hits: Monster/vehicle')return snap?undefined:'Lethal Hits (against a Monster or Vehicle, a critical hit can wound automatically)';
   if(keyword==='Devastating Wounds: Psyker')return 'Devastating Wounds (against a Psyker, a critical wound deals this weapon’s Damage as mortal wounds to one model after normal damage)';

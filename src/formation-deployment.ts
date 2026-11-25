@@ -1,4 +1,6 @@
+import {aircraftCoreReminders} from './aircraft-core';
 import {rosterCost2026} from './datasheets-2026';
+import {orkMandatoryReservePoints} from './ork-muster';
 import type {ArmySelection} from './catalog';
 import type {ArmyFormation} from './core-stratagems-11th';
 import {BATTLE_SIZES_2026} from './edition-2026';
@@ -13,10 +15,17 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  }
  const reserveEligible=formations.filter(f=>!keywords(f.body.unit).includes('FORTIFICATION')).map(f=>f.id);
  const reserveLimit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].points/2;
- const prices=new Map(rosterCost2026(army).entries.map(e=>[e.id,e.points]));
- const startingReserves=formations.filter(f=>reserveEligible.includes(f.id)&&f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0)<=reserveLimit).map(f=>f.id);
+ const entries=rosterCost2026(army).entries;
+ const prices=new Map(entries.map(e=>[e.id,e.points]));
+ const cost=(f:ArmyFormation)=>f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0);
+ const orkAircraft=army.faction==='Orks'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
+ if(orkAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',orkAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
+ const compulsory=army.faction==='Orks'?orkMandatoryReservePoints(army,entries):0;
+ const available=Math.max(0,reserveLimit-compulsory);
+ const startingReserves=formations.filter(f=>reserveEligible.includes(f.id)&&!orkAircraft.includes(f)&&cost(f)<=available).map(f=>f.id);
+ const aircraftAllowance=compulsory?' After compulsory Aircraft, '+available+' points remain.':'';
  add('reserve-declaration','Declare Strategic Reserves','Pre-battle','start',
-  'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.',startingReserves);
+  'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.'+aircraftAllowance,startingReserves);
  add('reserve-arrival','Strategic Reserves · ingress','Movement','during',
   'In your Move Units step, select a unit in Strategic Reserves to arrive, normally from round two. Set it up wholly within 6″ of a battlefield edge and more than 8″ horizontally from enemies. Until round three, stay outside the enemy deployment zone. Apply any specific alternative placement or first-turn ability. An arriving unit normally cannot move again until the Charge phase. Embarked units arrive aboard their transport.',reserveEligible);
  add('reserve-deadline','Strategic Reserves · round three deadline','End of battle round','end',

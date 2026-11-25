@@ -3,6 +3,7 @@ import {DATASHEETS_2026,verifiedUnitSizes2026} from './datasheets-2026';
 import {agentWarlordCandidates,resolvedAgentWarlord,selectAgentWarlord} from './agent-muster';
 import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {daemonWarlordCandidates,resolvedDaemonWarlord,selectDaemonWarlord} from './chaos-daemon-muster';
+import {orkWarlordCandidates,resolvedOrkWarlord,selectOrkWarlord} from './ork-muster';
 import {custodesWarlordCandidates,resolvedCustodesWarlord,selectCustodesWarlord} from './custodes-muster';
 import {chaosKnightWarlordCandidates,resolvedChaosKnightWarlord,selectChaosKnightWarlord} from './chaos-knight-muster';
 import {houndpackDogs,changeHoundpackCharacter} from './houndpack-selection';
@@ -22,11 +23,12 @@ export function KnightRoster({army,onChange}:Props) {
   const edit:Props['onChange']=change=>onChange(current=>change(individualArmy(current)));
   const chaos=army.faction==='Chaos Knights';
   const custodes=army.faction==='Adeptus Custodes';
+  const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
-  const warlords=custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>

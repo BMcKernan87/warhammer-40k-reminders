@@ -1,6 +1,7 @@
 import {alliedRosterNames} from './titan-support-data';
 import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
 import {DAEMON_UNITS} from './chaos-daemons-data';
+import {ORK_UNITS} from './ork-data';
 import {CUSTODES_UNITS} from './adeptus-custodes-data';
 import {CHAOS_KNIGHT_UNITS} from './chaos-knights-data';
 import {IMPERIAL_KNIGHT_UNITS} from './imperial-knights-data';
@@ -20,7 +21,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   units:["C’tan Shard of the Nightbringer","C’tan Shard of the Void Dragon","Imotekh the Stormlord","Orikan the Diviner","Technomancer","Plasmancer","Chronomancer","Overlord","Skorpekh Lord","Hexmark Destroyer","Necron Warriors","Immortals","Canoptek Wraiths","Canoptek Scarab Swarms","Lokhust Heavy Destroyers","Skorpekh Destroyers","Lychguard","Deathmarks","Doomsday Ark","Monolith","Canoptek Doomstalker","Canoptek Reanimator","Tomb Blades","Canoptek Tomb Crawlers","Canoptek Macrocytes","Geomancer","C’tan Shard of the Deceiver","Transcendent C’tan","Nekrosor Ammentar","Seraptek Heavy Construct","Illuminor Szeras","The Silent King","Ghost Ark","Doom Scythe","Cryptothralls","Flayed Ones","Annihilation Barge","Canoptek Spyders","Ophydian Destroyers","Lokhust Destroyers","Tesseract Vault","Catacomb Command Barge","Convergence Of Dominion","Lokhust Lord","Night Scythe","Obelisk","Overlord with translocation shroud","Psychomancer","Royal Warden","Triarch Praetorians","Triarch Stalker","Trazyn the Infinite"],
   enhancements:[]
  },
- 'Orks':{detachments:['War Horde','Da Big Hunt','Bully Boyz','Green Tide','Dread Mob','Kult of Speed'],units:['Warboss','Warboss in Mega Armour','Big Mek','Big Mek in Mega Armour','Painboy','Weirdboy','Ghazghkull Thraka','Boyz','Beast Snagga Boyz','Nobz','Meganobz','Gretchin','Kommandos','Stormboyz','Squighog Boyz','Deffkoptas','Deff Dread','Killa Kans','Gorkanaut','Morkanaut','Shokkjump Dragsta','Megatrakk Scrapjet','Battlewagon','Trukk','Lootas','Flash Gitz'],enhancements:[]},
+ 'Orks':{detachments:['War Horde','Da Big Hunt','Bully Boyz','Green Tide','Dread Mob','Kult of Speed'],units:ORK_UNITS,enhancements:[]},
  'Tyranids':{detachments:['Invasion Fleet','Synaptic Nexus','Unending Swarm','Assimilation Swarm','Vanguard Onslaught','Crusher Stampede'],units:['Hive Tyrant','The Swarmlord','Winged Hive Tyrant','Neurotyrant','Tervigon','Broodlord','Old One Eye','Deathleaper','Termagants','Hormagaunts','Gargoyles','Genestealers','Tyranid Warriors','Von Ryan’s Leapers','Lictor','Neurolictor','Zoanthropes','Venomthropes','Raveners','Ripper Swarms','Biovore','Pyrovore','Carnifexes','Exocrine','Haruspex','Maleceptor','Tyrannofex','Norn Emissary','Norn Assimilator','Screamer-Killer','Psychophage','Barbgaunts','Neurogaunts'],enhancements:[]},
  'Adepta Sororitas':{detachments:['Select detachment (unverified)'],units:["Battle Sisters Squad","Canoness","Morvenn Vahl","Paragon Warsuits"],enhancements:[]},
  'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},

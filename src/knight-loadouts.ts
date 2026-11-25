@@ -6,6 +6,7 @@ import {expandRoster} from './roster-instances';
 
 import {chassis,equippedItems,slot,type KnightEquipment} from './knight-gear-options';
 import {daemonLoadout} from './daemonic-pact-loadouts';
+import {orkLoadout,resizeOrkGear,validOrkGear} from './ork-loadouts';
 import {custodesLoadout} from './custodes-loadouts';
 import {agentLoadout,resizeAgentGear,validAgentGear} from './assigned-agent-loadouts';
 export {countedKnightItems,knightItemsLabel} from './knight-gear-options';
@@ -106,6 +107,8 @@ function accursedCultists(models:number):KnightEquipment {
 export function resizeKnightComposition(squad:RosterInstance,models:number):Record<string,string>|undefined {
   if(isShadowMarine(squad.unit))return resizeShadowMarineGear(squad,models);
   if(!squad.knightGear)return undefined;
+  const ork=resizeOrkGear(squad.knightGear,squad.unit,models);
+  if(ork)return ork;
   if(squad.unit!=='Accursed Cultists'||!squad.knightGear.Composition)return resizeAgentGear(squad.unit,squad.knightGear,models);
   const previous=Number.parseInt(squad.knightGear.Composition,10);
   const options=accursedCultists(models).slots[0].choices;
@@ -150,6 +153,7 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 };
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
+  if(faction==='Orks')return orkLoadout(unit,models);
   if(unit===alliedWarhound(faction))return warhoundEquipment;
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
@@ -164,7 +168,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
 }
 function registeredLoadout(unit:string,models?:number) {
   if(isWarhound(unit))return warhoundEquipment;
-  return shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models)??custodesLoadout(unit,models);
+  return orkLoadout(unit,models)??shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models)??custodesLoadout(unit,models);
 }
 export function knightEquippedItems(squad:RosterInstance):string[] {
   return equippedItems(registeredLoadout(squad.unit,squad.models),squad.knightGear);
@@ -182,6 +186,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(!validOrkGear(squad.unit,gear,squad.models))return false;
   if(!validAgentGear(squad.unit,gear,squad.models))return false;
   if(isShadowMarine(squad.unit))return validShadowMarineGear(squad);
   if(squad.unit==='Traitor Guardsmen Squad')return specialistWeapons.every(name=>knightWeaponCount(squad,name)<=1);
