@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {newSelection,addSelectionUnit} from '../src/catalog';
-import {individualArmy,expandRoster,setInstanceAttachment,setInstanceResurrectionOrb} from '../src/roster-instances';
+import {individualArmy,expandRoster,setInstanceAttachment,setInstanceResurrectionOrb,setInstanceEquipment} from '../src/roster-instances';
 import {selectUpgrade2026} from '../src/upgrades-2026';
 import {generate11thReminders} from '../src/reminders-11th';
 const army=(d:string,...units:string[])=>individualArmy({...units.reduce((a,u)=>addSelectionUnit(a,u),newSelection('Necrons')),detachments2026:[d]});
@@ -58,7 +58,8 @@ describe('five detachment source reconciliation',()=>{
  it('honors the per-unit resurrection orb FAQ, repeat fight eligibility and reroll restrictions',()=>{
   let a=army('Awakened Dynasty','Overlord','Cryptothralls','Lokhust Destroyers');
   const lord=id(a,'Overlord');
-  // Select the orb-compatible Staff of light loadout from the legal default.
+  // Select an orb-compatible weapon before equipping the orb.
+  a=setInstanceEquipment(a,lord,'Staff of light');
   a=setInstanceResurrectionOrb(a,lord,true);
   expect(named(a,'Resurrection Orb').length).toBeGreaterThan(0);
   expect(named(a,'Resurrection Orb').every(r=>r.summary.includes('A given unit')&&!r.summary.includes('Only one unit'))).toBe(true);
