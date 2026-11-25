@@ -1,6 +1,7 @@
+import {THOUSAND_SONS_SHEETS,thousandSonsMusterUnits,thousandSonsAdditionalBodyguards} from './thousand-sons-data';
 import {EMPERORS_CHILDREN_SHEETS,emperorsChildrenMusterUnits,emperorsChildrenAdditionalBodyguards} from './emperors-children-data';
 import {ASTRA_ARMY_SHEETS,astraSheets} from './astra-army-data';
-import {astraAdditionalBodyguards,astraAttachmentSlots} from './astra-muster-data';
+import {astraAdditionalBodyguards,astraAttachmentSlots,usesAstraAttachmentSlots} from './astra-muster-data';
 import {GSC_SHEETS,GSC_UNITS} from './gsc-data';
 import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
 import {gscAlliedMusterUnits} from './gsc-allies';
@@ -23,6 +24,7 @@ export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<st
  Necrons:NECRON_LEADERS,
  'Astra Militarum':Object.fromEntries(ASTRA_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Genestealer Cults':Object.fromEntries(gscSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
+ 'Thousand Sons':Object.fromEntries(THOUSAND_SONS_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Emperor’s Children':Object.fromEntries(EMPERORS_CHILDREN_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'World Eaters':Object.fromEntries(WORLD_EATERS_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Leagues of Votann':Object.fromEntries(VOTANN_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -60,6 +62,10 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
  if(army.faction==='Chaos Daemons'&&!daemonMusterUnits(army).includes(leader.unit))return [];
  if(army.faction==='Chaos Knights'&&!isDaemonicPactUnit(leader.unit)&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
+ if(army.faction==='Thousand Sons'){
+  const available=thousandSonsMusterUnits(army);
+  return available.includes(leader.unit)?[...new Set([...base,...thousandSonsAdditionalBodyguards(army,leader)])].filter(u=>available.includes(u)):[];
+ }
  if(army.faction==='Emperor’s Children'){
   const available=emperorsChildrenMusterUnits(army);
   return available.includes(leader.unit)?[...new Set([...base,...emperorsChildrenAdditionalBodyguards(army,leader)])].filter(u=>available.includes(u)):[];
@@ -98,6 +104,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
  if(faction==='Chaos Daemons')return DAEMON_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Orks')return ORK_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Genestealer Cults')return gscSheets.find(s=>s.unit===unit)?.attachmentRole??null;
+ if(faction==='Thousand Sons')return THOUSAND_SONS_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Emperor’s Children')return EMPERORS_CHILDREN_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='World Eaters')return WORLD_EATERS_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Leagues of Votann')return VOTANN_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -107,12 +114,12 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);
  if(!members.some(m=>m.id===leader.id)||members.some(m=>!instanceBodyguards(army,m).includes(body.unit)))return undefined;
- if(army.faction==='Astra Militarum')return astraAttachmentSlots(body,members)?body:undefined;
+ if(usesAstraAttachmentSlots(army,body))return astraAttachmentSlots(body,members)?body:undefined;
  const roles=members.map(m=>rosterAttachmentRole(army.faction,m.unit));
  return roles.length<=2&&new Set(roles).size===roles.length?body:undefined;
 }

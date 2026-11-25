@@ -1,9 +1,10 @@
-import {migrateEmperorsChildrenDetachments} from './emperors-children-saved-army';
+import {thousandSonsMusterUnits} from './thousand-sons-data';
+import {thousandSonsUnitLimit} from './thousand-sons-muster';
+import {migrateSavedArmy} from './migrate-saved-army';
 import {emperorsChildrenMusterUnits} from './emperors-children-data';
 import {emperorsChildrenUnitLimit} from './emperors-children-muster';
 import {astraMusterUnits} from './astra-muster-data';
 import {astraUnitLimit} from './astra-muster';
-import {migrateGscDetachments} from './gsc-saved-army';
 import {gscMusterUnits,gscUnitLimit} from './gsc-muster';
 import {alliedTitanAndKnightNames,freebladeSlotsRemaining,isWarhound} from './titan-support-data';
 import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
@@ -11,8 +12,6 @@ import {agentUnitLimit} from './agent-muster';
 import {KnightRoster} from './KnightRoster';
 import {daemonMusterUnits} from './chaos-daemons-data';
 import {daemonUnitLimit} from './chaos-daemon-muster';
-import {migrateOrkArmy} from './ork-saved-army';
-import {migrateCustodesArmy} from './custodes-saved-army';
 import {orkUnitLimit} from './ork-muster';
 import {worldEatersMusterUnits} from './world-eaters-data';
 import {worldEatersUnitLimit} from './world-eaters-muster';
@@ -52,7 +51,7 @@ import './style.css';
 const storageKey='w40k-reminders-v2';
 const completionStorageKey='w40k-reminders-completed-v1';
 const armyStorageKey='w40k-reminders-army-v1';
-function loadArmy():ArmySelection{try{const x=migrateEmperorsChildrenDetachments(migrateGscDetachments(migrateOrkArmy(migrateCustodesArmy(JSON.parse(localStorage.getItem(armyStorageKey)||'null')))));return validateSelection(x)?x:newSelection();}catch{return newSelection();}}
+function loadArmy():ArmySelection{try{const x=migrateSavedArmy(JSON.parse(localStorage.getItem(armyStorageKey)||'null'));return validateSelection(x)?x:newSelection();}catch{return newSelection();}}
 function loadCompleted():string[]{try{const x=JSON.parse(localStorage.getItem(completionStorageKey)||'[]');return Array.isArray(x)?x.filter((v):v is string=>typeof v==='string').slice(-500):[];}catch{return [];}}
 function load():BattleState {try{const x=JSON.parse(localStorage.getItem(storageKey)||'null');return validateBattleState(x)?x:createBattle();}catch{return createBattle();}}
 function loadProfiles() {
@@ -89,12 +88,12 @@ function App(){
    try{setArmy(edit);setError('');}catch(cause){setError(cause instanceof Error?cause.message:'Invalid roster change');}
  };
  const resetEditor=()=>{setSelectedUnit('');setSelectedCount(1);setError('');};
- const knightEditor=['Emperor’s Children','Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction);
+ const knightEditor=['Thousand Sons','Emperor’s Children','Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction);
  const individualEditor=army.faction==='Necrons'||knightEditor;
- const nativeAvailable=army.faction==='Emperor’s Children'?emperorsChildrenMusterUnits(army):army.faction==='Astra Militarum'?astraMusterUnits(army):army.faction==='World Eaters'?worldEatersMusterUnits(army):army.faction==='Genestealer Cults'?gscMusterUnits(army):army.faction==='Imperial Agents'?ASSIGNED_AGENT_UNITS:army.faction==='Chaos Daemons'?daemonMusterUnits(army):army.faction==='Chaos Knights'?chaosKnightMusterUnits(army):army.faction==='Imperial Knights'?knightMusterUnits(army):CATALOG[army.faction].units;
+ const nativeAvailable=army.faction==='Thousand Sons'?thousandSonsMusterUnits(army):army.faction==='Emperor’s Children'?emperorsChildrenMusterUnits(army):army.faction==='Astra Militarum'?astraMusterUnits(army):army.faction==='World Eaters'?worldEatersMusterUnits(army):army.faction==='Genestealer Cults'?gscMusterUnits(army):army.faction==='Imperial Agents'?ASSIGNED_AGENT_UNITS:army.faction==='Chaos Daemons'?daemonMusterUnits(army):army.faction==='Chaos Knights'?chaosKnightMusterUnits(army):army.faction==='Imperial Knights'?knightMusterUnits(army):CATALOG[army.faction].units;
  const availableUnits=[...new Set([...nativeAvailable.filter(name=>!isWarhound(name)),...alliedTitanAndKnightNames(army)])];
  const copiesLeft=(unit:string)=>{
-   const limit=army.faction==='Emperor’s Children'?emperorsChildrenUnitLimit(army,unit):army.faction==='Astra Militarum'?astraUnitLimit(army,unit):army.faction==='World Eaters'?worldEatersUnitLimit(army,unit):army.faction==='Genestealer Cults'?gscUnitLimit(army,unit):army.faction==='Leagues of Votann'?votannUnitLimit(army,unit):army.faction==='Orks'?orkUnitLimit(army,unit):army.faction==='Adeptus Custodes'?custodesUnitLimit(army,unit):army.faction==='Imperial Agents'?agentUnitLimit(army,unit):army.faction==='Chaos Daemons'?daemonUnitLimit(army,unit):army.faction==='Chaos Knights'?chaosKnightUnitLimit(army,unit):army.faction==='Necrons'?necronUnitLimit(army,unit):army.faction==='Imperial Knights'?knightUnitLimit(army,unit):30;
+   const limit=army.faction==='Thousand Sons'?thousandSonsUnitLimit(army,unit):army.faction==='Emperor’s Children'?emperorsChildrenUnitLimit(army,unit):army.faction==='Astra Militarum'?astraUnitLimit(army,unit):army.faction==='World Eaters'?worldEatersUnitLimit(army,unit):army.faction==='Genestealer Cults'?gscUnitLimit(army,unit):army.faction==='Leagues of Votann'?votannUnitLimit(army,unit):army.faction==='Orks'?orkUnitLimit(army,unit):army.faction==='Adeptus Custodes'?custodesUnitLimit(army,unit):army.faction==='Imperial Agents'?agentUnitLimit(army,unit):army.faction==='Chaos Daemons'?daemonUnitLimit(army,unit):army.faction==='Chaos Knights'?chaosKnightUnitLimit(army,unit):army.faction==='Necrons'?necronUnitLimit(army,unit):army.faction==='Imperial Knights'?knightUnitLimit(army,unit):30;
    return Math.min(freebladeSlotsRemaining(army,unit)??Infinity,Math.max(0,limit-(army.units[unit]??0)));
  };
  const remainingCopies=selectedUnit&&availableUnits.includes(selectedUnit)?copiesLeft(selectedUnit):0;

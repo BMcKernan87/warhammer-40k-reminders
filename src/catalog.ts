@@ -1,3 +1,4 @@
+import {THOUSAND_SONS_UNITS} from './thousand-sons-data';
 import {EMPERORS_CHILDREN_UNITS} from './emperors-children-data';
 import {ASTRA_ARMY_UNITS} from './astra-army-data';
 import {GSC_UNITS} from './gsc-data';
@@ -50,7 +51,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Leagues of Votann':{detachments:['Select detachment (unverified)'],units:VOTANN_UNITS,enhancements:[]},
  'Space Wolves':{detachments:['Select detachment (unverified)'],units:["Thunderwolf Cavalry","Blood Claws","Logan Grimnar"],enhancements:[]},
  'T’au Empire':{detachments:['Select detachment (unverified)'],units:["Breacher Team","Strike Team","Crisis Battlesuits","Riptide Battlesuit"],enhancements:[]},
- 'Thousand Sons':{detachments:['Select detachment (unverified)'],units:["Rubric Marines","Scarab Occult Terminators","Magnus the Red"],enhancements:[]},
+ 'Thousand Sons':{detachments:['Select detachment (unverified)'],units:THOUSAND_SONS_UNITS,enhancements:[]},
  'World Eaters':{detachments:['Select detachment (unverified)'],units:WORLD_EATERS_UNITS,enhancements:[]},
  'Space Marines':{
   detachments:['Gladius Task Force','Firestorm Assault Force','Ironstorm Spearhead','Vanguard Spearhead','Anvil Siege Force','Stormlance Task Force','1st Company Task Force'],
@@ -58,7 +59,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children'] as const){
+for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons'] as const){
  CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
 

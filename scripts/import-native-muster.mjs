@@ -20,7 +20,7 @@ export function importNativeMuster(tables,manual,spec){
   if(!price||(!core&&!fw)||!d.link.startsWith('https://wahapedia.ru/wh40k11ed/factions/'+(spec.urlSlug??slug)+'/'))throw Error(d.name+' missing 11th edition or matched-play evidence');
   const own=key=>tables[key].filter(s=>s.datasheet_id===d.id);
   const costs=readPrices(own('Datasheets_models_cost'),d.name,price);
-  const data=rosterMetadata(tables,d.name,d.id);
+  const data=rosterMetadata(tables,d.name,d.id,spec.battleOnlyModels?.[d.name]);
   const min=data.composition.reduce((sum,m)=>sum+m.min,0),max=data.composition.reduce((sum,m)=>sum+m.max,0);
   if(min!==costs.sizes[0]||max!==costs.sizes.at(-1))throw Error(d.name+' size/cost bounds differ');
   const models=own('Datasheets_models');

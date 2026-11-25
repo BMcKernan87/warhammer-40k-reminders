@@ -64,6 +64,9 @@ export function astraAdditionalBodyguards(army:ArmySelection,leader:{id:string;u
  return [];
 }
 const twoLeaders=new Set(['Cadian Shock Troops','Death Korps Of Krieg','Catachan Jungle Fighters','Tempestus Scions']);
+export function usesAstraAttachmentSlots(army:ArmySelection,body:RosterInstance):boolean{
+ return army.faction==='Astra Militarum'||army.faction==='Genestealer Cults'&&twoLeaders.has(body.unit);
+}
 export function astraAttachmentSlots(body:RosterInstance,members:readonly RosterInstance[]):boolean{
  const leaders=members.filter(s=>astraSheets.get(s.unit)?.attachmentRole==='leader');
  const support=members.filter(s=>astraSheets.get(s.unit)?.attachmentRole==='support');
