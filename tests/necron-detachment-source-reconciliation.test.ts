@@ -64,7 +64,7 @@ describe('source-reconciled Necron detachment targets',()=>{
   expect(cue(a,'pantheon-entropy-fight')?.units).toEqual([i]);
   const s=generate11thReminders(a).filter(r=>r.title.includes('Singularity Matrix'));
   expect(s).toHaveLength(5);
-  expect(s.every(r=>r.summary.includes('that use’s CP cost')&&!r.summary.includes('Once per turn'))).toBe(true);
+  expect(s.every(r=>r.summary.includes('that use’s CP cost')&&r.summary.includes('Once per turn'))).toBe(true);
  });
  it('Scouts remains conditional on all models and covers Dedicated Transport deployment',()=>{
   const a=army('Hand of the Dynasty','Necron Warriors','Ghost Ark');
