@@ -26,6 +26,7 @@ function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(['macro-projector','reanimation-beam','legion','nullstone','gloom','rites','amulet'].includes(rule.id))return [...PHASES];
   if(rule.id==='command-king')return ['Command'];
   if(rule.id==='murder')return ['Shooting','Fight'];
+  if(rule.id==='doomsday-still')return ['Movement'];
   if(rule.id==='tomb-shield-save')return ['Shooting','Fight'];
   if(rule.id==='tunnelling')return ['End of opponent turn'];
   if(rule.id==='terror'||rule.id==='cover')return ['Shooting'];
@@ -37,8 +38,8 @@ function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(rule.phase)return [rule.phase];
   const signals=typeof rule.signal==='string'?[rule.signal]:rule.signal;
   if(signals.some(s=>s==='phaseStart'||s==='phaseEnd'||s==='stratagem'))return [...PHASES];
-  if(signals.includes('shoot')&&signals.includes('overwatch'))return ['Shooting','Movement','Charge'];
-  if(signals.includes('overwatch'))return ['Movement','Charge'];
+  if(signals.includes('shoot')&&signals.includes('overwatch'))return ['Shooting','Movement'];
+  if(signals.includes('overwatch'))return ['Movement'];
   if(rule.id==='hex-return')return ['Shooting'];
   if(rule.id==='guardian'||rule.id==='shield'||rule.id==='orikan-save'||rule.id==='rites'||rule.id==='overlord'||rule.id==='necroadjust'||rule.id==='gloom'||rule.id==='nodes'||rule.id==='fabricator'||rule.id==='nullstone')return ['Shooting','Fight'];
   return [...new Set(signals.flatMap(s=>actionPhase[s]?[actionPhase[s]!]:['Shooting','Fight'] as Phase[]))];
@@ -103,7 +104,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   for(const squad of roster){
     const body=roster.find(s=>s.id===squad.attachedTo&&validSupportAttachment(army,squad));
     for(const rule of BATTLEFIELD_RULES){
-      if(rule.id==='doomsday-still')continue; // The shooting reminder already includes the stationary condition.
+      // Include the decision in Movement as well as its consequence in Shooting.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&validSupportAttachment(army,leader)&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       if(rule.id==='warden'&&!body)continue;
@@ -120,12 +121,13 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
       if(rule.id==='rites'&&body?.unit==='Canoptek Wraiths')suffix='technomancer-wraiths';
       for(const window of referenceWindows(rule)){
+        if(window==='Movement'&&rule.id.startsWith('weapons-')&&necronKeywords.TITANIC.has(squad.unit))continue;
         const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
         const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
         ids.add(id);
         output.push({id,title:squad.id+' · '+rule.title+((rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?' → '+body.id:''),
-          window,timing:rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
-          summary:referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
+          window,timing:window==='Movement'&&(rule.id.startsWith('weapons-')||['sentinel','hex-hits','hex-overwatch'].includes(rule.id))?'end':rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
+          summary:(window==='Movement'&&(rule.id.startsWith('weapons-')||['sentinel','hex-hits','hex-overwatch'].includes(rule.id))?'Opponent’s Movement phase, end of phase; Fire Overwatch snap shooting. ':'')+referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
           units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?[squad.id,body.id,...(formations.find(f=>f.id===body.id)?.members.filter(m=>m.retinueTo===body.id).map(m=>m.id)??[])]:[squad.id]});
       }
     }
@@ -145,10 +147,10 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
 // datasheets are reconciled here; absence from these tables is not a coverage claim.
 const ctans=['C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','Transcendent C’tan'];
 const deepStrike=new Set([...ctans,'Nekrosor Ammentar','Hexmark Destroyer','Deathmarks','Ophydian Destroyers','Triarch Praetorians','Monolith','Obelisk','Night Scythe']);
-const invulnerable=new Set([...ctans,'Canoptek Wraiths','Overlord','Imotekh the Stormlord','Orikan the Diviner','Illuminor Szeras','Skorpekh Lord','Lokhust Lord','Catacomb Command Barge','The Silent King','Ghost Ark','Tesseract Vault']);
+const invulnerable=new Set([...ctans,'Canoptek Wraiths','Overlord','Imotekh the Stormlord','Orikan the Diviner','Illuminor Szeras','Skorpekh Lord','Lokhust Lord','Catacomb Command Barge','The Silent King','Ghost Ark','Tesseract Vault','Annihilation Barge','Triarch Stalker','Canoptek Doomstalker','Doomsday Ark']);
 const fnp:Record<string,number>={...Object.fromEntries(ctans.map(u=>[u,5])),'Canoptek Reanimator':4,'Illuminor Szeras':4};
-const demise:Record<string,string>={...Object.fromEntries(ctans.map(u=>[u,'D6'])),'The Silent King':'D6+3','Monolith':'D6','Obelisk':'D6','Tesseract Vault':'D6+3','Ghost Ark':'D3','Night Scythe':'D3','Doomsday Ark':'D3','Canoptek Doomstalker':'D3','Catacomb Command Barge':'1'};
-const damaged:Record<string,number>={'The Silent King':6,'Monolith':7,'Obelisk':8,'Tesseract Vault':8,'Doomsday Ark':5,'Canoptek Doomstalker':4,'Night Scythe':4};
+const demise:Record<string,string>={...Object.fromEntries(ctans.map(u=>[u,'D6'])),'The Silent King':'D6+3','Monolith':'D6','Obelisk':'D6','Tesseract Vault':'D6+3','Ghost Ark':'D3','Night Scythe':'D3','Doomsday Ark':'D3','Canoptek Doomstalker':'D3','Catacomb Command Barge':'1','Annihilation Barge':'1','Canoptek Spyders':'1','Triarch Stalker':'D3','Doom Scythe':'D3','Seraptek Heavy Construct':'D6+2'};
+const damaged:Record<string,number>={'The Silent King':6,'Monolith':7,'Obelisk':8,'Tesseract Vault':8,'Doomsday Ark':5,'Canoptek Doomstalker':4,'Night Scythe':4,'Doom Scythe':4,'Seraptek Heavy Construct':9};
 function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):GeneratedReminder[]{
  const out:GeneratedReminder[]=[];
  const formations=necronFormationRoots(army,roster);
@@ -161,14 +163,15 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    emit('deep-strike','Deep Strike','Pre-battle','This formation can be declared in reserves under the normal mission limits.','start',[f.id]);
    emit('deep-strike','Deep Strike','Movement','When making a legal ingress move, every model can set up more than 8″ horizontally from all enemies, including inside the enemy deployment zone.', 'during',[f.id]);
   }else if(deepStrike.has(s.unit)&&f?.id===s.id)emit('deep-strike','Deep Strike · formation restriction','Movement','All surviving models must have Deep Strike before this formation can use its special ingress placement.');
-  if(invulnerable.has(s.unit))for(const window of combat)emit('invulnerable','4+ invulnerable save',window,'For attacks allocated to models from this datasheet, choose the 4+ invulnerable save when preferable to the modified armour save. This is not a blanket save for attached models.');
+  if(invulnerable.has(s.unit)||s.unit==='Seraptek Heavy Construct')for(const window of combat){const save=s.unit==='Seraptek Heavy Construct'?'5+':'4+';emit('invulnerable',save+' invulnerable save',window,'For attacks allocated to models from this datasheet, choose the '+save+' invulnerable save when preferable to the modified armour save. This is not a blanket save for attached models.');}
   if(fnp[s.unit])for(const window of PHASES)emit('fnp','Feel No Pain '+fnp[s.unit]+'+',window,'For each wound this model would lose, roll D6; on '+fnp[s.unit]+'+ it is not lost. Apply only to models with this ability.');
   if(demise[s.unit])for(const window of PHASES)emit('demise','Deadly Demise '+demise[s.unit],window,'When '+(s.unit==='The Silent King'?'Szarekh (not a Menhir)':'this model')+' is destroyed, after any emergency disembarkation and fight-on-death, roll D6. On 6 each unit within 6″ suffers '+demise[s.unit]+' mortal wounds; roll separately for each unit if random.');
   if(damaged[s.unit]){
    const threshold=damaged[s.unit];
    for(const window of combat)if(s.unit!=='Tesseract Vault'||window==='Shooting')emit('damaged','Damaged profile',window,'While '+(s.unit==='The Silent King'?'Szarekh':'this model')+' has 1–'+threshold+' wounds remaining: '+(s.unit==='Tesseract Vault'?'select at most one C’tan Powers weapon rather than two.':s.unit==='The Silent King'?'halve Szarekh’s weapon Attacks and subtract 1 from this unit’s Hit rolls.':'subtract 1 from this model’s Hit rolls.'));
-   if(['Monolith','Obelisk','Tesseract Vault'].includes(s.unit))emit('damaged-oc','Damaged profile · OC','Command','While this model has 1–'+threshold+' wounds remaining, subtract 4 from its OC. Re-evaluate when scoring.');
+   if(['Monolith','Obelisk','Tesseract Vault','Seraptek Heavy Construct'].includes(s.unit))emit('damaged-oc','Damaged profile · OC','Command','While this model has 1–'+threshold+' wounds remaining, subtract '+(s.unit==='Seraptek Heavy Construct'?5:4)+' from its OC. Re-evaluate when scoring.');
   }
+  if(s.unit==='Seraptek Heavy Construct')emit('super-heavy','Super-heavy Walker','Movement','Normal, Advance and Fall Back moves may pass through non-Titanic models and terrain sections up to 4″ tall. Optionally gain Mobile for that move; if chosen, roll D6 after moving and become battle-shocked on 1.');
   if(s.unit==='Hexmark Destroyer')emit('lone','Lone Operative','Shooting','If unattached, enemy models outside 12″ cannot see or target this unit with indirect fire.');
   if(s.unit==='Illuminor Szeras'&&roster.some(m=>m.id!==s.id))emit('illuminor','Illuminor','Shooting','While within 3″ of another friendly Necron unit, Szeras gains Lone Operative (12″ visibility and indirect fire restriction).');
   if(s.unit==='Nekrosor Ammentar'){
