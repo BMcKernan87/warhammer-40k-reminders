@@ -1,3 +1,4 @@
+import {eligibleDrukhariUpgrades} from './drukhari-upgrades';
 import {eligibleCsmUpgrades} from './csm-detachment-data';
 import {eligibleTyranidUpgrades} from './tyranid-detachment-data';
 import {eligibleTauUpgrades} from './tau-detachment-data';
@@ -141,6 +142,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Drukhari')return eligibleDrukhariUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Drukhari',source:'https://wahapedia.ru/wh40k11ed/factions/drukhari/'}));
  if(army.faction==='Chaos Space Marines')return eligibleCsmUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Space Marines',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-space-marines/'}));
  if(army.faction==='Tyranids')return eligibleTyranidUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Tyranids',source:'https://wahapedia.ru/wh40k11ed/factions/tyranids/'}));
  if(army.faction==='T’au Empire')return eligibleTauUpgrades(army,unit,id).map(u=>({...u,unit,faction:'T’au Empire',source:'https://wahapedia.ru/wh40k11ed/factions/t-au-empire/'}));
