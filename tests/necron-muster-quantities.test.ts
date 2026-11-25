@@ -104,7 +104,9 @@ describe('November 11th-edition Necron muster',()=>{
   for(const unit of ['The Silent King','Doom Scythe','Night Scythe','Seraptek Heavy Construct','Convergence Of Dominion'])army=addSelectionUnit(army,unit);
   const rules=generate11thReminders(army);
   expect(necronKeywords.FRAME.has('Seraptek Heavy Construct')).toBe(true);
-  expect(rules.find(r=>r.id==='11e-core-epic-challenge')?.units).toEqual(['The Silent King#1']);
+  const challenge=rules.find(r=>r.id==='11e-core-epic-challenge');
+  expect(challenge?.units).toEqual(['The Silent King#1']);
+  expect(challenge?.summary).toContain('Szarekh while that model survives');
   const ingress=rules.find(r=>r.id==='11e-core-rapid-ingress')!.units;
   expect(ingress).toContain('Night Scythe#1');
   expect(ingress).not.toContain('Doom Scythe#1');

@@ -1,3 +1,4 @@
+import {knightMusterFindings} from './imperial-knight-muster';
 import {ghostArkPassengers} from './necron-retinues';
 import {necronUnitLimit,legalWarlordCandidates,resolvedWarlord,unresolvedSupports} from './necron-muster-legality';
 import {BATTLE_SIZES_2026,DETACHMENTS_2026,detachmentBudget} from './edition-2026';
@@ -8,7 +9,7 @@ import {upgradeError2026} from './upgrades-2026';
 export interface RosterFinding {code:string;severity:'error'|'warning'|'info';message:string;unit?:string}
 /** Auditable checks only. This is not a substitute for current official points and mission rules. */
 export function rosterFindings(army:ArmySelection):RosterFinding[]{
- const findings:RosterFinding[]=[];
+ const findings:RosterFinding[]=army.faction==='Imperial Knights'?knightMusterFindings(army):[];
  if(!army.detachments2026?.length)findings.push({code:'no-11e-detachment',severity:'warning',message:'Select at least one 11th-edition detachment to enable detachment-specific reminders.'});
  const upgradeError=upgradeError2026(army);if(upgradeError)findings.push({code:'invalid-11e-upgrade',severity:'error',message:upgradeError+'.'});
  const instances=expandRoster(army);
@@ -18,7 +19,7 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
   if(army.faction==='Necrons'){
    const limit=necronUnitLimit(army,unit);
    if(group.length>limit)findings.push({code:'rule-of-three',severity:'error',unit,message:unit+': '+group.length+' squads exceed the 11th-edition limit of '+limit+'.'});
-  }else if(group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(army.faction,unit)?2:1)&&!isDedicatedTransport(army.faction,unit))
+  }else if(army.faction!=='Imperial Knights'&&group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(army.faction,unit)?2:1)&&!isDedicatedTransport(army.faction,unit))
    findings.push({code:'rule-of-three',severity:'warning',unit,message:unit+': '+group.length+' units exceed the baseline selected battle-size copy limit; check official datasheet-specific exceptions.'});
   const sizes=verifiedUnitSizes2026(army,unit);
   if(!sizes)findings.push({code:'size-unverified',severity:'info',unit,message:unit+': 11th-edition model-count legality has not been source-verified for this datasheet.'});
@@ -35,7 +36,7 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
   else if(!resolvedWarlord(army))findings.push({code:'warlord-required',severity:'error',message:'Choose an eligible Warlord from the roster.'});
  }
  const attached=instances.filter(x=>x.attachedTo);
- if(attached.length&&army.faction!=='Necrons')findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
+ if(attached.length&&army.faction!=='Necrons'&&army.faction!=='Imperial Knights')findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
  if(!DETACHMENTS_2026[army.faction]?.length)findings.push({code:'detachment-unavailable',severity:'warning',message:'No 11th-edition detachments are available for this faction.'});
  const costs=rosterCost2026(army);
  const pointLimit=BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].points;

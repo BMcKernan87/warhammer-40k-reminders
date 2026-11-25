@@ -14,10 +14,10 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
   expect(generated).toBe(readFileSync('src/datasheets-2026.generated.ts','utf8'));
   expect(generateDatasheets({...snapshot,datasheets:[...snapshot.datasheets].reverse()})).toBe(generated);
   expect(snapshot.expectedUnits).toEqual([...CATALOG.Necrons.units].sort());
-  expect(DATASHEETS_2026.map(d=>d.unit).sort()).toEqual([...CATALOG.Necrons.units].sort());
+  expect(DATASHEETS_2026.filter(d=>d.faction==='Necrons').map(d=>d.unit).sort()).toEqual([...CATALOG.Necrons.units].sort());
  });
  it('preserves all imported fields and drives current runtime pricing',()=>{
-  expect(DATASHEETS_2026).toEqual([...snapshot.datasheets].sort((a,b)=>a.unit<b.unit?-1:a.unit>b.unit?1:0));
+  expect(DATASHEETS_2026.filter(d=>d.faction==='Necrons')).toEqual([...snapshot.datasheets].sort((a,b)=>a.unit<b.unit?-1:a.unit>b.unit?1:0));
   expect(rosterCost2026(addSelectionUnit(newSelection('Necrons'),'Chronomancer',3)).entries.map(e=>e.points)).toEqual([70,80,80]);
  });
  it.each([

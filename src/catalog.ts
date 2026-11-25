@@ -1,3 +1,4 @@
+import {IMPERIAL_KNIGHT_UNITS} from './imperial-knights-data';
 import {reconcileRetinues} from './necron-retinues';
 import {reconcileWarlord} from './necron-muster-legality';
 import {currentEquipmentName} from './necron-wargear';
@@ -33,7 +34,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Genestealer Cults':{detachments:['Select detachment (unverified)'],units:["Neophyte Hybrids","Acolyte Hybrids","Aberrants","Patriarch"],enhancements:[]},
  'Grey Knights':{detachments:['Select detachment (unverified)'],units:["Strike Squad","Brotherhood Terminator Squad","Nemesis Dreadknight"],enhancements:[]},
  'Imperial Agents':{detachments:['Select detachment (unverified)'],units:["Inquisitor","Imperial Navy Breachers","Arbites"],enhancements:[]},
- 'Imperial Knights':{detachments:['Select detachment (unverified)'],units:["Knight Paladin","Knight Crusader","Armiger Warglaive"],enhancements:[]},
+ 'Imperial Knights':{detachments:['Select detachment (unverified)'],units:IMPERIAL_KNIGHT_UNITS,enhancements:[]},
  'Leagues of Votann':{detachments:['Select detachment (unverified)'],units:["Hearthkyn Warriors","Hernkyn Pioneers","Einhyr Hearthguard"],enhancements:[]},
  'Space Wolves':{detachments:['Select detachment (unverified)'],units:["Thunderwolf Cavalry","Blood Claws","Logan Grimnar"],enhancements:[]},
  'T’au Empire':{detachments:['Select detachment (unverified)'],units:["Breacher Team","Strike Team","Crisis Battlesuits","Riptide Battlesuit"],enhancements:[]},

@@ -147,12 +147,12 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Skitarii Hunter Cohort",disposition:"Reconnaissance",dp:2},
  ],
  "Imperial Knights":[
-  {name:"Dominus Foebreakers",disposition:"Purge the Foe",dp:1},
+  {name:"Dominus Foebreakers",disposition:"Priority Assets",dp:1},
   {name:"Questor Forgepact",disposition:"Disruption",dp:1},
   {name:"Throne-bonded Outriders",disposition:"Reconnaissance",dp:1},
-  {name:"Freeblade Company",disposition:"Purge the Foe",dp:3},
-  {name:"Gate Warden Lance",disposition:"Priority Assets",dp:2},
-  {name:"Questoris Companions",disposition:"Take and Hold",dp:3},
+  {name:"Freeblade Company",disposition:"Priority Assets",additionalDispositions:["Purge the Foe"],dp:3},
+  {name:"Gate Warden Lance",disposition:"Take and Hold",dp:2},
+  {name:"Questoris Companions",disposition:"Take and Hold",additionalDispositions:["Reconnaissance"],dp:3},
   {name:"Spearhead-at-arms",disposition:"Reconnaissance",dp:2},
   {name:"Valourstrike Lance",disposition:"Purge the Foe",dp:2},
  ],
@@ -330,7 +330,7 @@ export function detachmentBudget(faction:Faction,selected:readonly string[],size
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
  const entries=selected.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:[];
+ const groups=faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>selected.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;

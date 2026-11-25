@@ -1,17 +1,17 @@
+import {validKnightGear} from './imperial-knight-loadouts';
 import {applyModelLoadouts,modelLoadoutRows,validModelLoadouts,type ModelLoadout} from './necron-model-loadouts';
 import {reconcileRetinues,validRetinues} from './necron-retinues';
 import {reconcileWarlord} from './necron-muster-legality';
 import {NECRON_LOADOUTS,slotLimit,validOptionalGear,currentEquipmentName} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
-import {instanceBodyguards,isModeledLeader} from './leader-eligibility';
+import {instanceBodyguards,isModeledLeader,rosterAttachmentRole} from './leader-eligibility';
 import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
-import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];knightGear?:Record<string,string>;enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances.map(squad=>{
   // Earlier saves can retain a unit-wide weapon alongside individual squad IDs.
@@ -171,7 +171,7 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
   delete leader.keepUnattached;
  }else{
   delete leader.attachedTo;
-  if(army.faction==='Necrons'&&necronAttachmentRole(leader.unit)==='leader')leader.keepUnattached=true;
+  if(rosterAttachmentRole(army.faction,leader.unit)==='leader')leader.keepUnattached=true;
  }
  const updated=reconcileRetinues({...army,instances});
  if(!validateRosterInstances(updated))throw Error('Incompatible Leader attachment or duplicate assignment');
@@ -184,11 +184,12 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
-  if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||army.faction!=='Necrons'||necronAttachmentRole(x.unit)!=='leader'))return false;
+  if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||rosterAttachmentRole(army.faction,x.unit)!=='leader'))return false;
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(verifiedUnitSizes2026(army,x.unit)||legalUnitSizes(army.faction,x.unit))?.includes(x.models)))return false;
   if(x.wargear!==undefined&&(army.faction!=='Necrons'||!validOptionalGear(x, x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??1)))return false;
+  if(x.knightGear!==undefined&&(army.faction!=='Imperial Knights'||!validKnightGear(x)))return false;
   if(x.modelLoadouts!==undefined&&(army.faction!=='Necrons'||!validModelLoadouts(x,x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??1)))return false;
   if(x.weaponCounts!==undefined){if(!supportsMixedPrimaryWeapons(army.faction,x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??defaultUnitSize(army.faction,x.unit)??1))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&typeof x.equipment==='string'&&o.choices.includes(currentEquipmentName(x.unit,x.equipment))))return false;
@@ -205,7 +206,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
   if(leaders.length>2)return false;
-  if(leaders.length===2&&(army.faction!=='Necrons'||new Set(leaders.map(l=>necronAttachmentRole(l.unit))).size!==2))return false;
+  if(leaders.length===2&&new Set(leaders.map(l=>rosterAttachmentRole(army.faction,l.unit))).size!==2)return false;
  }
  return validRetinues(army);
 }
@@ -240,15 +241,15 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
  return next;
 }
 
-/** Resolve only unambiguous 11e Necron instance attachments. Never guess between squads. */
+/** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(army.faction!=='Necrons'||!army.instances)return army;
+ if(!army.instances||!['Necrons','Imperial Knights'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){
   changed=false;
   const roster=expandRoster(current);
-  const unresolved=roster.filter(s=>necronAttachmentRole(s.unit)&&!s.attachedTo&&!s.keepUnattached);
+  const unresolved=roster.filter(s=>rosterAttachmentRole(army.faction,s.unit)&&!s.attachedTo&&!s.keepUnattached);
   // A unique destination is still ambiguous if two characters require the same available slot.
   const proposals=new Map<string,{leader:RosterInstance;bodyId:string}[]>();
   for(const leader of unresolved){
@@ -256,12 +257,12 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
     try{setInstanceAttachment(current,leader.id,body.id);return true;}catch{return false;}
    });
    if(legal.length!==1)continue;
-   const key=necronAttachmentRole(leader.unit)+'/'+legal[0].id;
+   const key=rosterAttachmentRole(army.faction,leader.unit)+'/'+legal[0].id;
    proposals.set(key,[...(proposals.get(key)??[]),{leader,bodyId:legal[0].id}]);
   }
   // Required Supports take precedence when upgrades on two candidates conflict across roles.
   const choices=[...proposals.values()].filter(group=>group.length===1).map(group=>group[0]);
-  const forced=choices.find(choice=>necronAttachmentRole(choice.leader.unit)==='support')??choices[0];
+  const forced=choices.find(choice=>rosterAttachmentRole(army.faction,choice.leader.unit)==='support')??choices[0];
   if(forced){
    current=setInstanceAttachment(current,forced.leader.id,forced.bodyId);
    changed=true;

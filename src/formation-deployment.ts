@@ -1,0 +1,30 @@
+import type {ArmySelection} from './catalog';
+import type {ArmyFormation} from './core-stratagems-11th';
+import {BATTLE_SIZES_2026} from './edition-2026';
+import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
+
+export function formationDeploymentReminders(army:ArmySelection,formations:ArmyFormation[],keywords:(unit:string)=>readonly string[]):GeneratedReminder[]{
+ const out:GeneratedReminder[]=[];
+ const prefix=army.faction==='Necrons'?'11e-necron-':'11e-formation-';
+ const source='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
+ function add(id:string,title:string,window:ReminderWindow,timing:GeneratedReminder['timing'],summary:string,units:string[]){
+  if(units.length)out.push({id:prefix+id,title,window,timing,turn:window==='Movement'?'own':window==='Shooting'?'opponent':'either',summary,units,source,origin:'army'});
+ }
+ const reserveEligible=formations.filter(f=>!keywords(f.body.unit).includes('FORTIFICATION')).map(f=>f.id);
+ const reserveLimit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].points/2;
+ add('reserve-declaration','Declare Strategic Reserves','Pre-battle','start',
+  'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.',reserveEligible);
+ add('reserve-arrival','Strategic Reserves · ingress','Movement','during',
+  'In your Move Units step, select a unit in Strategic Reserves to arrive, normally from round two. Set it up wholly within 6″ of a battlefield edge and more than 8″ horizontally from enemies. Until round three, stay outside the enemy deployment zone. Apply any specific alternative placement or first-turn ability. An arriving unit normally cannot move again until the Charge phase. Embarked units arrive aboard their transport.',reserveEligible);
+ add('reserve-deadline','Strategic Reserves · round three deadline','End of battle round','end',
+  'At the end of battle round three, destroy reserves that have never made an ingress move. Exempt repositioned units and passengers aboard a transport that made ingress. At the end of the final turn, destroy any units still in Strategic Reserves without triggering destruction rules.',reserveEligible);
+ const attached=formations.filter(f=>f.members.some(m=>m.attachedTo===f.id)).map(f=>f.id);
+ for(const phase of ['Shooting','Fight'] as const){
+  add('attached-defence-'+phase,'Attacks against attached units',phase,'during',
+   'Use the highest Toughness among surviving Bodyguard models, including joined retinues. Once none remain, use the highest Toughness of the remaining Leader and Support models. A unit-destroyed trigger requires the death of the last model that started in the formation.',attached);
+  add('attached-abilities-'+phase,'Attached abilities after casualties',phase,'during',
+   'If an attack kills the last source of a formation-wide ability, finish that attacker’s attacks with the ability. Surviving Leaders and Supports keep their own leading abilities after losing their Bodyguard if they started attached. Bearer-only benefits stay on that model. Destroyed models no longer contribute keywords.',attached);
+ }
+
+ return out;
+}

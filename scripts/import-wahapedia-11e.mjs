@@ -57,10 +57,10 @@ function unique(rows,key,table){
 }
 function sortedRows(rows){return [...rows].sort((a,b)=>Number(a.line)-Number(b.line));}
 function numeric(v,label,min=0){if(!/^\d+$/.test(v)||!Number.isSafeInteger(Number(v))||Number(v)<min)fail(label);return Number(v);}
-function modelProfile(model,unit){
+export function modelProfile(model,unit){
  return {move:model.m,toughness:numeric(model.t,unit+' invalid toughness',1),save:model.sv,wounds:numeric(model.w,unit+' invalid wounds',1),leadership:model.ld,objectiveControl:model.oc==='-'?'-':numeric(model.oc,unit+' invalid OC')};
 }
-function rosterMetadata(tables,unit,id){
+export function rosterMetadata(tables,unit,id){
  const composition=sortedRows(tables.Datasheets_unit_composition.filter(r=>r.datasheet_id===id)).map(row=>{
   const label=plain(row.description).replace(/\s+[–—-]\s+EPIC HERO$/i,'');
   const match=label.match(/^(\d+)(?:\s*[-–]\s*(\d+))?\s+(.+)$/);
