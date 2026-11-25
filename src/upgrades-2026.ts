@@ -1,3 +1,4 @@
+import {eligibleSororitasUpgrades} from './sororitas-detachment-data';
 import {eligibleGreyKnightsUpgrades} from './grey-knights-detachment-data';
 import {eligibleDeathGuardUpgrades} from './death-guard-detachment-data';
 import {eligibleThousandSonsUpgrades} from './thousand-sons-detachment-data';
@@ -18,7 +19,7 @@ import {NECRON_ENHANCEMENT_POINTS,REPEATABLE_NECRON_UPGRADES,PANTHEON_BINDINGS} 
 import {NECRON_CHARACTER_BEARERS,DESTROYER_BEARERS,OVERLORD_BEARERS,REMAINING_NECRON_SOURCE} from './necron-remaining-detachments';
 import {COURT_BEARERS,HYPERCRYPT_BEARERS,COURT_HYPERCRYPT_SOURCE} from './necron-canoptek-hypercrypt';
 import {expandRoster,reconcileInstanceAttachments} from './roster-instances';
-export interface Upgrade2026 {name:string;faction:ArmySelection['faction'];detachment:string;unit:string;source:string;points?:number;repeatable?:boolean}
+export interface Upgrade2026 {name:string;faction:ArmySelection['faction'];detachment:string;unit:string;source:string;points?:number;repeatable?:boolean;countsTowardLimit?:boolean}
 const NECRON_SOURCE='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
 export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Enlivened Sentinels',faction:'Necrons',detachment:'Hand of the Dynasty',unit:'Necron Warriors',source:NECRON_SOURCE},
@@ -136,6 +137,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Adepta Sororitas')return eligibleSororitasUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Adepta Sororitas',source:'https://wahapedia.ru/wh40k11ed/factions/adepta-sororitas/'}));
  if(army.faction==='Grey Knights')return eligibleGreyKnightsUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Grey Knights',source:'https://wahapedia.ru/wh40k11ed/factions/grey-knights/'}));
  if(army.faction==='Death Guard')return eligibleDeathGuardUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Death Guard',source:'https://wahapedia.ru/wh40k11ed/factions/death-guard/'}));
  if(army.faction==='Thousand Sons')return eligibleThousandSonsUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Thousand Sons',source:'https://wahapedia.ru/wh40k11ed/factions/thousand-sons/'}));
@@ -164,7 +166,7 @@ export function upgradeError2026(army:ArmySelection):string|null{
  if(!army.units||typeof army.units!=='object')return 'Invalid enhancement roster';
  const roster=expandRoster(army);
  if(Object.entries(values||{}).some(([key,name])=>typeof name!=='string'||!roster.some(s=>s.id===key||s.unit===key)))return 'Enhancement assigned to an absent unit';
- const counts=new Map<string,number>(),formations=new Set<string>();
+ const counts=new Map<string,number>(),formations=new Set<string>(),limited=new Set<string>();
  for(const s of roster){
   const name=upgradeName2026(army,s);
   const binding=army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')&&PANTHEON_BINDINGS[s.unit];
@@ -179,8 +181,9 @@ export function upgradeError2026(army:ArmySelection):string|null{
   const count=(counts.get(name)??0)+1;
   if(count>((option.repeatable??REPEATABLE_NECRON_UPGRADES.has(name))?3:1))return name+' exceeds its allowed number of copies';
   counts.set(name,count);
+  if(option.countsTowardLimit!==false)limited.add(name);
  }
- if(counts.size>(BATTLE_SIZES_2026[army.battleSize2026??'Strike Force']?.enhancements??0))return 'Battle-size enhancement limit exceeded';
+ if(limited.size>(BATTLE_SIZES_2026[army.battleSize2026??'Strike Force']?.enhancements??0))return 'Battle-size enhancement limit exceeded';
  return null;
 }
 export function selectUpgrade2026(army:ArmySelection,key:string,name:string|null):ArmySelection{
