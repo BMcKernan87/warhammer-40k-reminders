@@ -1,3 +1,4 @@
+import {necronCoreStratagemReminders} from './necron-core-stratagems';
 import {necronFormationRoots} from './necron-retinues';
 import {expandRoster} from './roster-instances';
 import {canoptekHypercryptReminders} from './necron-canoptek-hypercrypt';
@@ -99,6 +100,11 @@ export function eligibleScoutReminders(army:ArmySelection):GeneratedReminder[]{
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
  const roster=expandRoster(_army);
+ if(_army.faction==='Necrons'){
+  const ow=result.findIndex(r=>r.id==='11e-core-overwatch');
+  if(ow>=0)result.splice(ow,1);
+  result.push(...necronCoreStratagemReminders(_army,roster));
+ }
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
   const formations=necronFormationRoots(_army,roster);

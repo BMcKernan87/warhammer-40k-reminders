@@ -4,7 +4,7 @@ import {NECRON_SUPPORTS,necronAttachmentRole} from './attachments';
 import {instanceBodyguards,validMurdermindFormation} from './leader-eligibility';
 import {BATTLE_SIZES_2026} from './edition-2026';
 export const NECRON_EPIC_HEROES_11E=new Set(['Illuminor Szeras','Imotekh the Stormlord','Nekrosor Ammentar','Orikan the Diviner','Trazyn the Infinite','C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','The Silent King']);
-const CHARACTERS=new Set([...NECRON_EPIC_HEROES_11E,'Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Transcendent C’tan','Lokhust Lord','Catacomb Command Barge']);
+export const CHARACTERS=new Set([...NECRON_EPIC_HEROES_11E,'Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Transcendent C’tan','Lokhust Lord','Catacomb Command Barge']);
 const STAR_GODS=new Set(['C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','Transcendent C’tan']);
 export function necronUnitLimit(army:ArmySelection,unit:string):number{
  const limit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].unitLimit;
