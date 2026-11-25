@@ -62,7 +62,7 @@ const personal:Readonly<Record<string,Rule[]>>={
 };
 
 export function imperialKnightDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[]{
-  if(army.faction!=='Imperial Knights')return [];
+  if(!['Imperial Knights','Adeptus Custodes','Imperial Agents'].includes(army.faction))return [];
   const output:GeneratedReminder[]=[];
   const eligible=roster.filter(s=>KNIGHT_CARD_STATS[s.unit]&&s.unit!=='Sir Hekhtur'&&
     (!/^(?:Skitarii|Tech-priest)/.test(s.unit)||army.detachments2026?.includes('Questor Forgepact')));

@@ -21,7 +21,7 @@ function weaponEffect(raw:string,snap:boolean){
 }
 
 export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
- if(!['Imperial Knights','Imperial Agents'].includes(army.faction))return [];
+ if(!['Imperial Knights','Imperial Agents','Adeptus Custodes'].includes(army.faction))return [];
  const result:GeneratedReminder[]=[];
  const native=army.faction==='Imperial Agents';
  const doubled=native&&army.detachments2026?.includes('Veiled Blade Elimination Force');

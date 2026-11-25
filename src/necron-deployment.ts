@@ -1,3 +1,4 @@
+import {transportMovementReminders} from './transport-movement';
 import {NECRON_SUPPORTS} from './attachments';
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
@@ -31,16 +32,7 @@ export function necronDeploymentReminders(army:ArmySelection,roster:RosterInstan
   'Each Night Scythe may start with one whole Necrons Infantry unit embarked. An attached formation with the Infantry keyword occupies that unit slot together.',scythePassengers,
   'https://wahapedia.ru/wh40k11ed/factions/necrons/Night-Scythe');
  const passengers=[...new Set([...arkPassengers,...scythePassengers])];
- add('passenger-embark','Embark in a transport','Movement','during',
-  'After a Normal, Advance or Fall Back move, a whole eligible unit can embark if every model is within 3″, the transport has space, and the unit was not set up this turn.',passengers);
- add('passenger-disembark','Choose disembark mode','Movement','during',
-  'In your Movement phase, an embarked unit can disembark unless it embarked this phase or its transport Advanced or Fell Back. After Normal or ingress, use Rapid within 3″ and forgo charging; after ingress also follow the transport’s setup restrictions. From a stationary or as-yet-unmoved transport, use Tactical within 3″ if possible, then make a Normal or Advance move. Otherwise use Combat within 6″, test Hazard per model, become battle-shocked and forgo charging.',passengers);
- if(passengers.length){
-  // Destruction can be caused by rules in any phase. No embarkation choice is assumed.
-  const transports=[...(arkPassengers.length?arks:[]),...(scythePassengers.length?scythes:[])].map(s=>s.id);
-  for(const phase of ['Command','Movement','Shooting','Charge','Fight'] as const)
-   add('emergency-disembark-'+phase,'Destroyed transport · emergency disembark',phase,'during',
-    'Before removing a destroyed occupied transport, make a Hazard roll for each passenger model. Set survivors wholly within 6″ and as close as possible, unengaged if possible, then engaged if necessary. Destroy models that cannot be placed. The unit is battle-shocked and cannot charge this turn.',transports);
- }
+ const transports=[...(arkPassengers.length?arks:[]),...(scythePassengers.length?scythes:[])].map(s=>s.id);
+ out.push(...transportMovementReminders('11e-necron-',passengers,transports));
  return out;
 }

@@ -1,3 +1,4 @@
+import {alliedUnitLimit} from './titan-support-data';
 import type {ArmySelection} from './catalog';
 import {DAEMON_SHEETS,daemonKeywords,daemonMusterUnits,shadowLegionBans} from './chaos-daemons-data';
 import {rosterCost2026} from './datasheets-2026';
@@ -9,6 +10,8 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 const sheets=new Map(DAEMON_SHEETS.map(s=>[s.unit,s]));
 const has=(unit:string,kw:string)=>sheets.get(unit)?.keywords?.includes(kw)??false;
 export function daemonUnitLimit(army:ArmySelection,unit:string):number {
+ const allied=alliedUnitLimit(army,unit);
+ if(army.faction==='Chaos Daemons'&&allied!==undefined)return allied;
  if(army.faction!=='Chaos Daemons'||!daemonMusterUnits(army).includes(unit))return 0;
  if(has(unit,'EPIC HERO')||has(unit,'TITANIC')&&has(unit,'CHAOS KNIGHTS'))return 1;
  const limit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].unitLimit;

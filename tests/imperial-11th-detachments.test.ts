@@ -1,8 +1,8 @@
 import {describe,it,expect} from 'vitest';
 import {DETACHMENTS_2026,detachmentBudget} from '../src/edition-2026';
-const COUNTS={'Astra Militarum':11,'Adepta Sororitas':8,'Adeptus Mechanicus':10,'Imperial Knights':8,'Adeptus Custodes':9,'Imperial Agents':5} as const;
+const COUNTS={'Astra Militarum':11,'Adepta Sororitas':8,'Adeptus Mechanicus':10,'Imperial Knights':8,'Adeptus Custodes':13,'Imperial Agents':5} as const;
 describe('2026 Imperial Faction Pack detachments',()=>{
- it('contains 51 unique official Imperial detachments with DP and dispositions',()=>{
+ it('contains each current Imperial detachment with its cost and dispositions',()=>{
   for(const [faction,count] of Object.entries(COUNTS)){
    const entries=DETACHMENTS_2026[faction as keyof typeof DETACHMENTS_2026]!;
    expect(entries).toHaveLength(count);

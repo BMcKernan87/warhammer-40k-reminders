@@ -1,5 +1,6 @@
 import {eligibleAgentUpgrades} from './imperial-agent-detachments';
 import {eligibleDaemonUpgrades} from './chaos-daemon-detachments';
+import {eligibleCustodesUpgrades} from './custodes-detachments';
 import {eligibleChaosKnightUpgrades} from './chaos-knight-detachments';
 import {eligibleKnightUpgrades} from './imperial-knight-detachments';
 import type {ArmySelection} from './catalog';
@@ -128,6 +129,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
  if(army.faction==='Imperial Agents')return eligibleAgentUpgrades(army,unit).map(u=>({...u,unit,faction:'Imperial Agents',source:'https://wahapedia.ru/wh40k11ed/factions/imperial-agents/'}));
  if(army.faction==='Chaos Daemons')return eligibleDaemonUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Daemons',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-daemons/'}));
+ if(army.faction==='Adeptus Custodes')return eligibleCustodesUpgrades(army,unit).map(u=>({...u,unit,faction:'Adeptus Custodes',source:'https://wahapedia.ru/wh40k11ed/factions/adeptus-custodes/'}));
  if(army.faction==='Chaos Knights')return eligibleChaosKnightUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Knights',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-knights/'}));
  if(army.faction==='Imperial Knights')return eligibleKnightUpgrades(army,unit).map(u=>({...u,unit,faction:'Imperial Knights',source:'https://wahapedia.ru/wh40k11ed/factions/imperial-knights/'}));
  if(army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')&&PANTHEON_BINDINGS[unit])return [];

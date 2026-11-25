@@ -2,16 +2,23 @@ import type {ArmySelection} from './catalog';
 import {ASSIGNED_AGENT_SHEETS,ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
 import type {RosterFinding} from './roster-findings';
 import {knightJoinedBodyguard} from './leader-eligibility';
-import {expandRoster} from './roster-instances';
+import {agentLoadout} from './assigned-agent-loadouts';
+import {knightWeaponCount} from './knight-loadouts';
+import {expandRoster,type RosterInstance} from './roster-instances';
 import {ASSIGNED_AGENT_DATA} from './knight-assigned-agents.generated';
 export {assignedAgentReminders} from './assigned-agent-reminders';
 
 export {ASSIGNED_AGENT_SHEETS,ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
 export const isAssignedAgent=(unit:string)=>ASSIGNED_AGENT_UNITS.includes(unit);
-export const assignedAgentHasRanged=(unit:string)=>ASSIGNED_AGENT_DATA.some(r=>r.sheet.unit===unit&&r.weapons.some(w=>w.type==='Ranged'));
+export function assignedAgentHasRanged(squad:RosterInstance):boolean {
+ const card=ASSIGNED_AGENT_DATA.find(row=>row.sheet.unit===squad.unit);
+ if(!card)return false;
+ const kit=agentLoadout(squad.unit,squad.models);
+ return card.weapons.some(w=>w.type==='Ranged'&&(!kit||knightWeaponCount(squad,w.name)>0));
+}
 
 export function assignedAgentFindings(army:ArmySelection):RosterFinding[]{
- if(army.faction!=='Imperial Knights')return [];
+ if(!['Imperial Knights','Adeptus Custodes'].includes(army.faction))return [];
  const agents=expandRoster(army).filter(s=>isAssignedAgent(s.unit));
  if(!agents.length)return [];
  const findings:RosterFinding[]=[];

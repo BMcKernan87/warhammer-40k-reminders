@@ -1,3 +1,4 @@
+import {alliedUnitLimit} from './titan-support-data';
 import type {ArmySelection} from './catalog';
 import {CHAOS_KNIGHT_SHEETS,chaosKnightMusterUnits} from './chaos-knights-data';
 import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
@@ -12,6 +13,8 @@ const sheets=new Map(CHAOS_KNIGHT_SHEETS.map(sheet=>[sheet.unit,sheet]));
 const has=(unit:string,keyword:string)=>sheets.get(unit)?.keywords?.includes(keyword)??false;
 
 export function chaosKnightUnitLimit(army:ArmySelection,unit:string):number {
+ const allied=alliedUnitLimit(army,unit);
+ if(army.faction==='Chaos Knights'&&allied!==undefined)return allied;
  if(army.faction!=='Chaos Knights'||!chaosKnightMusterUnits(army).includes(unit))return 0;
  if(has(unit,'EPIC HERO'))return 1;
  const limit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].unitLimit;
