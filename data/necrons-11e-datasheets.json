@@ -1,7 +1,7 @@
 {
   "edition": 11,
   "faction": "Necrons",
-  "revision": "repository-baseline-c761461d",
+  "revision": "october-2026-v1.2-copy-pricing-reconciled",
   "sourceStatus": "mixed-source-unreconciled",
   "datasheets": [
     {
@@ -198,7 +198,12 @@
       "pointsBySize": {
         "1": 340
       },
-      "pointsSource": "https://tactical40k.com/codex/necrons"
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 360
+        }
+      }
     },
     {
       "faction": "Necrons",
@@ -231,8 +236,13 @@
       "pointsBySize": {
         "1": 540
       },
-      "pointsSource": "https://tactical40k.com/codex/necrons",
-      "verified": "sizes-and-points"
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
+      "verified": "sizes-and-points",
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 570
+        }
+      }
     },
     {
       "faction": "Necrons",
@@ -755,7 +765,13 @@
         "5": 60,
         "10": 120
       },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
+      "laterCopyPointsBySize": {
+        "3": {
+          "5": 70,
+          "10": 130
+        }
+      }
     },
     {
       "faction": "Necrons",
@@ -794,7 +810,12 @@
       "pointsBySize": {
         "1": 280
       },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
+      "laterCopyPointsBySize": {
+        "2": {
+          "1": 310
+        }
+      }
     },
     {
       "faction": "Necrons",
@@ -859,7 +880,12 @@
       "pointsBySize": {
         "1": 95
       },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 105
+        }
+      }
     },
     {
       "faction": "Necrons",
@@ -887,7 +913,12 @@
       "pointsBySize": {
         "1": 110
       },
-      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"
+      "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
+      "laterCopyPointsBySize": {
+        "3": {
+          "1": 120
+        }
+      }
     },
     {
       "faction": "Necrons",
