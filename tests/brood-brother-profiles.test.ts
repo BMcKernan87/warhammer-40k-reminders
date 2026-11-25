@@ -84,3 +84,9 @@ it('keeps a single gunner on the two-model Recon missile team and both weapon mo
  expect(deck).toMatch(/1 × Recon Trooper — Laspistol \[pistol\][.)]/);
  expect(deck).not.toMatch(/Long-las|Meltagun/);
 });
+
+it('prints the Death Rider mounts’ Extra Attacks in the Fight phase for every selected rider',()=>{
+ const riders={...squad('Death Riders'),models:7};
+ const melee=sheet(riders).find(r=>r.title.includes('Melee weapon profiles')&&r.window==='Fight');
+ expect(melee?.summary).toMatch(/7 × Steed's savage claws[^.]*Extra Attacks/i);
+});

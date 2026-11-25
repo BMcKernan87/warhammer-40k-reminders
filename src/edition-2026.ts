@@ -1,3 +1,4 @@
+import {ASTRA_DETACHMENTS} from './astra-detachments.generated';
 import {GSC_DETACHMENTS} from './gsc-detachments.generated';
 import {currentGscDetachment} from './gsc-detachment-data';
 import {WORLD_EATERS_DETACHMENTS} from './world-eaters-detachments.generated';
@@ -100,19 +101,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   name:det.name,dp:det.dp as 1|2|3,disposition:det.objectives[0] as ForceDisposition,
   additionalDispositions:det.objectives.slice(1) as ForceDisposition[],
  })),
- "Astra Militarum":[
-  {name:"Abhuman Auxiliaries",disposition:"Take and Hold",dp:1},
-  {name:"Bridgehead Strike",disposition:"Priority Assets",dp:1},
-  {name:"Designation Force",disposition:"Reconnaissance",dp:1},
-  {name:"Armoured Infantry",disposition:"Take and Hold",dp:2},
-  {name:"Combined Arms",disposition:"Take and Hold",dp:3},
-  {name:"Grizzled Company",disposition:"Priority Assets",dp:3},
-  {name:"Hammer of the Emperor",disposition:"Purge the Foe",dp:2},
-  {name:"Mechanised Assault",disposition:"Purge the Foe",dp:2},
-  {name:"Recon Element",disposition:"Reconnaissance",dp:3},
-  {name:"Siege Regiment",disposition:"Disruption",dp:2},
-  {name:"Steel Hammer",disposition:"Purge the Foe",dp:2},
- ],
+ 'Astra Militarum':ASTRA_DETACHMENTS,
  "Adepta Sororitas":[
   {name:"Chorus of Condemnation",disposition:"Reconnaissance",dp:1},
   {name:"Sacred Champions",disposition:"Take and Hold",dp:1},
@@ -306,7 +295,7 @@ export function detachmentBudget(faction:Faction,selected:readonly string[],size
  const names=faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const groups=faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;

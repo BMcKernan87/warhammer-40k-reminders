@@ -18,11 +18,11 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  const entries=rosterCost2026(army).entries;
  const prices=new Map(entries.map(e=>[e.id,e.points]));
  const cost=(f:ArmyFormation)=>f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0);
- const orkAircraft=army.faction==='Orks'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
- if(orkAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',orkAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
- const compulsory=army.faction==='Orks'?orkMandatoryReservePoints(army,entries):0;
+ const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
+ if(army.faction==='Orks'&&mandatoryAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',mandatoryAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
+ const compulsory=army.faction==='Orks'?orkMandatoryReservePoints(army,entries):mandatoryAircraft.reduce((points,f)=>points+cost(f),0);
  const available=Math.max(0,reserveLimit-compulsory);
- const startingReserves=formations.filter(f=>reserveEligible.includes(f.id)&&!orkAircraft.includes(f)&&cost(f)<=available).map(f=>f.id);
+ const startingReserves=formations.filter(f=>reserveEligible.includes(f.id)&&!mandatoryAircraft.includes(f)&&cost(f)<=available).map(f=>f.id);
  const aircraftAllowance=compulsory?' After compulsory Aircraft, '+available+' points remain.':'';
  add('reserve-declaration','Declare Strategic Reserves','Pre-battle','start',
   'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.'+aircraftAllowance,startingReserves);

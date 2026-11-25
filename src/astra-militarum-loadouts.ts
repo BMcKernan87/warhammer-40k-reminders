@@ -1,10 +1,12 @@
 import {ASTRA_MILITARUM_KITS} from './astra-militarum-loadouts.generated';
+import {ASTRA_MILITARUM_NATIVE_ONLY_KITS} from './astra-militarum-native-loadouts.generated';
 import {equippedItems,slot,type KnightEquipment} from './knight-gear-options';
 import type {RosterInstance} from './roster-instances';
 
 export type {ModelEquipmentTable as GuardKit} from './model-equipment-slots';
 import {resolveModelEquipment,resizeModelEquipment,validModelEquipment,type Gear,type ResolvedKit} from './model-equipment-slots';
-const kits=new Map(ASTRA_MILITARUM_KITS.map(r=>[r.unit,r]));
+const broodNames=new Set(ASTRA_MILITARUM_KITS.map(r=>r.unit));
+const kits=new Map([...ASTRA_MILITARUM_KITS,...ASTRA_MILITARUM_NATIVE_ONLY_KITS].map(r=>[r.unit,r]));
 const cache=new Map<string,ResolvedKit>();
 const norm=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 
@@ -33,19 +35,27 @@ function resolve(unit:string,models?:number):ResolvedKit|undefined {
   const result=reconKit();cache.set(key,result);return result;
  }
  const result=resolveModelEquipment(kit,size)!;
+ if(unit==='Ratlings'){
+  if(size===10){
+   result.equipment={...result.equipment,slots:[...result.equipment.slots,slot('Squad companion',[],'Ratling Battlemutt')]};
+  }else{
+   result.models=result.models.map(b=>({...b,fixed:equippedItems(b),slots:[]}));
+   result.equipment={fixed:result.models.flatMap(b=>b.fixed),slots:[]};
+  }
+ }
  cache.set(key,result);
  return result;
 }
-export function broodBrotherLoadout(unit:string,models?:number):KnightEquipment|undefined{
+export function astraMilitarumLoadout(unit:string,models?:number):KnightEquipment|undefined{
  return resolve(unit,models)?.equipment;
 }
-export function validBroodBrotherGear(unit:string,gear:Gear,models?:number):boolean{
+export function validAstraMilitarumGear(unit:string,gear:Gear,models?:number):boolean{
  return validModelEquipment(resolve(unit,models),gear);
 }
-export function resizeBroodBrotherGear(unit:string,gear:Gear,models:number):Record<string,string>|undefined{
+export function resizeAstraMilitarumGear(unit:string,gear:Gear,models:number):Record<string,string>|undefined{
  return resizeModelEquipment(resolve(unit,models),gear);
 }
-export function broodBrotherModelLoadouts(squad:RosterInstance):{model:string;items:readonly string[]}[]{
+export function astraMilitarumModelLoadouts(squad:RosterInstance):{model:string;items:readonly string[]}[]{
  const resolved=resolve(squad.unit,squad.models);
  if(!resolved)return [];
  if(squad.unit==='Cadian Recon Squad'){
@@ -62,17 +72,28 @@ export function broodBrotherModelLoadouts(squad:RosterInstance):{model:string;it
 }
 export const guardFactionUpdate='https://assets.warhammer-community.com/eng_30-09_wh40k_faction_pack_astra_militarum-1hevkhdpmv-stfkch2tsz.pdf#page=24';
 export function kasrkinProfileConflict(squad:RosterInstance):boolean{
- return squad.unit==='Kasrkin'&&broodBrotherModelLoadouts(squad).some(b=>b.model==='Kasrkin Sergeant'&&b.items.includes('Power weapon'));
+ return squad.unit==='Kasrkin'&&astraMilitarumModelLoadouts(squad).some(b=>b.model==='Kasrkin Sergeant'&&b.items.includes('Power weapon'));
 }
-export function broodBrotherHasRangedWeapon(squad:RosterInstance):boolean{
+export function astraMilitarumHasRangedWeapon(squad:RosterInstance):boolean{
  const kit=kits.get(squad.unit);
  if(!kit)return false;
  const ranged=new Set(kit.ranged.map(norm));
- return equippedItems(broodBrotherLoadout(squad.unit,squad.models),squad.knightGear).some(name=>ranged.has(norm(name)));
+ return equippedItems(astraMilitarumLoadout(squad.unit,squad.models),squad.knightGear).some(name=>ranged.has(norm(name)));
 }
-export function broodBrotherWargearPoints(squad:RosterInstance):number{
+export function astraMilitarumWargearPoints(squad:RosterInstance):number{
  const costs=kits.get(squad.unit)?.costs;
  if(!costs||!Object.keys(costs).length)return 0;
  const prices=new Map(Object.entries(costs).map(([name,points])=>[norm(name),points]));
- return equippedItems(broodBrotherLoadout(squad.unit,squad.models),squad.knightGear).reduce((total,name)=>total+(prices.get(norm(name))??0),0);
+ return equippedItems(astraMilitarumLoadout(squad.unit,squad.models),squad.knightGear).reduce((total,name)=>total+(prices.get(norm(name))??0),0);
 }
+
+export function astraMilitarumWeaponCount(squad:RosterInstance,name:string):number{
+ const key=norm(name.split(/\s+[–—-]\s+/)[0]);
+ return equippedItems(astraMilitarumLoadout(squad.unit,squad.models),squad.knightGear).filter(item=>norm(item)===key).length;
+}
+export const broodBrotherLoadout=(unit:string,models?:number)=>broodNames.has(unit)?astraMilitarumLoadout(unit,models):undefined;
+export const validBroodBrotherGear=(unit:string,gear:Gear,models?:number)=>!broodNames.has(unit)||validAstraMilitarumGear(unit,gear,models);
+export const resizeBroodBrotherGear=(unit:string,gear:Gear,models:number)=>broodNames.has(unit)?resizeAstraMilitarumGear(unit,gear,models):undefined;
+export const broodBrotherModelLoadouts=(s:RosterInstance)=>broodNames.has(s.unit)?astraMilitarumModelLoadouts(s):[];
+export const broodBrotherHasRangedWeapon=(s:RosterInstance)=>broodNames.has(s.unit)&&astraMilitarumHasRangedWeapon(s);
+export const broodBrotherWargearPoints=(s:RosterInstance)=>broodNames.has(s.unit)?astraMilitarumWargearPoints(s):0;

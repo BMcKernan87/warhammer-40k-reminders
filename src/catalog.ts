@@ -1,3 +1,4 @@
+import {ASTRA_ARMY_UNITS} from './astra-army-data';
 import {GSC_UNITS} from './gsc-data';
 import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
 import {alliedRosterNames} from './titan-support-data';
@@ -31,7 +32,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},
  'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:["Skitarii Rangers","Skitarii Vanguard","Tech-Priest Dominus","Kataphron Breachers"],enhancements:[]},
  'Aeldari':{detachments:['Select detachment (unverified)'],units:["Farseer","Guardian Defenders","Dire Avengers","Wraithguard"],enhancements:[]},
- 'Astra Militarum':{detachments:['Select detachment (unverified)'],units:["Cadian Shock Troops","Leman Russ Battle Tank","Rogal Dorn Battle Tank","Commissar"],enhancements:[]},
+ 'Astra Militarum':{detachments:['Select detachment (unverified)'],units:ASTRA_ARMY_UNITS,enhancements:[]},
  'Black Templars':{detachments:['Select detachment (unverified)'],units:["High Marshal Helbrecht","Primaris Crusader Squad","Sword Brethren"],enhancements:[]},
  'Blood Angels':{detachments:['Select detachment (unverified)'],units:["Commander Dante","Death Company Marines","Sanguinary Guard"],enhancements:[]},
  'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:DAEMON_UNITS,enhancements:[]},

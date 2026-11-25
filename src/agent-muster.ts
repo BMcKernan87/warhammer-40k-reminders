@@ -49,7 +49,7 @@ export function agentMusterFindings(army:ArmySelection):RosterFinding[]{
     const cap=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].points;
     if(rosterCost2026(army).knownPoints>cap)findings.push({severity:'error',code:'points-limit',message:'The roster exceeds the '+cap+'-point allowance.'});
   }
-  if(['Imperial Agents','Imperial Knights','Adeptus Custodes'].includes(army.faction)){
+  if(['Astra Militarum','Imperial Agents','Imperial Knights','Adeptus Custodes'].includes(army.faction)){
     const {required,dedicatedSatisfied}=agentTransports(army);
     if(!dedicatedSatisfied)findings.push({severity:'error',code:'agent-transport-passengers',message:'The roster needs enough distinct eligible passengers to start every Dedicated Transport occupied: '+required.join(', ')+'.'});
   }

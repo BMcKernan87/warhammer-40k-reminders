@@ -1,12 +1,18 @@
 import type {ArmySelection} from './catalog';
 import {PHASES} from './engine';
+import {aircraftCoreReminders} from './aircraft-core';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {broodBrotherModelLoadouts} from './astra-militarum-loadouts';
+import {astraMilitarumModelLoadouts,astraMilitarumWeaponCount} from './astra-militarum-loadouts';
+import {ASTRA_CARDS,ASTRA_SHEETS} from './astra-militarum-data';
+import {eligibleAstraMilitarumUpgrades} from './astra-militarum-detachment-data';
+import {guardCardContext} from './guard-card-context';
+import {BATTLELINE_INQUISITORS} from './assigned-agent-data';
+import {ASSIGNED_AGENT_DATA} from './knight-assigned-agents.generated';
+import {knightWeaponCount} from './knight-loadouts';
 import {GUARD_CARDS} from './brood-brother-cards.generated';
 import type {BroodBrotherCard} from './brood-brother-reminders';
-import {gscAlliedKeywords,gscAlliedMusterUnits} from './gsc-allies';
-import {gscFiringDeckModelSlots,gscTransportOptions} from './gsc-army-transports';
-import {gscFormations,type GscFormation} from './gsc-transports';
+import {gscFiringDeckModelSlots} from './gsc-army-transports';
+import type {GscFormation} from './gsc-transports';
 import {equippedWeaponText,type KnightCardStats} from './knight-card-rules';
 import type {RosterInstance} from './roster-instances';
 
@@ -16,19 +22,35 @@ const enemyFire:Stage=['Shooting','opponent','during'],incomingSnap:Stage=['Move
 const sourceKey=(name:string)=>name.toLowerCase().replace(/[^a-z0-9]/g,'');
 const baseName=(name:string)=>name.split(/\s+[-–—]\s+/)[0];
 
-function scoutRange(group:GscFormation):number{
- const ranges=group.members.map(member=>Number(GUARD_CARDS[member.unit]?.core.find(a=>a.startsWith('Scouts '))?.match(/\d+/)?.[0]??0));
+const nativeSizes=new Map(ASTRA_SHEETS.map(s=>[s.unit,s.sizes[0]]));
+function carries(army:ArmySelection,s:RosterInstance,name:string):boolean{
+ const upgrade=army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit]??s.enhancement;
+ return upgrade===name&&eligibleAstraMilitarumUpgrades(army,s.unit,s.id).some(u=>u.name===name);
+}
+function scoutRange(army:ArmySelection,group:GscFormation,tags:(s:RosterInstance)=>Set<string>):number{
+ if(tags(group.body).has('REGIMENT')&&group.members.some(s=>s.attachedTo===group.body.id&&carries(army,s,'Eager Advance')))return 6;
+ const ranges=group.members.map(member=>{
+  const natural=Number(ASTRA_CARDS[member.unit]?.core.find(a=>a.startsWith('Scouts '))?.match(/\d+/)?.[0]??0);
+  // Survival Gear is borne by one model, even in a multi-model Command Squad.
+  return natural||((member.models??nativeSizes.get(member.unit))===1&&carries(army,member,'Survival Gear')?6:0);
+ });
  return Math.min(...ranges);
 }
-
+function inquisitorGuns(squad:RosterInstance):string[]{
+ if(!BATTLELINE_INQUISITORS.has(squad.unit))return [];
+ const agent=ASSIGNED_AGENT_DATA.find(s=>s.sheet.unit===squad.unit);
+ if(!agent)return [];
+ const guns=agent.weapons.filter(w=>w.type==='Ranged'&&!w.abilities.toLowerCase().includes('one shot')&&(squad.unit!=='Inquisitor'||knightWeaponCount(squad,w.name)));
+ return guns.length?[squad.id+' (1 × '+squad.unit+' — '+guns.map(w=>w.name+(w.abilities?' ['+w.abilities+']':'')).join(' / ')+')']:[];
+}
 function passengerGuns(group:GscFormation,deck:number):string[]{
  const result:string[]=[];
  for(const squad of group.members){
-  const card=GUARD_CARDS[squad.unit];
-  if(!card)continue;
+  const card=ASTRA_CARDS[squad.unit];
+  if(!card){result.push(...inquisitorGuns(squad));continue;}
   const profiles=card.weapons.filter(w=>w.phase==='Shooting'&&!w.abilities.some(a=>a.toLowerCase()==='one shot'));
   const bearerCounts=new Map<string,number>();
-  for(const bearer of broodBrotherModelLoadouts(squad)){
+  for(const bearer of astraMilitarumModelLoadouts(squad)){
    const slots=gscFiringDeckModelSlots(squad.unit,bearer.model);
    if(slots>deck)continue;
    const equipped=new Set(bearer.items.map(sourceKey));
@@ -50,26 +72,46 @@ function shootingStats(card:BroodBrotherCard,unit:string):KnightCardStats{
 }
 
 export function broodBrotherProfileReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[]{
- const permitted=new Set(gscAlliedMusterUnits(army));
- const guard=roster.filter(s=>permitted.has(s.unit)&&Object.hasOwn(GUARD_CARDS,s.unit));
- if(!guard.length)return [];
- const formations=gscFormations(army,roster),byBody=new Map(formations.map(g=>[g.body.id,g]));
- const transports=new Map(gscTransportOptions(army,[...roster]).map(o=>[o.transport.id,o]));
- const result:GeneratedReminder[]=[];
- for(const squad of guard){
-  const card=GUARD_CARDS[squad.unit],group=byBody.get(squad.id),cargo=transports.get(squad.id);
+ if(army.faction!=='Genestealer Cults')return [];
+ return guardProfiles(army,roster);
+}
+export function astraProfileReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[]{
+ if(army.faction!=='Astra Militarum')return [];
+ return guardProfiles(army,roster);
+}
+function guardProfiles(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[]{
+ const {guards,groups,tags,cargo}=guardCardContext(army,roster);
+ if(!guards.length)return [];
+ const native=army.faction==='Astra Militarum',cards=native?ASTRA_CARDS:GUARD_CARDS;
+ const byBody=new Map(groups.map(g=>[g.body.id,g]));
+ const result:GeneratedReminder[]=native?aircraftCoreReminders('11e-astra-',guards.filter(s=>tags(s).has('AIRCRAFT')).map(s=>s.id)):[];
+ for(const squad of guards){
+  const card=cards[squad.unit],group=byBody.get(squad.id),passengerIds=cargo.get(squad.id);
   function emit(title:string,[window,turn,timing]:Stage,summary:string,units=[squad.id],source=card.source){
-   result.push({id:['11e-brood-profile',squad.id,title,window,turn].join(':'),title:squad.id+' · '+title,window,turn,timing,origin:'unit',units,summary,source});
+   result.push({id:[native?'11e-guard-profile':'11e-brood-profile',squad.id,title,window,turn].join(':'),title:squad.id+' · '+title,window,turn,timing,origin:'unit',units,summary,source});
   }
-  const stats=shootingStats(card,squad.unit),titanic=gscAlliedKeywords(squad).has('TITANIC');
+  const stats=shootingStats(card,squad.unit),titanic=tags(squad).has('TITANIC');
   for(const stage of [shoot,fight,outgoingSnap]){
    const snap=stage===outgoingSnap,melee=stage===fight;
    if(snap&&titanic)continue;
-   const text=equippedWeaponText(squad,stats,melee?'Fight':'Shooting',snap);
+   const text=equippedWeaponText(squad,stats,melee?'Fight':'Shooting',snap,astraMilitarumWeaponCount);
    if(text)emit(melee?'Melee weapon profiles':'Ranged weapon profiles',stage,(snap?'When firing Overwatch, use snap shooting. ':'')+text);
   }
   for(const {model,save,restriction} of card.saves){
-   for(const stage of [enemyFire,incomingSnap,fight])emit(model+' · Invulnerable save',stage,'When an attack is allocated to the '+model+' model, it may use its '+save+'+ invulnerable save'+(restriction?' '+restriction:'')+'.');
+   const bearer=model.toUpperCase()===model?model.toLowerCase().replace(/\b\p{L}/gu,l=>l.toUpperCase()):model;
+   const limit=restriction&&!restriction.toLowerCase().includes(bearer.toLowerCase()+' only')?' '+restriction.replace(/\.+$/,'')+'.':'';
+   for(const stage of [enemyFire,incomingSnap,fight])emit(bearer+' · Invulnerable save',stage,'When an attack is allocated to the '+bearer+' model, it may use its '+save+'+ invulnerable save.'+limit);
+  }
+  const feel=card.core.find(c=>c.startsWith('Feel No Pain '));
+  if(feel)for(const phase of PHASES)emit(feel,[phase,'either','during'],'Each time a model from '+squad.id+' would lose a wound, roll a D6. On '+feel.slice('Feel No Pain '.length)+' it keeps that wound.');
+  if(['Bullgryn Squad','Ogryn Bodyguard'].includes(squad.unit)){
+   const bearers=astraMilitarumModelLoadouts(squad);
+   for(const item of ['Brute Shield','Slabshield']){
+    const count=bearers.filter(b=>b.items.some(i=>sourceKey(i)===sourceKey(item))).length;
+    if(!count)continue;
+    const effect=item==='Brute Shield'?'has a 4+ invulnerable save':'has a Wounds characteristic of '+(squad.unit==='Ogryn Bodyguard'?'7':'4');
+    for(const stage of [enemyFire,incomingSnap,fight])emit(item,stage,'When allocating attacks, only the '+count+' '+item+' bearer'+(count===1?'':'s')+' in '+squad.id+' '+(count===1?effect:effect.replace('has','have'))+'.');
+   }
   }
   if(card.damage){
    const {threshold,oc,source}=card.damage,condition='While this model has 1–'+threshold+' wounds remaining, ';
@@ -84,16 +126,23 @@ export function broodBrotherProfileReminders(army:ArmySelection,roster:readonly 
   }
   if(card.core.includes('Hover'))emit('Hover',['Movement','own','during'],'Each time this unit takes to the skies, use its full maximum movement distance without the usual 2″ reduction.');
   if(group){
-   const ids=group.members.map(m=>m.id),all=(ability:string)=>group.members.every(m=>GUARD_CARDS[m.unit]?.core.includes(ability));
-   if(all('Infiltrators'))emit('Infiltrators',pre,'During deployment, set this formation up anywhere more than 8″ horizontally from all enemy models and the enemy deployment zone.',ids);
-   if(all('Stealth'))for(const stage of [enemyFire,incomingSnap])emit('Stealth',stage,'This formation has the Benefit of Cover against ranged attacks while every model has Stealth.',ids);
-   const distance=scoutRange(group);
+   const ids=group.members.map(m=>m.id),all=(ability:string)=>group.members.every(m=>cards[m.unit]?.core.includes(ability));
+   if(all('Infiltrators')||group.members.length===1&&carries(army,squad,'Long-Range Scout'))emit('Infiltrators',pre,'During deployment, set this formation up anywhere more than 8″ horizontally from all enemy models and the enemy deployment zone.',ids);
+   if(all('Stealth'))for(const stage of [enemyFire,incomingSnap])emit(squad.unit==='Gaunt’s Ghosts'?'Stealth · Tanith Camo-cloaks':'Stealth',stage,'This formation has the Benefit of Cover against ranged attacks while every model has Stealth.'+(squad.unit==='Gaunt’s Ghosts'?' The Ghosts’ camo-cloaks also give their models the Benefit of Cover.':''),ids);
+   if(all('Fights First'))emit('Fights First',fight,'Resolve this formation in the Fights First step while every model has that ability.',ids);
+   if(group.members.length===1&&all('Lone Operative'))for(const stage of [enemyFire,incomingSnap])emit('Lone Operative',stage,'Unless part of an attached unit, this unit is invisible to enemies outside 12″, who cannot target it with Indirect Fire weapons either.',ids);
+   if(all('Deep Strike')){
+    emit('Deep Strike',pre,'This formation can start in Strategic Reserves and deploy using Deep Strike on ingress.',ids);
+    emit('Deep Strike',['Movement','own','during'],'On ingress from Strategic Reserves, normally from battle round two, set up anywhere more than 8″ horizontally away from every enemy unit, including inside the enemy deployment zone.',ids);
+    emit('Deep Strike · Rapid Ingress',outgoingSnap,'When using Rapid Ingress at the end of the enemy Movement phase, from battle round two, the whole formation can set up anywhere more than 8″ horizontally from every enemy unit.',ids);
+   }
+   const distance=scoutRange(army,group,tags);
    if(distance>0)emit('Scouts '+distance+'″',pre,'During Resolve Pre-battle Abilities, if wholly in your deployment zone, make a scout move up to '+distance+'″ and finish more than 8″ horizontally from every enemy unit. From Strategic Reserves, you can instead set up wholly within your deployment zone.',ids);
   }
-  if(!cargo?.passengers.length)continue;
-  const passengers=cargo.passengers.flatMap(id=>byBody.get(id)??[]);
-  if(cargo.dedicated){
-   const scouts=passengers.map(g=>({g,range:scoutRange(g)})).filter(s=>s.range>0);
+  if(!passengerIds?.length)continue;
+  const passengers=passengerIds.flatMap(id=>byBody.get(id)??[]);
+  if(tags(squad).has('DEDICATED TRANSPORT')){
+   const scouts=passengers.map(g=>({g,range:scoutRange(army,g,tags)})).filter(s=>s.range>0);
    if(scouts.length)emit('Scouts · Dedicated Transport',pre,'During Resolve Pre-battle Abilities, if this transport is wholly within your deployment zone and every embarked model has Scouts, it may scout up to the shortest embarked Scouts distance and finish more than 8″ horizontally from every enemy unit. Eligible passengers include '+scouts.map(({g,range})=>g.body.id+' ('+range+'″)').join(', ')+'.',[squad.id,...scouts.flatMap(({g})=>g.members.map(s=>s.id))]);
   }
   const deck=Number(card.core.find(c=>c.startsWith('Firing Deck '))?.match(/\d+/)?.[0]);
