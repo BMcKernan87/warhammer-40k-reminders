@@ -1,0 +1,26 @@
+// October 14 MFM v1.6 units, size and copy thresholds, and legal Leader pairs.
+// Pinned public MFM export: richardsolomou/wh40k-11e-mfm@6eed7b100ae508c1faa76a42bf7b55ecabb59107.
+export const VOTANN_MANUAL:readonly [string,[number,[number,number][]][],string[]][]=[
+ ["Arkanyst Evaluator",[[1,[[1,70]]]],[]],
+ ["Berehk Stornbröw",[[1,[[1,85]]]],["Cthonian Beserks"]],
+ ["Brôkhyr Iron-master",[[1,[[5,70]]]],["Brôkhyr Thunderkyn","Hearthkyn Warriors"]],
+ ["Brôkhyr Thunderkyn",[[1,[[3,80],[6,170]]],[3,[[3,90],[6,180]]]],[]],
+ ["Buri Aegnirssen",[[1,[[1,85]]]],[]],
+ ["Cthonian Beserks",[[1,[[5,90],[10,180]]]],[]],
+ ["Cthonian Earthshakers",[[1,[[2,100]]]],[]],
+ ["Einhyr Champion",[[1,[[1,65]]]],["Einhyr Hearthguard"]],
+ ["Einhyr Hearthguard",[[1,[[5,130],[10,270]]],[3,[[5,140],[10,280]]]],[]],
+ ["Grimnyr",[[1,[[3,65]]]],["Hearthkyn Warriors"]],
+ ["Hearthkyn Warriors",[[1,[[10,90]]]],[]],
+ ["Hekaton Land Fortress",[[1,[[1,250]]],[2,[[1,270]]]],[]],
+ ["Hernkyn Pioneers",[[1,[[3,85],[6,170]]],[3,[[3,95],[6,180]]]],[]],
+ ["Hernkyn Yaegirs",[[1,[[10,90]]]],[]],
+ ["Ironkin Steeljacks with Heavy Volkanite Disintegrators",[[1,[[3,80],[6,170]]],[3,[[3,90],[6,180]]]],[]],
+ ["Ironkin Steeljacks with Melee Weapons",[[1,[[3,75],[6,150]]],[3,[[3,85],[6,160]]]],[]],
+ ["Kâhl",[[1,[[1,65]]]],["Einhyr Hearthguard","Hearthkyn Warriors"]],
+ ["Kapricus Carrier",[[1,[[1,70]]],[4,[[1,80]]]],[]],
+ ["Kapricus Defenders",[[1,[[1,75],[2,150]]],[3,[[1,95],[2,170]]]],[]],
+ ["Memnyr Strategist",[[1,[[1,45]]]],["Ironkin Steeljacks with Heavy Volkanite Disintegrators","Ironkin Steeljacks with Melee Weapons"]],
+ ["Sagitaur",[[1,[[1,85]]],[4,[[1,95]]]],[]],
+ ["Ûthar the Destined",[[1,[[1,100]]]],["Einhyr Hearthguard","Hearthkyn Warriors"]],
+];

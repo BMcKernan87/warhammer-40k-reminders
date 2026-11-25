@@ -1,5 +1,8 @@
 import {orkDetachmentReminders,orkHasRangedAttack} from './ork-detachments';
 import {orkKeywords} from './ork-data';
+import {votannDatasheetReminders} from './votann-datasheets';
+import {votannStratagemReminders} from './votann-stratagems';
+import {votannArmyReminders} from './votann-army';
 import {shadowLegionHasRangedWeapon, shadowMarineReminders} from './shadow-legion-cards';
 import {alliedTitanAndKnightReminders,applyWarhoundStratagemCost} from './titan-support';
 import {isWarhound} from './titan-support-data';
@@ -10,6 +13,7 @@ import {formationShootingReminders} from './formation-shooting';
 import {formationDeploymentReminders} from './formation-deployment';
 import {coreStratagemReminders} from './core-stratagems-11th';
 import {DATASHEETS_2026} from './datasheets-2026';
+import {votannEnhancementReminders} from './votann-enhancements';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {daemonArmyReminders} from './chaos-daemon-detachments';
 import {custodesDatasheetReminders} from './custodes-datasheets';
@@ -18,6 +22,9 @@ import {custodesKeywords} from './adeptus-custodes-data';
 import {custodesFormationReminders} from './custodes-formations';
 import {orkDatasheetReminders} from './ork-datasheets';
 import {orkTransportReminders} from './ork-transports';
+import {votannHasRangedWeapon} from './votann-loadouts';
+import {votannKeywords} from './votann-muster-data';
+import {votannTransportReminders} from './votann-transports';
 import {custodesDetachmentReminders} from './custodes-detachments';
 import {chaosKnightDetachmentReminders,resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {daemonDatasheetReminders,daemonHasRangedWeapon} from './daemon-datasheets';
@@ -132,14 +139,16 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const agents=_army.faction==='Imperial Agents';
  const daemons=_army.faction==='Chaos Daemons';
  const custodes=_army.faction==='Adeptus Custodes';
+ const votann=_army.faction==='Leagues of Votann';
  const orks=_army.faction==='Orks';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks;
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
  result.push(...alliedTitanAndKnightReminders(_army,roster));
  if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
  if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
  if(orks)result.push(...orkDetachmentReminders(_army,roster),...orkDatasheetReminders(_army,roster));
+ if(votann)result.push(...votannArmyReminders(_army,roster),...votannDatasheetReminders(_army,roster),...votannStratagemReminders(_army,roster),...votannTransportReminders(_army,roster));
  if(custodes)result.push(...custodesDetachmentReminders(_army,roster),...custodesDatasheetReminders(_army,roster));
  if(formedArmy){
   const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
@@ -151,6 +160,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const keywords=(unit:string,id?:string)=>{
    if(isWarhound(unit))return unitKeywords.get(unit)??[];
    if(orks)return [...orkKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
+   if(votann)return [...votannKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(custodes)return [...custodesKeywords(_army,{unit,id:id??''})];
    const tags=unitKeywords.get(unit)??[];
    return id&&promoted.has(id)?[...tags,'CHARACTER']:tags;
@@ -160,7 +170,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
+  const hasGun=votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));
@@ -173,6 +183,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  }
  if(_army.faction==='Adeptus Custodes')result.push(...custodesFormationReminders(_army,roster));
  if(_army.faction==='Orks')result.push(...orkTransportReminders(_army,roster));
+ if(_army.faction==='Leagues of Votann')result.push(...votannEnhancementReminders(_army,roster));
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
   const formations=necronFormationRoots(_army,roster);

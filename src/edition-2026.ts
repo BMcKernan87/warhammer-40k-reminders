@@ -1,3 +1,4 @@
+import {VOTANN_DETACHMENTS} from './votann-detachments.generated';
 import type {Faction} from './catalog';
 import {DAEMON_DETACHMENTS} from './chaos-daemon-detachments.generated';
 export type ForceDisposition='Take and Hold'|'Disruption'|'Purge the Foe'|'Priority Assets'|'Reconnaissance';
@@ -211,18 +212,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Outlander Claw",disposition:"Reconnaissance",dp:2},
   {name:"Xenocreed Congregation",disposition:"Priority Assets",dp:2},
  ],
- "Leagues of Votann":[
-  {name:"Armoured Trailblazers",disposition:"Disruption",dp:1},
-  {name:"Farseekers",disposition:"Reconnaissance",dp:1},
-  {name:"Hearthguard Covenant",disposition:"Priority Assets",dp:1},
-  {name:"Brandfast Oathband",disposition:"Take and Hold",dp:2},
-  {name:"Dêlve Assault Shift",disposition:"Purge the Foe",dp:2},
-  {name:"Hearthband",disposition:"Priority Assets",dp:3},
-  {name:"Hearthfyre Arsenal",disposition:"Priority Assets",dp:2},
-  {name:"Mercenary Oathband",disposition:"Take and Hold",dp:2},
-  {name:"Needgaârd Oathband",disposition:"Purge the Foe",dp:2},
-  {name:"Persecution Prospect",disposition:"Disruption",dp:2},
- ],
+ 'Leagues of Votann':VOTANN_DETACHMENTS,
  "T’au Empire":[
   {name:"Advanced Acquisition Cadre",disposition:"Reconnaissance",dp:1},
   {name:"Auxillary Cadre",disposition:"Disruption",dp:1},
