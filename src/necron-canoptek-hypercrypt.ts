@@ -1,4 +1,5 @@
 import type {ArmySelection} from './catalog';
+import {necronFormationRoots} from './necron-retinues';
 import {resolvedWarlord} from './necron-muster-legality';
 import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
@@ -14,12 +15,14 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  const result:GeneratedReminder[]=[];
  const selected=army.detachments2026??[];
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
- const formations=roster.filter(s=>!s.attachedTo).map(s=>({id:s.id,members:[s,...roster.filter(l=>l.attachedTo===s.id)]}));
+ const formations=necronFormationRoots(army,roster);
+ const root=(s:RosterInstance)=>formations.find(f=>f.members.some(m=>m.id===s.id));
+ const attached=(s:RosterInstance)=>root(s)?.id!==s.id&&!!root(s);
  const matching=(predicate:(unit:string)=>boolean)=>formations.filter(f=>f.members.some(s=>predicate(s.unit))).map(f=>f.id);
  const crypteks=matching(u=>k.CRYPTEK.has(u)),constructs=matching(u=>canoptek.has(u));
  const courtUnits=[...new Set([...crypteks,...constructs])];
  const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units?:string[])=>result.push({id:'11e-necron-'+id,title,window,timing,summary,source:COURT_HYPERCRYPT_SOURCE,origin:'detachment',units});
- const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,timing,[s.id,...(s.attachedTo?[s.attachedTo]:[])]);
+ const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,timing,[s.id,...(attached(s)?[root(s)!.id]:[])]);
  if(selected.includes('Canoptek Court')){
   if(courtUnits.length){
    for(const phase of ['Command','Movement','Shooting','Charge','Fight'] as const)
@@ -39,14 +42,14 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
   for(const s of roster.filter(s=>COURT_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Dimensional Sanctum':bearer(s,'court-sanctum','Dimensional Sanctum','Pre-battle','The bearer’s formation gains Infiltrators.','start');break;
-    case 'Hyperphasic Fulcrum':if(s.attachedTo)for(const phase of ['Shooting','Fight'] as const)bearer(s,'court-fulcrum-'+phase,'Hyperphasic Fulcrum',phase,'While leading a unit wholly inside the matrix, its models re-roll Wound rolls of 1.');break;
+    case 'Hyperphasic Fulcrum':if(attached(s))for(const phase of ['Shooting','Fight'] as const)bearer(s,'court-fulcrum-'+phase,'Hyperphasic Fulcrum',phase,'While leading a unit wholly inside the matrix, its models re-roll Wound rolls of 1.');break;
     case 'Autodivinator':for(const phase of ['Command','Movement','Shooting','Charge','Fight'] as const)bearer(s,'court-autodivinator-'+phase,'Autodivinator',phase,'Whenever the opponent gains CP from an ability (not an army rule or discarded mission card), roll a D6; on 2+ gain 1 CP, subject to the core CP limit.');break;
     case 'Metalodermal Tesla Weave':bearer(s,'court-weave','Metalodermal Tesla Weave','Charge','Once per phase when an enemy declares a charge targeting this formation, roll D6: 2–5 deals D3 mortal wounds; 6 deals 3.');break;
    }
   }
  }
  if(selected.includes('Hypercrypt Legion')){
-  const infantry=matching(u=>k.INFANTRY.has(u)),vehicles=matching(u=>k.VEHICLE.has(u)),titanic=matching(u=>k.TITANIC.has(u)),nonmonsters=matching(u=>!k.MONSTER.has(u)),monolith=roster.some(s=>s.unit==='Monolith');
+  const infantry=matching(u=>k.INFANTRY.has(u)),vehicles=matching(u=>k.VEHICLE.has(u)),titanic=matching(u=>k.TITANIC.has(u)),nonmonsters=formations.filter(f=>!f.members.some(s=>k.MONSTER.has(s.unit))).map(f=>f.id),monolith=roster.some(s=>s.unit==='Monolith');
   const size:string=army.battleSize2026??'Strike Force';
   const limit=size==='Incursion'?1:size==='Onslaught'?3:2;
   emit('hypercrypt-hyperphasing','Hypercrypt Legion · Hyperphasing','End of opponent turn','Remove up to '+limit+' unengaged Necron units from the battlefield into Strategic Reserves. Deep Strike does not permit arrival in battle round one.','end',formations.map(f=>f.id));
