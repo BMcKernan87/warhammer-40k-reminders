@@ -1,3 +1,5 @@
+import {currentEcDetachment} from './emperors-children-detachment-data';
+import {EMP_CHILDREN_DETACHMENTS} from './emperors-children-detachments.generated';
 import {ASTRA_DETACHMENTS} from './astra-detachments.generated';
 import {GSC_DETACHMENTS} from './gsc-detachments.generated';
 import {currentGscDetachment} from './gsc-detachment-data';
@@ -53,18 +55,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Warpstrike Champions",disposition:"Disruption",dp:2},
  ],
  'World Eaters':WORLD_EATERS_DETACHMENTS,
- "Emperor’s Children":[
-  {name:"Elegant Brutes",disposition:"Take and Hold",dp:1},
-  {name:"Frenzied Host",disposition:"Disruption",dp:1},
-  {name:"Spectacle of Slaughter",disposition:"Purge the Foe",dp:1},
-  {name:"Carnival of Excess",disposition:"Priority Assets",dp:2},
-  {name:"Coterie of the Conceited",disposition:"Purge the Foe",dp:3},
-  {name:"Court of the Phoenician",disposition:"Purge the Foe",dp:2},
-  {name:"Mercurial Host",disposition:"Reconnaissance",dp:2},
-  {name:"Peerless Bladesmen",disposition:"Priority Assets",dp:2},
-  {name:"Rapid Evisceration",disposition:"Disruption",dp:2},
-  {name:"Slaanesh's Chosen",disposition:"Purge the Foe",dp:2},
- ],
+ 'Emperor’s Children':EMP_CHILDREN_DETACHMENTS,
  "Death Guard":[
   {name:"Paragons of Putrescence",disposition:"Priority Assets",dp:1},
   {name:"Contagion Engines",disposition:"Purge the Foe",dp:1},
@@ -292,7 +283,7 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
  const groups=faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];

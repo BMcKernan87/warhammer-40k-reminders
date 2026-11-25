@@ -1,3 +1,4 @@
+import {migrateEmperorsChildrenDetachments} from './emperors-children-saved-army';
 import {migrateOrkArmy} from './ork-saved-army';
 import {migrateGscDetachments} from './gsc-saved-army';
 import {migrateCustodesArmy} from './custodes-saved-army';
@@ -10,7 +11,7 @@ export interface SavedArmies {
 
 // Keep older rosters that fail current legality checks intact beside editable armies.
 export function openSavedArmies(raw: unknown, fallback: () => ProfileStore = initialStore): SavedArmies {
-  if (validateStore(raw) && raw.profiles.every(entry => migrateGscDetachments(migrateOrkArmy(entry.army)) === entry.army)) return {store: raw, retained: []};
+  if (validateStore(raw) && raw.profiles.every(entry => migrateEmperorsChildrenDetachments(migrateGscDetachments(migrateOrkArmy(entry.army))) === entry.army)) return {store: raw, retained: []};
   if (!raw || typeof raw !== 'object' || !('profiles' in raw) || !Array.isArray(raw.profiles)) {
     return {store: fallback(), retained: []};
   }
@@ -18,7 +19,7 @@ export function openSavedArmies(raw: unknown, fallback: () => ProfileStore = ini
   const profiles: ArmyProfile[] = [];
   const retained: unknown[] = [];
   for (const entry of raw.profiles) {
-    const army = migrateGscDetachments(migrateOrkArmy(migrateCustodesArmy(entry?.army)));
+    const army = migrateEmperorsChildrenDetachments(migrateGscDetachments(migrateOrkArmy(migrateCustodesArmy(entry?.army))));
     const single = {activeId: entry?.id, profiles: [army === entry?.army ? entry : {...entry,army}]};
     if (validateStore(single) && !profiles.some(profile => profile.id === entry.id)) {
       profiles.push(single.profiles[0]);

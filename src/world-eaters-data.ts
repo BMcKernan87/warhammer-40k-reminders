@@ -1,18 +1,16 @@
 import type {ArmySelection} from './catalog';
-import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data.generated';
+import {dreadbladesFor,isDreadblade} from './dreadblade-allies';
 import type {RosterInstance} from './roster-instances';
 import {alliedTitanAndKnightNames,WARHOUND_SHEETS} from './titan-support-data';
 import {WORLD_EATERS_SHEETS} from './world-eaters-data.generated';
 
 export {WORLD_EATERS_SHEETS};
 const native=new Map(WORLD_EATERS_SHEETS.map(s=>[s.unit,s]));
-const dreadblades=CHAOS_KNIGHT_SHEETS.filter(s=>s.keywords?.includes('CHAOS KNIGHTS')&&(s.keywords.includes('TITANIC')||s.keywords.includes('WAR DOG')))
- .map(s=>({...s,faction:'World Eaters' as const}));
-const dreadNames=new Set(dreadblades.map(s=>s.unit));
+const dreadblades=dreadbladesFor('World Eaters');
 export const WORLD_EATERS_ARMY_SHEETS=[...WORLD_EATERS_SHEETS,...dreadblades];
 export const WORLD_EATERS_UNITS=WORLD_EATERS_ARMY_SHEETS.map(s=>s.unit);
 const sheets=new Map([...WORLD_EATERS_ARMY_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction==='World Eaters')].map(s=>[s.unit,s]));
-export const isWorldEatersDreadblade=(unit:string)=>dreadNames.has(unit);
+export const isWorldEatersDreadblade=isDreadblade;
 export function worldEatersMusterUnits(army:ArmySelection):string[]{
  if(army.faction!=='World Eaters')return [];
  const daemonkin=army.detachments2026?.includes('Khorne Daemonkin');

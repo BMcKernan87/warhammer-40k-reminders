@@ -1,3 +1,5 @@
+import {emperorsChildrenLoadout,resizeEmperorsChildrenGear,validEmperorsChildrenGear} from './emperors-children-loadouts';
+import {isDreadblade} from './dreadblade-allies';
 import {isWorldEatersDreadblade} from './world-eaters-data';
 import {resizeWorldEaterGear,validWorldEaterGear,worldEaterLoadout} from './world-eater-loadouts';
 import {shadowMarineLoadout,isShadowMarine,validShadowMarineGear,resizeShadowMarineGear} from './shadow-legion-loadouts';
@@ -111,6 +113,7 @@ function accursedCultists(models:number):KnightEquipment {
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
+  if(faction==='Emperor’s Children'&&emperorsChildrenLoadout(squad.unit,models))return resizeEmperorsChildrenGear(squad,models);
   if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,models))return resizeWorldEaterGear(squad,models);
   if(isShadowMarine(squad.unit))return resizeShadowMarineGear(squad,models);
   if(!squad.knightGear)return undefined;
@@ -168,6 +171,7 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
   if(unit===alliedWarhound(faction))return warhoundEquipment;
+  if(faction==='Emperor’s Children')return emperorsChildrenLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
   if(faction==='World Eaters')return worldEaterLoadout(unit,models)??(isWorldEatersDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
   if(faction==='Orks')return orkLoadout(unit,models);
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
@@ -205,6 +209,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(faction==='Emperor’s Children'&&emperorsChildrenLoadout(squad.unit,squad.models))return validEmperorsChildrenGear(squad.unit,gear,squad.models);
   if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,squad.models))return validWorldEaterGear(squad.unit,gear,squad.models);
   if(faction==='Astra Militarum'&&astraMilitarumLoadout(squad.unit,squad.models))return validAstraMilitarumGear(squad.unit,gear,squad.models);
   if(!validOrkGear(squad.unit,gear,squad.models))return false;

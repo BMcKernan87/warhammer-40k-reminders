@@ -1,3 +1,4 @@
+import {EMPERORS_CHILDREN_UNITS} from './emperors-children-data';
 import {ASTRA_ARMY_UNITS} from './astra-army-data';
 import {GSC_UNITS} from './gsc-data';
 import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
@@ -41,7 +42,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Dark Angels':{detachments:['Select detachment (unverified)'],units:["Azrael","Deathwing Knights","Inner Circle Companions"],enhancements:[]},
  'Death Guard':{detachments:['Select detachment (unverified)'],units:["Plague Marines","Deathshroud Terminators","Mortarion"],enhancements:[]},
  'Drukhari':{detachments:['Select detachment (unverified)'],units:["Kabalite Warriors","Wyches","Incubi","Archon"],enhancements:[]},
- 'Emperor’s Children':{detachments:['Select detachment (unverified)'],units:["Noise Marines","Fulgrim","Lucius the Eternal"],enhancements:[]},
+ 'Emperor’s Children':{detachments:['Select detachment (unverified)'],units:EMPERORS_CHILDREN_UNITS,enhancements:[]},
  'Genestealer Cults':{detachments:['Select detachment (unverified)'],units:[...GSC_UNITS,...GSC_ALLIED_SHEETS.map(s=>s.unit)],enhancements:[]},
  'Grey Knights':{detachments:['Select detachment (unverified)'],units:["Strike Squad","Brotherhood Terminator Squad","Nemesis Dreadknight"],enhancements:[]},
  'Imperial Agents':{detachments:['Select detachment (unverified)'],units:ASSIGNED_AGENT_UNITS,enhancements:[]},
@@ -57,7 +58,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters'] as const){
+for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children'] as const){
  CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
 

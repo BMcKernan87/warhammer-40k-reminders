@@ -1,13 +1,12 @@
 import type {ArmySelection} from './catalog';
-import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data.generated';
+import {dreadbladesFor} from './dreadblade-allies';
 import {DAEMONIC_PACT_SHEETS} from './daemonic-pact-data.generated';
 import {SHADOW_LEGION_SHEETS} from './shadow-legion-data.generated';
 import {daemonicPactAllegiance} from './daemonic-pact';
 import type {RosterInstance} from './roster-instances';
 
 const native=DAEMONIC_PACT_SHEETS.map(s=>({...s,faction:'Chaos Daemons' as const}));
-const dreadblades=CHAOS_KNIGHT_SHEETS.filter(s=>s.keywords?.includes('CHAOS KNIGHTS')&&(s.keywords.includes('TITANIC')||s.keywords.includes('WAR DOG')))
- .map(s=>({...s,faction:'Chaos Daemons' as const}));
+const dreadblades=dreadbladesFor('Chaos Daemons');
 export const DAEMON_SHEETS=[...native,...SHADOW_LEGION_SHEETS,...dreadblades];
 export const DAEMON_UNITS=DAEMON_SHEETS.map(s=>s.unit);
 const sheets=new Map(DAEMON_SHEETS.map(s=>[s.unit,s]));
