@@ -1,10 +1,9 @@
 import type {ArmySelection} from './catalog';
+import {necronFormationRoots} from './necron-retinues';
 import {resolvedWarlord} from './necron-muster-legality';
 import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {necronKeywords as k} from './necron-wargear';
-import {instanceBodyguards,validMurdermindFormation} from './leader-eligibility';
-import {necronAttachmentRole} from './attachments';
 
 export const REMAINING_NECRON_SOURCE='https://wahapedia.ru/wh40k11ed/factions/necrons/';
 export const NECRON_CHARACTER_BEARERS=['Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Lokhust Lord','Catacomb Command Barge'] as const;
@@ -21,16 +20,11 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const selected=army.detachments2026??[];
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
  // Invalid imported attachments must not manufacture a formation keyword or a leading bonus.
- const legal=new Map<string,string>();
- for(const body of roster){
-  const candidates=roster.filter(l=>l.id!==body.id&&l.attachedTo===body.id&&!body.attachedTo&&characters.has(l.unit)&&instanceBodyguards(army,l).includes(body.unit));
-  if(candidates.length>2||new Set(candidates.map(l=>necronAttachmentRole(l.unit))).size!==candidates.length||!validMurdermindFormation(army,body,candidates))continue;
-  for(const l of candidates)legal.set(l.id,body.id);
- }
- const formations=roster.filter(s=>!legal.has(s.id)).map(s=>({id:s.id,body:s,members:[s,...roster.filter(l=>legal.get(l.id)===s.id)]}));
+ const formations=necronFormationRoots(army,roster);
+ const legal=new Map(formations.flatMap(f=>f.members.filter(s=>s.id!==f.id&&s.attachedTo===f.id).map(s=>[s.id,f.id] as const)));
  const matching=(predicate:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(predicate)).map(f=>f.id);
  const all=formations.map(f=>f.id);
- const led=formations.filter(f=>f.members.length>1).map(f=>f.id);
+ const led=formations.filter(f=>f.members.some(s=>legal.has(s.id))).map(f=>f.id);
  const characterUnits=matching(s=>characters.has(s.unit));
  const infantryCharacters=roster.filter(s=>characters.has(s.unit)&&k.INFANTRY.has(s.unit)).map(s=>s.id);
  const targetIds=(s:RosterInstance)=>[s.id,...(legal.has(s.id)?[legal.get(s.id)!]:[])];
