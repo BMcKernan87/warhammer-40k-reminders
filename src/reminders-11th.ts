@@ -9,6 +9,8 @@ import {knightJoinedBodyguard} from './leader-eligibility';
 import {chaosKnightDetachmentReminders,resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {chaosKnightDatasheetReminders,chaosKnightHasRangedWeapon} from './chaos-knight-datasheets';
 import {knightDetachmentReminders} from './imperial-knight-detachments';
+import {agentTransports} from './agent-transports';
+import {agentDetachmentReminders} from './imperial-agent-detachments';
 import {assignedAgentHasRanged,assignedAgentReminders} from './knight-assigned-agents';
 import {imperialKnightDatasheetReminders,knightHasRangedWeapon} from './imperial-knight-datasheets';
 import {ghostArkPassengers,necronFormationRoots} from './necron-retinues';
@@ -113,7 +115,8 @@ export function eligibleScoutReminders(army:ArmySelection):GeneratedReminder[]{
 
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const chaos=_army.faction==='Chaos Knights';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos;
+ const agents=_army.faction==='Imperial Agents';
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
  if(formedArmy){
@@ -136,7 +139,9 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
     (s:(typeof roster)[number])=>knightHasRangedWeapon(s)||assignedAgentHasRanged(s.unit);
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));
-  if(chaos)result.push(...chaosKnightDetachmentReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
+  if(agents||_army.faction==='Imperial Knights')result.push(...agentTransports(_army).cues);
+  if(agents)result.push(...assignedAgentReminders(_army),...agentDetachmentReminders(_army,roster));
+  else if(chaos)result.push(...chaosKnightDetachmentReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
   else if(_army.faction==='Imperial Knights')result.push(...knightDetachmentReminders(_army,roster),...imperialKnightDatasheetReminders(_army,roster),...assignedAgentReminders(_army));
   else result.push(...necronDeploymentReminders(_army,roster));
  }

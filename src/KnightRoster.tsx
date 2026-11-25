@@ -1,5 +1,6 @@
 import type {ArmySelection} from './catalog';
 import {DATASHEETS_2026,verifiedUnitSizes2026} from './datasheets-2026';
+import {agentWarlordCandidates,resolvedAgentWarlord,selectAgentWarlord} from './agent-muster';
 import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {chaosKnightWarlordCandidates,resolvedChaosKnightWarlord,selectChaosKnightWarlord} from './chaos-knight-muster';
 import {houndpackDogs,changeHoundpackCharacter} from './houndpack-selection';
@@ -18,9 +19,10 @@ export function KnightRoster({army,onChange}:Props) {
   const roster=expandRoster(army);
   const edit:Props['onChange']=change=>onChange(current=>change(individualArmy(current)));
   const chaos=army.faction==='Chaos Knights';
-  const warlords=chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const agents=army.faction==='Imperial Agents';
+  const warlords=agents?agentWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=agents?resolvedAgentWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=agents?selectAgentWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>

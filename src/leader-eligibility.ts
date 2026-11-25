@@ -1,13 +1,16 @@
 import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
-import {IMPERIAL_KNIGHT_SHEETS} from './imperial-knights-data';
+import {IMPERIAL_KNIGHT_SHEETS,knightMusterUnits} from './imperial-knights-data';
+import {ASSIGNED_AGENT_SHEETS,NATIVE_AGENT_SHEETS} from './assigned-agent-data';
+const knightSheets=[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS];
 import {expandRoster,type RosterInstance} from './roster-instances';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 /** Explicitly modeled Leader -> Bodyguard compatibility. Unlisted Leaders remain unsupported. */
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
+ 'Imperial Agents':Object.fromEntries(NATIVE_AGENT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Chaos Knights':Object.fromEntries(CHAOS_KNIGHT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
- 'Imperial Knights':Object.fromEntries(IMPERIAL_KNIGHT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
+ 'Imperial Knights':Object.fromEntries(knightSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  Orks:{
   Warboss:['Boyz','Nobz'], 'Warboss in Mega Armour':['Meganobz'],
   Painboy:['Boyz','Nobz'], Weirdboy:['Boyz'], 'Big Mek in Mega Armour':['Meganobz']
@@ -38,21 +41,25 @@ export function hasMurdermind(army:ArmySelection,leader:{id:string;unit:string})
 }
 export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:string}):readonly string[]{
  if(army.faction==='Chaos Knights'&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
- if(army.faction==='Imperial Knights'&&!army.detachments2026?.includes('Questor Forgepact'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
+ if(army.faction==='Imperial Knights'){
+  const eligible=knightMusterUnits(army);
+  return eligible.includes(leader.unit)?base.filter(unit=>eligible.includes(unit)):[];
+ }
  return hasMurdermind(army,leader)?[...new Set([...base,...MURDERMIND_BODYGUARDS])]:base;
 }
 
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
+ if(faction==='Imperial Agents')return NATIVE_AGENT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Necrons')return necronAttachmentRole(unit);
  if(faction==='Chaos Knights')return CHAOS_KNIGHT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
- return faction==='Imperial Knights'?IMPERIAL_KNIGHT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null:null;
+ return faction==='Imperial Knights'?knightSheets.find(s=>s.unit===unit)?.attachmentRole??null:null;
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Imperial Knights','Chaos Knights'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Imperial Knights','Chaos Knights','Imperial Agents'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);

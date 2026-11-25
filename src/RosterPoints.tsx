@@ -13,6 +13,7 @@ export function RosterPoints({army}:{army:ArmySelection}){
     {costs.entries.map(entry=>{
       const sheet=DATASHEETS_2026.find(d=>d.faction===army.faction&&d.unit===entry.unit);
       const extras=[
+        entry.extremisPoints&&'+'+entry.extremisPoints+' mandatory Extremis',
         entry.wargearPoints&&'+'+entry.wargearPoints+' weapons',
         entry.enhancementPoints&&'+'+entry.enhancementPoints+' enhancement',
         entry.bindingPoints&&'+'+entry.bindingPoints+' mandatory binding'

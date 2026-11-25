@@ -2,14 +2,10 @@ import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
 import {expandRoster} from './roster-instances';
 
-export interface KnightSlot {
-  name: string;
-  choices: {name:string; items:readonly string[]}[];
-}
-interface KnightEquipment {
-  fixed: readonly string[];
-  slots: readonly KnightSlot[];
-}
+import {chassis,slot,type KnightEquipment} from './knight-gear-options';
+import {agentLoadout,resizeAgentGear,validAgentGear} from './assigned-agent-loadouts';
+export {countedKnightItems,knightItemsLabel} from './knight-gear-options';
+export type {KnightSlot} from './knight-gear-options';
 
 const stubber='Questoris heavy stubber';
 const battleCannon='Rapid-fire battle cannon';
@@ -18,23 +14,7 @@ const gauntlet='Thunderstrike gauntlet';
 const missile='Shieldbreaker missile launcher';
 const siegebreaker='Twin siegebreaker cannon';
 const autocannon='Acastus autocannon';
-const none='None';
 
-export function countedKnightItems(items:readonly string[]):Record<string,number> {
-  const counts:Record<string,number>={};
-  for(const name of items) counts[name]=(counts[name]??0)+1;
-  return counts;
-}
-export function knightItemsLabel(items:readonly string[]):string {
-  return Object.entries(countedKnightItems(items)).map(([name,n])=>n>1?n+' × '+name:name).join(' + ')||none;
-}
-// In each slot the first option is the printed standard equipment.
-function slot(name:string,...options:(string|readonly string[])[]):KnightSlot {
-  return {name,choices:options.map(option=>{
-    const items=typeof option==='string'?[option]:option;
-    return {name:knightItemsLabel(items),items};
-  })};
-}
 const auxiliary=slot('Hull weapon','Meltagun',stubber);
 const carapace=slot('Carapace',[],'Ironstorm missile pod','Stormspear rocket pod','Twin Icarus autocannon');
 const arm=slot('Melee arm',sword,gauntlet);
@@ -44,7 +24,6 @@ const siegeClaw=['Siege claw','Rad cleanser'];
 const gatling='Chastiser gatling cannon',bombard='Frag bombard';
 const destrierSword='Bellatus reaper chainsword',spear='Thundershock spear';
 const feet='Titanic feet',armigerFeet='Armoured feet';
-const chassis=(fixed:readonly string[],...slots:KnightSlot[]):KnightEquipment=>({fixed,slots});
 
 function skitarii(rifle:string):KnightEquipment {
   // One Alpha and nine line models. Three distinct line models can replace
@@ -121,7 +100,8 @@ function accursedCultists(models:number):KnightEquipment {
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number):Record<string,string>|undefined {
-  if(squad.unit!=='Accursed Cultists'||!squad.knightGear?.Composition)return squad.knightGear;
+  if(!squad.knightGear)return undefined;
+  if(squad.unit!=='Accursed Cultists'||!squad.knightGear.Composition)return resizeAgentGear(squad.unit,squad.knightGear,models);
   const previous=Number.parseInt(squad.knightGear.Composition,10);
   const options=accursedCultists(models).slots[0].choices;
   const keep=options.find(c=>Number.parseInt(c.name,10)>=previous)??options.at(-1)!;
@@ -166,13 +146,14 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
   if(faction==='Imperial Knights'&&Object.hasOwn(IMPERIAL_KNIGHT_LOADOUTS,unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
+  if(faction==='Imperial Knights'||faction==='Imperial Agents')return agentLoadout(unit,models);
   if(faction!=='Chaos Knights'||!Object.hasOwn(CHAOS_KNIGHT_LOADOUTS,unit))return undefined;
   if(models!==undefined&&unit==='Cultist Mob')return Number.isInteger(models)&&models>=10&&models<=20?cultistMob(models):undefined;
   if(models!==undefined&&unit==='Accursed Cultists')return Number.isInteger(models)&&models>=8&&models<=16?accursedCultists(models):undefined;
   return CHAOS_KNIGHT_LOADOUTS[unit];
 }
 function registeredLoadout(unit:string,models?:number) {
-  return knightLoadoutFor('Imperial Knights',unit)??knightLoadoutFor('Chaos Knights',unit,models);
+  return knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models);
 }
 export function knightEquippedItems(squad:RosterInstance):string[] {
   const sheet=registeredLoadout(squad.unit,squad.models);
@@ -195,6 +176,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=faction?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(!validAgentGear(squad.unit,gear,squad.models))return false;
   if(squad.unit==='Traitor Guardsmen Squad')return specialistWeapons.every(name=>knightWeaponCount(squad,name)<=1);
   return squad.unit!=='Knight Destrier'||(knightWeaponCount(squad,destrierSword)<=1&&knightWeaponCount(squad,spear)<=1);
 }
