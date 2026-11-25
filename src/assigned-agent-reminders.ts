@@ -1,3 +1,6 @@
+import {mechanicusMusterUnits} from './mechanicus-army-data';
+import {mechanicusKeywords} from './mechanicus-keywords';
+import {mechanicusReactionShooting} from './mechanicus-reactions';
 import {sororitasReactionShooting} from './sororitas-reactions';
 import {sororitasAgentName,sororitasMusterUnits,sororitasKeywords} from './sororitas-army-data';
 import {astraAgentName,astraMilitarumKeywords,astraMusterUnits} from './astra-muster-data';
@@ -77,9 +80,9 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    if(squad.id===traders[0]?.id){
     const led=traders.flatMap(t=>{const b=knightJoinedBodyguard(army,t);return b?[t.id,b.id]:[];});
     if(led.length)emit('deals','Backroom Deals','Pre-battle','When declaring formations, select one Rogue Trader Entourage that is leading. Its entire formation gains Infiltrators and can deploy more than 8″ horizontally from the enemy deployment zone and all enemies.','either','during',led);
-    const eligible=army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
+    const eligible=army.faction==='Adeptus Mechanicus'?mechanicusMusterUnits(army):army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
     const battleline=roster.filter(s=>{
-     const keys=army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
+     const keys=army.faction==='Adeptus Mechanicus'?[...mechanicusKeywords(army,s)]:army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
      return eligible.includes(s.unit)&&keys?.includes('IMPERIUM')&&(keys.includes('BATTLELINE')||(keys.includes('ARMIGER')&&army.detachments2026?.includes('Spearhead-at-arms')));
     });
     if(battleline.length)emit('warrant','Warrant of Trade','Pre-battle','After both armies deploy, redeploy up to D3 friendly Imperium Battleline units. They may enter Strategic Reserves even beyond its normal allowance. Eligible units: '+battleline.map(s=>s.id).join(', ')+'.','either','during',[squad.id,...battleline.map(s=>s.id)]);
@@ -238,6 +241,13 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    for(const phase of ['Movement','Shooting'] as const){
     emit('deadshot','Deadshot',phase,'When this agent is selected to shoot, enemy units lose Lone Operative for its shooting and Hidden enemies have +15″ detection range.');
     emit('shieldbreaker','Shieldbreaker',phase,useLimit+' when declaring exitus rifle targets, choose a shieldbreaker round. Until phase end, add 1 to that rifle’s Wound rolls and every successful wound is critical.');
+   }
+  }
+  if(army.faction==='Adeptus Mechanicus'){
+   const reactions=mechanicusReactionShooting(army,squad,roster);
+   if(reactions.length){
+    const ids=new Set(['weapons','no-mercy','xenos'].map(key=>'11e-agent-'+squad.id+'-'+key+'-Shooting'));
+    for(const row of result.filter(r=>ids.has(r.id)&&r.turn==='own'))result.push({...row,id:row.id+'-mechanicus-reaction',turn:'opponent',summary:'Only when making normal reaction shots through '+reactions.join('; or ')+': '+row.summary});
    }
   }
   if(army.faction==='Adepta Sororitas'){
