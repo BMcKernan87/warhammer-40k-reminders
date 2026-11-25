@@ -225,7 +225,7 @@ export function astraMilitarumDetachmentReminders(army:ArmySelection,roster:read
    case '000010787003':issue('Shooting','own','during','The bearer may re-roll the Damage roll of its ranged attacks.');break;
    case '000009861003':issue('Shooting','own','start','Choose a friendly Transport within 3″ of the Tech-Priest, excluding Aircraft and Titanic models. Its attacks can re-roll Hit rolls this phase.',roots(shooter(transports.filter(f=>!kw(f,'TITANIC')&&!kw(f,'AIRCRAFT')))));break;
    case '000010791003':if(carriers(form).length)issue('Fight','opponent','end','The unengaged bearer’s unit can embark if every model is within 3″ of the same compatible Guard Transport. Possible carriers: '+names(carriers(form))+'.',formation);break;
-   case '000009857003':for(const p of ['Movement','Charge'] as const)issue(p,'own','during','The enemy cannot target the bearer’s formation with Fire Overwatch.',formation);break;
+   case '000009857003':issue('Movement','own','end','The enemy cannot target the bearer’s formation with Fire Overwatch.',formation);break;
    case '000008380003':if(form.root!==bearer&&form.ranged)issue('Shooting','own','during','While this bearer is leading, if its formation Remained Stationary, successful unmodified ranged Hit rolls of 5+ are Critical Hits.',formation);break;
    case '000010912003':inbound('The Commissar bearer has Feel No Pain 4+.');break;
    case '000009865004':issue('Command','either','during','Add 3 to this Vehicle Officer’s Objective Control.');break;

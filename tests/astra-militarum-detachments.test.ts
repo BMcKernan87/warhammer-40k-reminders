@@ -78,6 +78,10 @@ describe('Astra Militarum detachment effects',()=>{
   expect(named(force([grizzled],tank),'Ruthless Discipline')).toHaveLength(0);
   expect(named(force([grizzled],tc,tank),'Ruthless Discipline')[0].units).toContain(id(tank));
  });
+ it('limits Flash Grenades to the enemy Fire Overwatch reaction at the end of your Movement phase',()=>{
+  const a=equip(force([siege],castellan,cadians),castellan,'Flash Grenades');
+  expect(card(a,'000009857003').map(r=>[r.window,r.turn,r.timing])).toEqual([['Movement','own','end']]);
+ });
  it('gates Titanic Character upgrades per nominated copy and keeps bearer-only damage distinct from cargo',()=>{
   const a=config(force([steel],'Stormlord','Stormlord',cadians),'Stormlord',{characterPromotion:true});
   expect(eligibleAstraMilitarumUpgrades(a,'Stormlord',id('Stormlord')).map(x=>x.name)).toContain('Assault Hatches');
