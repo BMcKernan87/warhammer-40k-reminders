@@ -26,8 +26,6 @@ function referenceWindows(rule:TriggerRule):ReminderWindow[]{
   if(['macro-projector','reanimation-beam','legion','nullstone','gloom','rites','amulet'].includes(rule.id))return [...PHASES];
   if(rule.id==='command-king')return ['Command'];
   if(rule.id==='murder')return ['Shooting','Fight'];
-  if(rule.id==='thrall-fight')text+=' If this model subsequently returns before its unit is selected to fight, it may fight again (FAQ).';
-  if(rule.id==='hard-wired')text='Against the closest eligible enemy, re-roll Hit rolls of 1; if that enemy is within range of an opponent-controlled objective, re-roll any Hit roll instead. Both conditions are required for full re-rolls (FAQ).';
   if(rule.id==='doomsday-still')return ['Movement'];
   if(rule.id==='tomb-shield-save')return ['Shooting','Fight'];
   if(rule.id==='tunnelling')return ['End of opponent turn'];
@@ -88,6 +86,8 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
     if(selected.includes('Enmitic exterminator'))cues.push('Enmitic exterminator: re-roll Wound rolls of 1 against other targets');
     text=cues.join('. ')+'.';
   }
+  if(rule.id==='thrall-fight')text+=' If this model subsequently returns before its unit is selected to fight, it may fight again (FAQ).';
+  if(rule.id==='hard-wired')text='Against the closest eligible enemy, re-roll Hit rolls of 1; if that enemy is within range of an opponent-controlled objective, re-roll any Hit roll instead. Both conditions are required for full re-rolls (FAQ).';
   if(rule.id==='doomsday-still')return 'Your Movement phase: if this model remains stationary, its doomsday cannon gains Devastating Wounds until turn end.';
   if(rule.id==='timesplinter-mantle')text='This formation has Stealth (Benefit of Cover against ranged attacks if every model has Stealth); incoming melee attacks suffer −1 to Hit.';
   if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
