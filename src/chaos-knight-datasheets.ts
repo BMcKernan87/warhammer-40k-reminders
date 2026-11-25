@@ -3,6 +3,7 @@ import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder, ReminderWindow} from './generated-reminders';
 import {PHASES} from './engine';
 import {chaosKnightMusterUnits, CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
+import {isWorldEatersDreadblade,worldEatersMusterUnits} from './world-eaters-data';
 import {daemonMusterUnits} from './chaos-daemons-data';
 import {resolvedWarDogCharacterIds,walkerText} from './chaos-knight-detachments';
 import {knightJoinedBodyguard} from './leader-eligibility';
@@ -73,9 +74,9 @@ const auras:Readonly<Record<string,Aura>>={
 
 const scout='During Resolve Pre-battle Abilities, if wholly in your deployment zone Scout up to 6″ and finish more than 8″ horizontally from enemies. From Strategic Reserves, you may instead enter wholly within your deployment zone.';
 export function chaosKnightDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[] {
-  const dreadblades=army.faction==='Chaos Daemons';
+  const dreadblades=army.faction==='Chaos Daemons'||army.faction==='World Eaters';
   if(!dreadblades&&army.faction!=='Chaos Knights')return [];
-  const allowed=dreadblades?daemonMusterUnits(army):chaosKnightMusterUnits(army);
+  const allowed=army.faction==='World Eaters'?worldEatersMusterUnits(army).filter(isWorldEatersDreadblade):dreadblades?daemonMusterUnits(army):chaosKnightMusterUnits(army);
   const eligible=roster.filter(s=>allowed.includes(s.unit)&&KNIGHT_CARD_STATS[s.unit]);
   const dogs=eligible.filter(s=>hasKeyword(s,'WAR DOG'));
   const helhunt=army.detachments2026?.includes('Helhunt Lance');

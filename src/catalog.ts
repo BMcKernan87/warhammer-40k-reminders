@@ -4,6 +4,7 @@ import {alliedRosterNames} from './titan-support-data';
 import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
 import {DAEMON_UNITS} from './chaos-daemons-data';
 import {ORK_UNITS} from './ork-data';
+import {WORLD_EATERS_UNITS} from './world-eaters-data';
 import {VOTANN_UNITS} from './votann-muster-data';
 import {CUSTODES_UNITS} from './adeptus-custodes-data';
 import {CHAOS_KNIGHT_UNITS} from './chaos-knights-data';
@@ -48,14 +49,14 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Space Wolves':{detachments:['Select detachment (unverified)'],units:["Thunderwolf Cavalry","Blood Claws","Logan Grimnar"],enhancements:[]},
  'T’au Empire':{detachments:['Select detachment (unverified)'],units:["Breacher Team","Strike Team","Crisis Battlesuits","Riptide Battlesuit"],enhancements:[]},
  'Thousand Sons':{detachments:['Select detachment (unverified)'],units:["Rubric Marines","Scarab Occult Terminators","Magnus the Red"],enhancements:[]},
- 'World Eaters':{detachments:['Select detachment (unverified)'],units:["Khorne Berzerkers","Eightbound","Angron"],enhancements:[]},
+ 'World Eaters':{detachments:['Select detachment (unverified)'],units:WORLD_EATERS_UNITS,enhancements:[]},
  'Space Marines':{
   detachments:['Gladius Task Force','Firestorm Assault Force','Ironstorm Spearhead','Vanguard Spearhead','Anvil Siege Force','Stormlance Task Force','1st Company Task Force'],
   units:['Marneus Calgar','Roboute Guilliman','Captain','Lieutenant','Judiciar','Apothecary Biologis','Chaplain','Intercessor Squad','Assault Intercessor Squad','Heavy Intercessor Squad','Bladeguard Veteran Squad','Aggressor Squad','Eradicator Squad','Infernus Squad','Terminator Squad','Sternguard Veteran Squad','Inceptor Squad','Hellblaster Squad','Ballistus Dreadnought','Redemptor Dreadnought','Brutalis Dreadnought','Land Raider','Repulsor Executioner'],
   enhancements:[]
  }
 };
-for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights'] as const){
+for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters'] as const){
  CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
 

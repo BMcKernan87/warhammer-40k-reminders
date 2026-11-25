@@ -2,6 +2,9 @@ import {broodBrotherWargearPoints} from './astra-militarum-loadouts';
 import {GSC_SHEETS} from './gsc-data';
 import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
 import {eligibleGscUpgrades} from './gsc-detachment-data';
+import {eligibleWorldEatersUpgrades} from './world-eaters-detachment-data';
+import {worldEaterWeaponCount} from './world-eater-loadouts';
+import {WORLD_EATERS_ARMY_SHEETS,isWorldEatersDreadblade} from './world-eaters-data';
 import {WARHOUND_SHEETS,AGENT_FREEBLADE_SHEETS} from './titan-support-data';
 import {agentExtremisPoints,eligibleAgentUpgrades} from './imperial-agent-detachments';
 import type {ArmySelection} from './catalog';
@@ -46,7 +49,7 @@ export interface Datasheet2026 {
  verified:'sizes'|'sizes-and-points';
 }
 /** Incremental 11th-edition registry: no estimated point costs. */
-export const DATASHEETS_2026:readonly Datasheet2026[]=[...IMPORTED_DATASHEETS_2026,...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS,...DAEMON_SHEETS,...CUSTODES_ARMY_SHEETS,...ORK_SHEETS,...VOTANN_SHEETS,...GSC_SHEETS,...GSC_ALLIED_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction!=='Adeptus Custodes'),...AGENT_FREEBLADE_SHEETS];
+export const DATASHEETS_2026:readonly Datasheet2026[]=[...IMPORTED_DATASHEETS_2026,...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS,...DAEMON_SHEETS,...CUSTODES_ARMY_SHEETS,...ORK_SHEETS,...VOTANN_SHEETS,...GSC_SHEETS,...GSC_ALLIED_SHEETS,...WORLD_EATERS_ARMY_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction!=='Adeptus Custodes'),...AGENT_FREEBLADE_SHEETS];
 export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string;priceNote?:string;basePoints?:number|null;enhancementPoints?:number;bindingPoints?:number;extremisPoints?:number;wargearPoints?:number}[]}
 export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet2026[]=DATASHEETS_2026):RosterCost2026{
  const copies=new Map<string,number>();
@@ -68,12 +71,14 @@ export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet202
   if(chosen&&army.faction==='Imperial Knights')enhancementPoints=eligibleKnightUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Orks')enhancementPoints=eligibleOrkUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Genestealer Cults')enhancementPoints=eligibleGscUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
+  if(chosen&&army.faction==='World Eaters')enhancementPoints=eligibleWorldEatersUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
   if(chosen&&army.faction==='Leagues of Votann')enhancementPoints=eligibleVotannUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Adeptus Custodes')enhancementPoints=eligibleCustodesUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Daemons')enhancementPoints=eligibleDaemonUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Knights')enhancementPoints=eligibleChaosKnightUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
-  const wargearPoints=army.faction==='Genestealer Cults'&&sheet?.keywords?.includes('ASTRA MILITARUM')?broodBrotherWargearPoints(instance):['Genestealer Cults','Imperial Agents','Imperial Knights','Chaos Knights','Chaos Daemons','Adeptus Custodes','Orks'].includes(army.faction)?Object.entries(sheet?.wargearPoints??{}).reduce(
-   (points,[item,cost])=>points+cost*knightWeaponCount(instance,item),0):0;
+  const countWargear=army.faction==='World Eaters'&&!isWorldEatersDreadblade(instance.unit)?worldEaterWeaponCount:knightWeaponCount;
+  const wargearPoints=army.faction==='Genestealer Cults'&&sheet?.keywords?.includes('ASTRA MILITARUM')?broodBrotherWargearPoints(instance):['Genestealer Cults','Imperial Agents','Imperial Knights','Chaos Knights','Chaos Daemons','Adeptus Custodes','Orks','World Eaters'].includes(army.faction)?Object.entries(sheet?.wargearPoints??{}).reduce(
+   (points,[item,cost])=>points+cost*countWargear(instance,item),0):0;
   const bindingPoints=army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')?PANTHEON_BINDINGS[instance.unit]?.points??0:0;
   const extremisPoints=agentExtremisPoints(army,instance.unit);
   const points=basePoints===null||enhancementPoints===null?null:basePoints+enhancementPoints+bindingPoints+wargearPoints+extremisPoints;

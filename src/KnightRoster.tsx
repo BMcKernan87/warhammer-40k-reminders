@@ -5,6 +5,7 @@ import {agentWarlordCandidates,resolvedAgentWarlord,selectAgentWarlord} from './
 import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {daemonWarlordCandidates,resolvedDaemonWarlord,selectDaemonWarlord} from './chaos-daemon-muster';
 import {orkWarlordCandidates,resolvedOrkWarlord,selectOrkWarlord} from './ork-muster';
+import {worldEatersWarlordCandidates,resolvedWorldEatersWarlord,selectWorldEatersWarlord} from './world-eaters-muster';
 import {votannWarlordCandidates,resolvedVotannWarlord,selectVotannWarlord} from './votann-muster';
 import {custodesWarlordCandidates,resolvedCustodesWarlord,selectCustodesWarlord} from './custodes-muster';
 import {chaosKnightWarlordCandidates,resolvedChaosKnightWarlord,selectChaosKnightWarlord} from './chaos-knight-muster';
@@ -28,11 +29,12 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
+  const eaters=army.faction==='World Eaters';
   const cult=army.faction==='Genestealer Cults';
   const votann=army.faction==='Leagues of Votann';
-  const warlords=cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>

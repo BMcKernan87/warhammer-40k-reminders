@@ -1,6 +1,7 @@
 import {GSC_SHEETS,GSC_UNITS} from './gsc-data';
 import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
 import {gscAlliedMusterUnits} from './gsc-allies';
+import {WORLD_EATERS_SHEETS,worldEatersAdditionalBodyguards,worldEatersMusterUnits} from './world-eaters-data';
 import {VOTANN_SHEETS} from './votann-data.generated';
 import {DAEMON_SHEETS,daemonMusterUnits} from './chaos-daemons-data';
 import {isDaemonicPactUnit} from './daemonic-pact';
@@ -18,6 +19,7 @@ import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
  'Genestealer Cults':Object.fromEntries(gscSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
+ 'World Eaters':Object.fromEntries(WORLD_EATERS_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Leagues of Votann':Object.fromEntries(VOTANN_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Imperial Agents':Object.fromEntries(NATIVE_AGENT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Chaos Daemons':Object.fromEntries(DAEMON_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -65,6 +67,10 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
   });
   return [...new Set([...base,...native.map(s=>s.unit)])];
  }
+ if(army.faction==='World Eaters'){
+  const allowed=worldEatersMusterUnits(army);
+  return [...new Set([...base,...worldEatersAdditionalBodyguards(army,leader)])].filter(unit=>allowed.includes(unit));
+ }
  if(army.faction==='Orks')return [...new Set([...base,...orkAdditionalBodyguards(army,leader)])];
  if(army.faction==='Imperial Knights'){
   const eligible=knightMusterUnits(army);
@@ -81,6 +87,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
  if(faction==='Chaos Daemons')return DAEMON_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Orks')return ORK_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Genestealer Cults')return gscSheets.find(s=>s.unit===unit)?.attachmentRole??null;
+ if(faction==='World Eaters')return WORLD_EATERS_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Leagues of Votann')return VOTANN_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Adeptus Custodes')return CUSTODES_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Chaos Knights')return CHAOS_KNIGHT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -88,7 +95,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);

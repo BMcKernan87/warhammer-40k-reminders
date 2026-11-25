@@ -2,6 +2,7 @@ import {gscMusterFindings} from './gsc-muster';
 import {alliedTitanAndKnightFindings} from './titan-support';
 import {daemonMusterFindings} from './chaos-daemon-muster';
 import {orkMusterFindings} from './ork-muster';
+import {worldEatersMusterFindings} from './world-eaters-muster';
 import {votannMusterFindings} from './votann-muster';
 import {custodesMusterFindings} from './custodes-muster';
 import {chaosKnightMusterFindings} from './chaos-knight-muster';
@@ -17,7 +18,7 @@ import {upgradeError2026} from './upgrades-2026';
 export interface RosterFinding {code:string;severity:'error'|'warning'|'info';message:string;unit?:string}
 /** Auditable checks only. This is not a substitute for current official points and mission rules. */
 export function rosterFindings(army:ArmySelection):RosterFinding[]{
- const findings:RosterFinding[]=army.faction==='Genestealer Cults'?gscMusterFindings(army):army.faction==='Leagues of Votann'?votannMusterFindings(army):army.faction==='Orks'?orkMusterFindings(army):army.faction==='Adeptus Custodes'?custodesMusterFindings(army):army.faction==='Chaos Daemons'?daemonMusterFindings(army):army.faction==='Imperial Knights'?knightMusterFindings(army):chaosKnightMusterFindings(army);
+ const findings:RosterFinding[]=army.faction==='World Eaters'?worldEatersMusterFindings(army):army.faction==='Genestealer Cults'?gscMusterFindings(army):army.faction==='Leagues of Votann'?votannMusterFindings(army):army.faction==='Orks'?orkMusterFindings(army):army.faction==='Adeptus Custodes'?custodesMusterFindings(army):army.faction==='Chaos Daemons'?daemonMusterFindings(army):army.faction==='Imperial Knights'?knightMusterFindings(army):chaosKnightMusterFindings(army);
  if(army.faction!=='Adeptus Custodes')findings.push(...alliedTitanAndKnightFindings(army));
  if(['Imperial Agents','Imperial Knights','Adeptus Custodes'].includes(army.faction))findings.push(...agentMusterFindings(army));
  if(!army.detachments2026?.length)findings.push({code:'no-11e-detachment',severity:'warning',message:'Select at least one 11th-edition detachment to enable detachment-specific reminders.'});
@@ -29,7 +30,7 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
   if(army.faction==='Necrons'){
    const limit=necronUnitLimit(army,unit);
    if(group.length>limit)findings.push({code:'rule-of-three',severity:'error',unit,message:unit+': '+group.length+' squads exceed the 11th-edition limit of '+limit+'.'});
-  }else if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults'].includes(army.faction)&&group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(army.faction,unit)?2:1)&&!isDedicatedTransport(army.faction,unit))
+  }else if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction)&&group.length>BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].unitLimit*(isBattleline(army.faction,unit)?2:1)&&!isDedicatedTransport(army.faction,unit))
    findings.push({code:'rule-of-three',severity:'warning',unit,message:unit+': '+group.length+' units exceed the baseline selected battle-size copy limit; check official datasheet-specific exceptions.'});
   const sizes=verifiedUnitSizes2026(army,unit);
   if(!sizes)findings.push({code:'size-unverified',severity:'info',unit,message:unit+': 11th-edition model-count legality has not been source-verified for this datasheet.'});
@@ -46,7 +47,7 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
   else if(!resolvedWarlord(army))findings.push({code:'warlord-required',severity:'error',message:'Choose an eligible Warlord from the roster.'});
  }
  const attached=instances.filter(x=>x.attachedTo);
- if(attached.length&&!['Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults'].includes(army.faction))findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
+ if(attached.length&&!['Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters'].includes(army.faction))findings.push({code:'leader-exceptions',severity:'info',message:'Leader eligibility is partially modeled; special multi-Leader and datasheet exceptions still require verification.'});
  if(!DETACHMENTS_2026[army.faction]?.length)findings.push({code:'detachment-unavailable',severity:'warning',message:'No 11th-edition detachments are available for this faction.'});
  const costs=rosterCost2026(army);
  const pointLimit=BATTLE_SIZES_2026[army.battleSize2026||'Strike Force'].points;

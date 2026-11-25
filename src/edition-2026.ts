@@ -1,5 +1,6 @@
 import {GSC_DETACHMENTS} from './gsc-detachments.generated';
 import {currentGscDetachment} from './gsc-detachment-data';
+import {WORLD_EATERS_DETACHMENTS} from './world-eaters-detachments.generated';
 import {VOTANN_DETACHMENTS} from './votann-detachments.generated';
 import type {Faction} from './catalog';
 import {DAEMON_DETACHMENTS} from './chaos-daemon-detachments.generated';
@@ -50,16 +51,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Veterans of the Long War",disposition:"Take and Hold",dp:2},
   {name:"Warpstrike Champions",disposition:"Disruption",dp:2},
  ],
- "World Eaters":[
-  {name:"Butchers of Khorne",disposition:"Disruption",dp:1},
-  {name:"Brazen Engines",disposition:"Purge the Foe",dp:1},
-  {name:"Vessels of Wrath",disposition:"Priority Assets",dp:1},
-  {name:"Berzerker Warband",disposition:"Purge the Foe",dp:3},
-  {name:"Cult of Blood",disposition:"Priority Assets",dp:2},
-  {name:"Goretrack Onslaught",disposition:"Take and Hold",dp:2},
-  {name:"Khorne Daemonkin",disposition:"Reconnaissance",dp:2},
-  {name:"Possessed Slaughterband",disposition:"Purge the Foe",dp:2},
- ],
+ 'World Eaters':WORLD_EATERS_DETACHMENTS,
  "Emperor’s Children":[
   {name:"Elegant Brutes",disposition:"Take and Hold",dp:1},
   {name:"Frenzied Host",disposition:"Disruption",dp:1},
