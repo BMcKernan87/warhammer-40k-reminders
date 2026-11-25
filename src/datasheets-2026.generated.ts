@@ -1,6 +1,6 @@
 // Generated from data/necrons-11e-datasheets.json. Run npm run import:datasheets; do not edit.
 import type {Datasheet2026} from './datasheets-2026';
-export const DATASHEET_IMPORT_REVISION={"edition":11,"faction":"Necrons","revision":"repository-baseline-c761461d","sourceStatus":"mixed-source-unreconciled"} as const;
+export const DATASHEET_IMPORT_REVISION={"edition":11,"faction":"Necrons","revision":"october-2026-v1.2-copy-pricing-reconciled","sourceStatus":"mixed-source-unreconciled"} as const;
 export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   {
     "faction": "Necrons",
@@ -276,6 +276,12 @@ export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   },
   {
     "faction": "Necrons",
+    "laterCopyPointsBySize": {
+      "3": {
+        "5": 70,
+        "10": 130
+      }
+    },
     "pointsBySize": {
       "5": 60,
       "10": 120
@@ -595,6 +601,11 @@ export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   },
   {
     "faction": "Necrons",
+    "laterCopyPointsBySize": {
+      "2": {
+        "1": 310
+      }
+    },
     "pointsBySize": {
       "1": 280
     },
@@ -715,10 +726,15 @@ export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   },
   {
     "faction": "Necrons",
+    "laterCopyPointsBySize": {
+      "2": {
+        "1": 570
+      }
+    },
     "pointsBySize": {
       "1": 540
     },
-    "pointsSource": "https://tactical40k.com/codex/necrons",
+    "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
     "sizes": [
       1
     ],
@@ -749,6 +765,11 @@ export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   },
   {
     "faction": "Necrons",
+    "laterCopyPointsBySize": {
+      "3": {
+        "1": 105
+      }
+    },
     "pointsBySize": {
       "1": 95
     },
@@ -840,10 +861,15 @@ export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   },
   {
     "faction": "Necrons",
+    "laterCopyPointsBySize": {
+      "2": {
+        "1": 360
+      }
+    },
     "pointsBySize": {
       "1": 340
     },
-    "pointsSource": "https://tactical40k.com/codex/necrons",
+    "pointsSource": "https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html",
     "profile": {
       "leadership": "6+",
       "move": "8\"",
@@ -889,6 +915,11 @@ export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]=[
   },
   {
     "faction": "Necrons",
+    "laterCopyPointsBySize": {
+      "3": {
+        "1": 120
+      }
+    },
     "pointsBySize": {
       "1": 110
     },
