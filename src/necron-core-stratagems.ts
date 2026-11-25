@@ -13,7 +13,7 @@ export function necronCoreStratagemReminders(army:ArmySelection,roster:RosterIns
  const roots=necronFormationRoots(army,roster);
  const match=(test:(unit:string)=>boolean)=>roots.filter(f=>f.members.some(s=>test(s.unit))).map(f=>f.id);
  const all=roots.map(f=>f.id),characters=match(u=>CHARACTERS.has(u));
- const vehicleMonster=match(u=>k.VEHICLE.has(u)||k.MONSTER.has(u));
+ const vehicleMonster=match(u=>(k.VEHICLE.has(u)||k.MONSTER.has(u))&&!aircraft.has(u)&&u!=='Convergence Of Dominion');
  const heroic=roots.filter(f=>!f.members.some(s=>k.VEHICLE.has(s.unit))||f.members.some(s=>CHARACTERS.has(s.unit)||walkers.has(s.unit))).map(f=>f.id);
  const ingress=roots.filter(f=>!f.members.some(s=>aircraft.has(s.unit)||s.unit==='Convergence Of Dominion')).map(f=>f.id);
  const overwatch=roots.filter(f=>!f.members.some(s=>k.TITANIC.has(s.unit))).map(f=>f.id);
@@ -23,7 +23,7 @@ export function necronCoreStratagemReminders(army:ArmySelection,roster:RosterIns
  };
  // Core 15.01: use conditions remain prospective; no invented battlefield state.
  for(const window of ['Command','Movement','Shooting','Charge','Fight'] as const){
-  emit('stratagem-limits-'+window,'Core Stratagem restrictions',window,'Do not target battle-shocked units. Normally each Stratagem and each targeted unit may be used once per phase; apply explicit exceptions.',all);
+  emit('stratagem-limits-'+window,'Core Stratagem restrictions',window,'Do not target battle-shocked units. Normally a Stratagem can be used once per phase and a unit can be targeted by only one Stratagem per phase; apply explicit exceptions.',all);
   emit('command-reroll-'+window,'Command Re-roll · 1CP',window,'After an eligible Advance, Charge, Damage, Hazard, Hit, Save, Wound or weapon attack-count roll, re-roll one die (all dice for a Charge roll). Never re-roll a die twice. Not for Reanimation or battle-shock rolls.',all);
  }
  emit('insane-bravery','Insane Bravery · 1CP','Command','Before rolling battle-shock in your Command phase, automatically pass the test for a unit that is not already battle-shocked. Once per battle.',all);
