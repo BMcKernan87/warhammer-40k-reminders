@@ -7,6 +7,7 @@ import {expandRoster} from './roster-instances';
 import {chassis,equippedItems,slot,type KnightEquipment} from './knight-gear-options';
 import {daemonLoadout} from './daemonic-pact-loadouts';
 import {orkLoadout,resizeOrkGear,validOrkGear} from './ork-loadouts';
+import {votannCharacterWeapons,votannLoadout,resizeVotannGear,validVotannGear} from './votann-loadouts';
 import {custodesLoadout} from './custodes-loadouts';
 import {agentLoadout,resizeAgentGear,validAgentGear} from './assigned-agent-loadouts';
 export {countedKnightItems,knightItemsLabel} from './knight-gear-options';
@@ -109,6 +110,8 @@ export function resizeKnightComposition(squad:RosterInstance,models:number):Reco
   if(!squad.knightGear)return undefined;
   const ork=resizeOrkGear(squad.knightGear,squad.unit,models);
   if(ork)return ork;
+  const votann=resizeVotannGear(squad.unit,squad.knightGear,models);
+  if(votann)return votann;
   if(squad.unit!=='Accursed Cultists'||!squad.knightGear.Composition)return resizeAgentGear(squad.unit,squad.knightGear,models);
   const previous=Number.parseInt(squad.knightGear.Composition,10);
   const options=accursedCultists(models).slots[0].choices;
@@ -157,6 +160,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   if(unit===alliedWarhound(faction))return warhoundEquipment;
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
+  if(faction==='Leagues of Votann')return votannLoadout(unit,models);
   if(faction==='Adeptus Custodes')return custodesLoadout(unit,models)??agentLoadout(unit,models);
   if(faction==='Imperial Knights'&&Object.hasOwn(IMPERIAL_KNIGHT_LOADOUTS,unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if(faction==='Imperial Knights'||faction==='Imperial Agents')return agentLoadout(unit,models);
@@ -168,7 +172,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
 }
 function registeredLoadout(unit:string,models?:number) {
   if(isWarhound(unit))return warhoundEquipment;
-  return orkLoadout(unit,models)??shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models)??custodesLoadout(unit,models);
+  return orkLoadout(unit,models)??shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models)??custodesLoadout(unit,models)??votannLoadout(unit,models);
 }
 export function knightEquippedItems(squad:RosterInstance):string[] {
   return equippedItems(registeredLoadout(squad.unit,squad.models),squad.knightGear);
@@ -187,15 +191,25 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
   if(!validOrkGear(squad.unit,gear,squad.models))return false;
+  if(!validVotannGear(squad.unit,gear,squad.models))return false;
   if(!validAgentGear(squad.unit,gear,squad.models))return false;
   if(isShadowMarine(squad.unit))return validShadowMarineGear(squad);
   if(squad.unit==='Traitor Guardsmen Squad')return specialistWeapons.every(name=>knightWeaponCount(squad,name)<=1);
   return squad.unit!=='Knight Destrier'||(knightWeaponCount(squad,destrierSword)<=1&&knightWeaponCount(squad,spear)<=1);
+}
+export function gearEnhancementConflict(army:ArmySelection,squad:RosterInstance):string|undefined {
+  if(army.faction!=='Leagues of Votann')return;
+  const enhancement=army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit];
+  if(enhancement==='Iron Ambassador'&&!votannCharacterWeapons(squad,'Ranged').includes('Autoch-pattern combi-bolter')){
+    return 'Remove Iron Ambassador before replacing its bearer’s Autoch-pattern combi-bolter.';
+  }
 }
 export function setKnightGear(army:ArmySelection,id:string,slotName:string,choice:string):ArmySelection {
   const roster=expandRoster(army),squad=roster.find(s=>s.id===id);
   if(!squad||!knightLoadoutFor(army.faction,squad.unit,squad.models))throw Error('Select a Knight army squad with a supported datasheet');
   const updated={...squad,knightGear:{...squad.knightGear,[slotName]:choice}};
   if(!validKnightGear(updated,army.faction))throw Error('This weapon combination is unavailable on the datasheet');
+  const conflict=gearEnhancementConflict(army,updated);
+  if(conflict)throw Error(conflict);
   return {...army,instances:roster.map(s=>s.id===id?updated:s)};
 }

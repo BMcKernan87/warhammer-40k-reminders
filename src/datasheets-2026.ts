@@ -4,6 +4,8 @@ import type {ArmySelection} from './catalog';
 import {ASSIGNED_AGENT_SHEETS,NATIVE_AGENT_SHEETS} from './assigned-agent-data';
 import {DAEMON_SHEETS} from './chaos-daemons-data';
 import {ORK_SHEETS} from './ork-data';
+import {VOTANN_SHEETS} from './votann-data.generated';
+import {eligibleVotannUpgrades} from './votann-detachment-data';
 import {CUSTODES_ARMY_SHEETS} from './adeptus-custodes-data';
 import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
 import {eligibleDaemonUpgrades} from './chaos-daemon-detachments';
@@ -39,7 +41,7 @@ export interface Datasheet2026 {
  verified:'sizes'|'sizes-and-points';
 }
 /** Incremental 11th-edition registry: no estimated point costs. */
-export const DATASHEETS_2026:readonly Datasheet2026[]=[...IMPORTED_DATASHEETS_2026,...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS,...DAEMON_SHEETS,...CUSTODES_ARMY_SHEETS,...ORK_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction!=='Adeptus Custodes'),...AGENT_FREEBLADE_SHEETS];
+export const DATASHEETS_2026:readonly Datasheet2026[]=[...IMPORTED_DATASHEETS_2026,...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS,...DAEMON_SHEETS,...CUSTODES_ARMY_SHEETS,...ORK_SHEETS,...VOTANN_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction!=='Adeptus Custodes'),...AGENT_FREEBLADE_SHEETS];
 export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string;basePoints?:number|null;enhancementPoints?:number;bindingPoints?:number;extremisPoints?:number;wargearPoints?:number}[]}
 export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet2026[]=DATASHEETS_2026):RosterCost2026{
  const copies=new Map<string,number>();
@@ -60,6 +62,7 @@ export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet202
   if(chosen&&army.faction==='Imperial Agents')enhancementPoints=eligibleAgentUpgrades(army,instance.unit).find(u=>u.name===chosen)?.points??null;
   if(chosen&&army.faction==='Imperial Knights')enhancementPoints=eligibleKnightUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Orks')enhancementPoints=eligibleOrkUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
+  if(chosen&&army.faction==='Leagues of Votann')enhancementPoints=eligibleVotannUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Adeptus Custodes')enhancementPoints=eligibleCustodesUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Daemons')enhancementPoints=eligibleDaemonUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Knights')enhancementPoints=eligibleChaosKnightUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;

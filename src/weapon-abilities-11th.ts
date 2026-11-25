@@ -17,6 +17,7 @@ export function weaponAbilityText(keyword:string,snap:boolean):string|undefined{
     return keyword+' (an unmodified Wound roll of '+roll+' scores a critical wound against '+target+' units)';
   }
   switch(keyword){
+    case 'Overcharge': return 'Overcharge (subtract 2 from the bearer’s Hazardous test for this weapon profile)';
     case 'One Shot': return 'One Shot (each weapon may attack once per battle, including after its bearer is returned)';
     case 'Close-Quarters': return snap?'Close-Quarters (each non-Monster, non-Vehicle model chooses its Close-Quarters weapons or its other guns)':'Close-Quarters (if the unit did not Advance, use close-quarters shooting against an engaged target. For other shooting types, each non-Monster, non-Vehicle model chooses its Close-Quarters weapons or other guns)';
     case 'Hazardous': return 'Hazardous (after resolving attacks, roll a hazard die for each selected Hazardous weapon. On 1–2 the unit suffers 1 mortal wound, or 3 if all its models are Monsters or Vehicles)';
