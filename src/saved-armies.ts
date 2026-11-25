@@ -1,3 +1,4 @@
+import {migrateCustodesArmy} from './custodes-saved-army';
 import {initialStore, validateStore, type ArmyProfile, type ProfileStore} from './profiles';
 
 export interface SavedArmies {
@@ -15,7 +16,8 @@ export function openSavedArmies(raw: unknown, fallback: () => ProfileStore = ini
   const profiles: ArmyProfile[] = [];
   const retained: unknown[] = [];
   for (const entry of raw.profiles) {
-    const single = {activeId: entry?.id, profiles: [entry]};
+    const army = migrateCustodesArmy(entry?.army);
+    const single = {activeId: entry?.id, profiles: [army === entry?.army ? entry : {...entry,army}]};
     if (validateStore(single) && !profiles.some(profile => profile.id === entry.id)) {
       profiles.push(single.profiles[0]);
     } else {

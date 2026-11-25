@@ -23,3 +23,11 @@ export function slot(name:string,...options:(string|readonly string[])[]):Knight
   })};
 }
 export const chassis=(fixed:readonly string[],...slots:KnightSlot[]):KnightEquipment=>({fixed,slots});
+
+export function equippedItems(sheet:KnightEquipment|undefined,gear?:Record<string,string>):string[] {
+ if(!sheet)return [];
+ return [...sheet.fixed,...sheet.slots.flatMap(slot=>{
+  const name=gear?.[slot.name]??slot.choices[0].name;
+  return slot.choices.find(choice=>choice.name===name)?.items??[];
+ })];
+}

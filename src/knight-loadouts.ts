@@ -1,10 +1,12 @@
 import {shadowMarineLoadout,isShadowMarine,validShadowMarineGear,resizeShadowMarineGear} from './shadow-legion-loadouts';
+import {alliedWarhound,isFreeblade,isWarhound,freebladeHost,warhoundEquipment} from './titan-support-data';
 import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
 import {expandRoster} from './roster-instances';
 
-import {chassis,slot,type KnightEquipment} from './knight-gear-options';
+import {chassis,equippedItems,slot,type KnightEquipment} from './knight-gear-options';
 import {daemonLoadout} from './daemonic-pact-loadouts';
+import {custodesLoadout} from './custodes-loadouts';
 import {agentLoadout,resizeAgentGear,validAgentGear} from './assigned-agent-loadouts';
 export {countedKnightItems,knightItemsLabel} from './knight-gear-options';
 export type {KnightSlot} from './knight-gear-options';
@@ -148,7 +150,10 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 };
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
+  if(unit===alliedWarhound(faction))return warhoundEquipment;
+  if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
+  if(faction==='Adeptus Custodes')return custodesLoadout(unit,models)??agentLoadout(unit,models);
   if(faction==='Imperial Knights'&&Object.hasOwn(IMPERIAL_KNIGHT_LOADOUTS,unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if(faction==='Imperial Knights'||faction==='Imperial Agents')return agentLoadout(unit,models);
   if(faction!=='Chaos Knights'&&faction!=='Chaos Daemons')return undefined;
@@ -158,15 +163,11 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   return CHAOS_KNIGHT_LOADOUTS[unit];
 }
 function registeredLoadout(unit:string,models?:number) {
-  return shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models);
+  if(isWarhound(unit))return warhoundEquipment;
+  return shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models)??custodesLoadout(unit,models);
 }
 export function knightEquippedItems(squad:RosterInstance):string[] {
-  const sheet=registeredLoadout(squad.unit,squad.models);
-  if(!sheet)return [];
-  return [...sheet.fixed,...sheet.slots.flatMap(s=>{
-    const choice=squad.knightGear?.[s.name]??s.choices[0].name;
-    return s.choices.find(c=>c.name===choice)?.items??[];
-  })];
+  return equippedItems(registeredLoadout(squad.unit,squad.models),squad.knightGear);
 }
 function weaponName(name:string) {
   return name.split(/\s+[–—-]\s+/)[0].toLowerCase().replaceAll('’',"'").replace('battlecannon','battle cannon');

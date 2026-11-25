@@ -1,5 +1,7 @@
+import {alliedRosterNames} from './titan-support-data';
 import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
 import {DAEMON_UNITS} from './chaos-daemons-data';
+import {CUSTODES_UNITS} from './adeptus-custodes-data';
 import {CHAOS_KNIGHT_UNITS} from './chaos-knights-data';
 import {IMPERIAL_KNIGHT_UNITS} from './imperial-knights-data';
 import {reconcileRetinues} from './necron-retinues';
@@ -21,7 +23,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Orks':{detachments:['War Horde','Da Big Hunt','Bully Boyz','Green Tide','Dread Mob','Kult of Speed'],units:['Warboss','Warboss in Mega Armour','Big Mek','Big Mek in Mega Armour','Painboy','Weirdboy','Ghazghkull Thraka','Boyz','Beast Snagga Boyz','Nobz','Meganobz','Gretchin','Kommandos','Stormboyz','Squighog Boyz','Deffkoptas','Deff Dread','Killa Kans','Gorkanaut','Morkanaut','Shokkjump Dragsta','Megatrakk Scrapjet','Battlewagon','Trukk','Lootas','Flash Gitz'],enhancements:[]},
  'Tyranids':{detachments:['Invasion Fleet','Synaptic Nexus','Unending Swarm','Assimilation Swarm','Vanguard Onslaught','Crusher Stampede'],units:['Hive Tyrant','The Swarmlord','Winged Hive Tyrant','Neurotyrant','Tervigon','Broodlord','Old One Eye','Deathleaper','Termagants','Hormagaunts','Gargoyles','Genestealers','Tyranid Warriors','Von Ryan’s Leapers','Lictor','Neurolictor','Zoanthropes','Venomthropes','Raveners','Ripper Swarms','Biovore','Pyrovore','Carnifexes','Exocrine','Haruspex','Maleceptor','Tyrannofex','Norn Emissary','Norn Assimilator','Screamer-Killer','Psychophage','Barbgaunts','Neurogaunts'],enhancements:[]},
  'Adepta Sororitas':{detachments:['Select detachment (unverified)'],units:["Battle Sisters Squad","Canoness","Morvenn Vahl","Paragon Warsuits"],enhancements:[]},
- 'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:["Custodian Guard","Shield-Captain","Allarus Custodians","Vertus Praetors"],enhancements:[]},
+ 'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},
  'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:["Skitarii Rangers","Skitarii Vanguard","Tech-Priest Dominus","Kataphron Breachers"],enhancements:[]},
  'Aeldari':{detachments:['Select detachment (unverified)'],units:["Farseer","Guardian Defenders","Dire Avengers","Wraithguard"],enhancements:[]},
  'Astra Militarum':{detachments:['Select detachment (unverified)'],units:["Cadian Shock Troops","Leman Russ Battle Tank","Rogal Dorn Battle Tank","Commissar"],enhancements:[]},
@@ -49,6 +51,10 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
+for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights'] as const){
+ CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
+}
+
 export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];retiredSquadNumbers?:Record<string,number>;battleSize2026?:BattleSize2026;detachments2026?:string[];upgrades2026?:Record<string,string>;warlordId?:string;chaosWarDogCharacterIds?:string[]}
 export function newSelection(faction:Faction='Necrons'):ArmySelection{return {faction,detachment:CATALOG[faction].detachments[0],units:{}}}
 export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelection{

@@ -1,3 +1,4 @@
+import {alliedUnitLimit} from './titan-support-data';
 import type {ArmySelection} from './catalog';
 import {rosterCost2026} from './datasheets-2026';
 import {BATTLE_SIZES_2026} from './edition-2026';
@@ -15,6 +16,8 @@ function hasKeyword(unit:string,keyword:string):boolean{
 // Core 25.03 and Knightly Teachings (Spearhead-at-arms). Armigers in other
 // detachments use their printed keywords, including when fielded alongside allies.
 export function knightUnitLimit(army:ArmySelection,unit:string):number{
+ const allied=alliedUnitLimit(army,unit);
+ if(army.faction==='Imperial Knights'&&allied!==undefined)return allied;
  if(army.faction!=='Imperial Knights'||!knightMusterUnits(army).includes(unit))return 0;
  if(hasKeyword(unit,'EPIC HERO'))return 1;
  const limit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].unitLimit;

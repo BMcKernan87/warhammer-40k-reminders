@@ -1,4 +1,6 @@
 import {shadowLegionHasRangedWeapon, shadowMarineReminders} from './shadow-legion-cards';
+import {alliedTitanAndKnightReminders,applyWarhoundStratagemCost} from './titan-support';
+import {isWarhound} from './titan-support-data';
 import {applyStratagemWindow} from './stratagem-windows';
 import {targetedNecronEnhancements} from './necron-targeted-enhancements';
 import {necronDeploymentReminders} from './necron-deployment';
@@ -8,6 +10,11 @@ import {coreStratagemReminders} from './core-stratagems-11th';
 import {DATASHEETS_2026} from './datasheets-2026';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {daemonArmyReminders} from './chaos-daemon-detachments';
+import {custodesDatasheetReminders} from './custodes-datasheets';
+import {custodesHasRangedWeapon} from './custodes-loadouts';
+import {custodesKeywords} from './adeptus-custodes-data';
+import {custodesFormationReminders} from './custodes-formations';
+import {custodesDetachmentReminders} from './custodes-detachments';
 import {chaosKnightDetachmentReminders,resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {daemonDatasheetReminders,daemonHasRangedWeapon} from './daemon-datasheets';
 import {chaosKnightDatasheetReminders,chaosKnightHasRangedWeapon} from './chaos-knight-datasheets';
@@ -120,11 +127,14 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const chaos=_army.faction==='Chaos Knights';
  const agents=_army.faction==='Imperial Agents';
  const daemons=_army.faction==='Chaos Daemons';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons;
+ const custodes=_army.faction==='Adeptus Custodes';
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
+ result.push(...alliedTitanAndKnightReminders(_army,roster));
  if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
  if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
+ if(custodes)result.push(...custodesDetachmentReminders(_army,roster),...custodesDatasheetReminders(_army,roster));
  if(formedArmy){
   const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
   // Formation eligibility includes keywords printed for an individual model.
@@ -133,6 +143,8 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
     [...new Set([...(sheet.keywords??[]),...Object.values(sheet.modelKeywords??{}).flat()])]]));
   const promoted=new Set(resolvedWarDogCharacterIds(_army,roster));
   const keywords=(unit:string,id?:string)=>{
+   if(isWarhound(unit))return unitKeywords.get(unit)??[];
+   if(custodes)return [...custodesKeywords(_army,{unit,id:id??''})];
    const tags=unitKeywords.get(unit)??[];
    return id&&promoted.has(id)?[...tags,'CHARACTER']:tags;
   };
@@ -141,16 +153,18 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
-    (s:(typeof roster)[number])=>knightHasRangedWeapon(s)||assignedAgentHasRanged(s.unit);
+  const hasGun=_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
+    (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));
-  if(agents||_army.faction==='Imperial Knights')result.push(...agentTransports(_army).cues);
+  if(agents||custodes||_army.faction==='Imperial Knights')result.push(...agentTransports(_army).cues);
+  if(custodes)result.push(...assignedAgentReminders(_army));
   if(agents)result.push(...assignedAgentReminders(_army),...agentDetachmentReminders(_army,roster));
   else if(chaos)result.push(...chaosKnightDetachmentReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
   else if(_army.faction==='Imperial Knights')result.push(...knightDetachmentReminders(_army,roster),...imperialKnightDatasheetReminders(_army,roster),...assignedAgentReminders(_army));
   else if(_army.faction==='Necrons')result.push(...necronDeploymentReminders(_army,roster));
  }
+ if(_army.faction==='Adeptus Custodes')result.push(...custodesFormationReminders(_army,roster));
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
   const formations=necronFormationRoots(_army,roster);
@@ -261,7 +275,8 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   result.push({id:'11e-orks-riled-save-fight',title:'Waaagh! · Riled-up protection',window:'Fight',timing:'during',summary:'While riled up, friendly ORKS units with Waaagh! have a 5+ invulnerable save.',source,origin:'army'});
   if((_army.units.Meganobz||0)>0||_army.instances?.some(s=>s.unit==='Meganobz'))result.push({id:'11e-orks-meganobz-krumpin',title:'Meganobz · Krumpin’ Time',window:'Fight',timing:'during',summary:'While this Meganobz unit is riled up, add 1 to its Hit rolls in the Fight phase.',source,origin:'unit',units:['Meganobz']});
  }
- return result.map(rule=>_army.faction==='Necrons'||rule.id.startsWith('11e-core-')?applyStratagemWindow(rule):rule);
+ const warhounds=new Set(roster.filter(s=>isWarhound(s.unit)).map(s=>s.id));
+ return result.map(rule=>applyWarhoundStratagemCost(_army.faction==='Necrons'||rule.id.startsWith('11e-core-')?applyStratagemWindow(rule):rule,warhounds));
 }
 export function grouped11thReminders(army:ArmySelection):{window:ReminderWindow;reminders:GeneratedReminder[]}[]{
  const all=generate11thReminders(army);
