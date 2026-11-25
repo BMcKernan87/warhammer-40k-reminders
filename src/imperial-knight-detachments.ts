@@ -83,21 +83,20 @@ export function knightDetachmentReminders(army:ArmySelection,roster:readonly Ros
  const has=(name:string)=>selected.has(norm(name));
  const groups=knightGroups(roster);
  const {native,titanic,armiger,bondsman,allies,priests,dominus,bonded}=groups;
- function add(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],summary:string,targets:readonly RosterInstance[],origin:GeneratedReminder['origin']='detachment',previousWindow?:ReminderWindow){
+ function add(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],summary:string,targets:readonly RosterInstance[],origin:GeneratedReminder['origin']='detachment',previousWindow?:ReminderWindow,previousTargets?:readonly RosterInstance[]){
   if(!targets.length)return;
   const units=targets.map(t=>t.id);
-  const row={id:'11e-knight-'+key+'-'+(previousWindow??window),title,window,turn,timing,summary,source,origin,units,...(previousWindow?{previousSheetEntry:{window:previousWindow,units}}:{})};
+  const row={id:'11e-knight-'+key+'-'+(previousWindow??window),title,window,turn,timing,summary,source,origin,units,...(previousWindow?{previousSheetEntry:{window:previousWindow,units:previousTargets?.map(t=>t.id)??units}}:{})};
   rows.push(row);
  }
  const armyCue=(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],text:string,targets=native)=>add(key,title,window,turn,timing,text,targets,'army');
  const oathReward='The first fulfilled Oath makes your army Honoured and grants 2CP, or 3CP if you randomly determined at least one part. This award is exempt from the normal CP gain cap.';
  armyCue('oath','Code Chivalric · choose your Oath','Pre-battle','either','during','At the end of Read Mission Objectives, choose or randomly determine one Deed and one Quality independently. If you choose Lay Low the Tyrant, designate an enemy Character at the start of the battle. '+oathReward);
- for(const window of ['Fight','End of opponent turn','End of battle round'] as const){
-  const condition=window==='Fight'?'At the end of either turn, check whether the enemy Character selected for Lay Low the Tyrant has been destroyed.':
-    window==='End of opponent turn'?'At the end of the opponent’s turn, Reclaim the Realm is fulfilled if you control more objectives than the opponent.':
-    'Reap a Great Tally is fulfilled if enemy units destroyed this round exceed the round number. Count destroyed units even if they later returned.';
-  armyCue('deed','Code Chivalric · '+(window==='Fight'?'Lay Low the Tyrant':window==='End of opponent turn'?'Reclaim the Realm':'Reap a Great Tally'),window,window==='End of opponent turn'?'opponent':'either','end',condition+' '+oathReward);
- }
+ const layLow='If Lay Low the Tyrant is your current Deed and the designated enemy Character model is destroyed, fulfil your Oath now. '+oathReward;
+ add('deed','Code Chivalric · Lay Low the Tyrant','End of your turn','own','end',layLow,native,'army','Fight');
+ armyCue('lay-low','Code Chivalric · Lay Low the Tyrant','End of opponent turn','opponent','end',layLow);
+ armyCue('deed','Code Chivalric · Reclaim the Realm','End of opponent turn','opponent','end','If this is your current Deed and you control more objectives than your opponent, fulfil your Oath now. '+oathReward);
+ armyCue('deed','Code Chivalric · Reap a Great Tally','End of battle round','either','end','If this is your current Deed and enemy units destroyed this round exceed the round number, fulfil your Oath now. Count destroyed units even if they later returned. '+oathReward);
  for(const phase of attacks)armyCue('valour','Code Chivalric · Martial Valour',phase,phase==='Shooting'?'own':'either','during','If Martial Valour is your Quality, each time an eligible model is selected to shoot or fight it can re-roll one Hit roll and one Wound roll.');
  for(const phase of ['Movement','Charge'] as const)armyCue('eager','Code Chivalric · Eager for the Challenge',phase,'own','during','If this is your Quality, add 2″ to Move and 1 to the model’s Advance and Charge rolls.');
  armyCue('legacy','Code Chivalric · Legacy Unsullied','Command','either','during','If this is your Quality, eligible models have +2 Objective Control and their Leadership improves by 1 throughout the battle.');
@@ -119,8 +118,14 @@ export function knightDetachmentReminders(army:ArmySelection,roster:readonly Ros
   add('battleline','Knightly Teachings · Battleline','Pre-battle','either','start','Your Armigers gain Battleline, including its increased datasheet copy limit.',armiger);
  }
  if(has('Questoris Companions')){
-  add('heroes','Heroes of Legend','Command','own','start','At the start of your turn after fulfilling your current Oath, determine another using an unused Deed and Quality. Replace repeat random results with unused choices. Keep fulfilled Qualities. Later Oaths grant 1CP on completion. Stop when no further Oath is available.',native);
-  if(roster.some(s=>KNIGHT_UPGRADES.some(u=>u.detachment==='Questoris Companions'&&u.name===(army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit]))))add('refresh','Valour’s Reward','Command','own','start','Each time an Oath is fulfilled, every expended Questoris Companions enhancement becomes available again.',native);
+  add('heroes','Heroes of Legend','Start of turn','own','start','At the start of your turn after fulfilling your current Oath, determine another using an unused Deed and Quality. Replace repeat random results with unused choices. Keep fulfilled Qualities. Later Oaths grant 1CP on completion. Stop when no further Oath is available.',native,'detachment','Command');
+  const bearers=native.filter(s=>KNIGHT_UPGRADES.some(u=>u.detachment==='Questoris Companions'&&u.name===(army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit])));
+  if(bearers.length){
+   const reward='When the army fulfils its current Oath at this step, its expended Questoris Companions enhancements become available again.';
+   add('refresh','Valour’s Reward','End of your turn','own','end',reward,bearers,'detachment','Command',native);
+   add('refresh','Valour’s Reward','End of opponent turn','opponent','end',reward,bearers);
+   add('refresh','Valour’s Reward','End of battle round','either','end',reward,bearers);
+  }
  }
  if(has('Questor Forgepact')){
   if(native.length)add('assist','Cogbound Alliance · Assisted Targeting','Shooting','own','during','A friendly Adeptus Mechanicus unit within 6″ of a Knight improves ranged BS by 1 and gains Heavy on its ranged attacks.',allies);

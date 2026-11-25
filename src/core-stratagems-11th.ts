@@ -3,8 +3,8 @@ import type {RosterInstance} from './roster-instances';
 
 export interface ArmyFormation {id:string; body:RosterInstance; members:RosterInstance[]}
 const source='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
-export function coreStratagemReminders(roots:ArmyFormation[], keywords:(unit:string)=>readonly string[], hasGun:(s:RosterInstance)=>boolean, modelRestrictions:(unit:string,keyword:string)=>readonly string[]):GeneratedReminder[]{
- const withKeyword=(formation:ArmyFormation,keyword:string)=>formation.members.some(s=>keywords(s.unit).includes(keyword));
+export function coreStratagemReminders(roots:ArmyFormation[], keywords:(unit:string,id?:string)=>readonly string[], hasGun:(s:RosterInstance)=>boolean, modelRestrictions:(unit:string,keyword:string)=>readonly string[]):GeneratedReminder[]{
+ const withKeyword=(formation:ArmyFormation,keyword:string)=>formation.members.some(s=>keywords(s.unit,s.id).includes(keyword));
  const eligible=(predicate:(f:ArmyFormation)=>boolean)=>roots.filter(predicate).map(f=>f.id);
  const all=roots.map(f=>f.id);
  const characters=eligible(f=>withKeyword(f,'CHARACTER'));

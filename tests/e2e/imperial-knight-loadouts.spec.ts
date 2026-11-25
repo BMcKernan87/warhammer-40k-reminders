@@ -51,8 +51,38 @@ test('a 1,000-point Knight lance keeps its Warlord and prints the right firing a
   await expect(overwatch).toContainText('Opponent’s turn · end');
   await page.emulateMedia({media:'print'});
   const print=page.getByRole('region',{name:'Printable army reminders'});
-  await expect(print.locator('h3')).toHaveCount(9);
+  await expect(print.locator('h3')).toHaveCount(11);
   await expect(print.getByText('Declare Strategic Reserves',{exact:true}).locator('..')).toContainText('500 points');
   await expect(print.getByText('Plunging Fire · Towering models',{exact:true}).locator('..').locator('.rule-subjects')).toHaveText('Roster: Knight Errant#1, Knight Gallant#1');
   await expect(print.getByText('Use Bondsman abilities',{exact:true})).toBeVisible();
+});
+
+test('saved Knight turn-boundary checkmarks remain independent and print at the proper steps',async({page})=>{
+  await page.goto('./');
+  await page.getByLabel('Army faction').selectOption('Imperial Knights');
+  await page.getByRole('checkbox',{name:/Questoris Companions/}).check();
+  await page.getByLabel('Select unit',{exact:true}).selectOption('Knight Paladin');
+  await page.getByRole('button',{name:'Add',exact:true}).click();
+  await page.evaluate(()=>{
+    const key='w40k-reminders-profiles-v1',store=JSON.parse(localStorage.getItem(key)!);
+    const army=store.profiles.find((p:{id:string})=>p.id===store.activeId);
+    for(const [window,id] of [['Command','heroes'],['Fight','deed']]){
+      army.completed.push('sheet:'+JSON.stringify([window,'11e-knight-'+id+'-'+window,['Knight Paladin#1']]));
+    }
+    localStorage.setItem(key,JSON.stringify(store));
+  });
+  await page.reload();
+  await page.getByRole('button',{name:'Play reminders'}).click();
+  const digital=page.getByRole('heading',{name:'Phase reminders'}).locator('..');
+  await digital.getByLabel('Show completed reminders').check();
+  await digital.getByLabel('Show phase').selectOption('Start of turn');
+  await expect(digital.getByRole('checkbox',{name:/Heroes of Legend/})).toBeChecked();
+  await digital.getByLabel('Show phase').selectOption('End of your turn');
+  await expect(digital.getByRole('checkbox',{name:/Lay Low the Tyrant/})).toBeChecked();
+  await digital.getByLabel('Show phase').selectOption('End of opponent turn');
+  await expect(digital.getByRole('checkbox',{name:/Lay Low the Tyrant/})).not.toBeChecked();
+  await page.emulateMedia({media:'print'});
+  const print=page.locator('.print-sheet');
+  await expect(print.getByRole('heading',{name:'Start of turn',exact:true}).locator('..').getByText('Heroes of Legend',{exact:true})).toBeVisible();
+  await expect(print.getByRole('heading',{name:'Fight',exact:true}).locator('..').getByText('Code Chivalric · Lay Low the Tyrant',{exact:true})).toHaveCount(0);
 });

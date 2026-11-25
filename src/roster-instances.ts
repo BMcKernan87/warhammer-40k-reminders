@@ -1,4 +1,4 @@
-import {validKnightGear} from './imperial-knight-loadouts';
+import {validKnightGear,resizeKnightComposition} from './knight-loadouts';
 import {applyModelLoadouts,modelLoadoutRows,validModelLoadouts,type ModelLoadout} from './necron-model-loadouts';
 import {reconcileRetinues,validRetinues} from './necron-retinues';
 import {reconcileWarlord} from './necron-muster-legality';
@@ -65,6 +65,7 @@ export function setInstanceModelCount(army:ArmySelection,id:string,models:number
   return updated;
  }
  target.models=models;
+ if(target.knightGear)target.knightGear=resizeKnightComposition(target,models);
  if(target.wargear){
   const gear:Record<string,number>={};
   for(const slot of NECRON_LOADOUTS[target.unit]?.slots??[]){
@@ -189,7 +190,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(verifiedUnitSizes2026(army,x.unit)||legalUnitSizes(army.faction,x.unit))?.includes(x.models)))return false;
   if(x.wargear!==undefined&&(army.faction!=='Necrons'||!validOptionalGear(x, x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??1)))return false;
-  if(x.knightGear!==undefined&&(army.faction!=='Imperial Knights'||!validKnightGear(x)))return false;
+  if(x.knightGear!==undefined&&!validKnightGear(x,army.faction))return false;
   if(x.modelLoadouts!==undefined&&(army.faction!=='Necrons'||!validModelLoadouts(x,x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??1)))return false;
   if(x.weaponCounts!==undefined){if(!supportsMixedPrimaryWeapons(army.faction,x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??defaultUnitSize(army.faction,x.unit)??1))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&typeof x.equipment==='string'&&o.choices.includes(currentEquipmentName(x.unit,x.equipment))))return false;
@@ -243,7 +244,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Necrons','Imperial Knights'].includes(army.faction))return army;
+ if(!army.instances||!['Necrons','Imperial Knights','Chaos Knights'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){

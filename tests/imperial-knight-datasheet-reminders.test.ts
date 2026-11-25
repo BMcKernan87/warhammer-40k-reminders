@@ -101,7 +101,7 @@ describe('every printed profile matches a legal weapon selection',()=>{
     for(const slot of IMPERIAL_KNIGHT_LOADOUTS[name].slots){
       configurations=configurations.flatMap(s=>slot.choices.map(({name:choice})=>({...s,knightGear:{...s.knightGear,[slot.name]:choice}})));
     }
-    configurations=configurations.filter(validKnightGear);
+    configurations=configurations.filter(s=>validKnightGear(s,'Imperial Knights'));
     for(const w of KNIGHT_CARD_STATS[name].weapons){
       const equipped=configurations.find(s=>knightWeaponCount(s,w.name)>0);
       expect(equipped,'unreachable printed profile '+w.name).toBeDefined();

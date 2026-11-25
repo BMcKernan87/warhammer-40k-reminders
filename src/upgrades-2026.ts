@@ -1,3 +1,4 @@
+import {eligibleChaosKnightUpgrades} from './chaos-knight-detachments';
 import {eligibleKnightUpgrades} from './imperial-knight-detachments';
 import type {ArmySelection} from './catalog';
 import {BATTLE_SIZES_2026} from './edition-2026';
@@ -5,7 +6,7 @@ import {NECRON_ENHANCEMENT_POINTS,REPEATABLE_NECRON_UPGRADES,PANTHEON_BINDINGS} 
 import {NECRON_CHARACTER_BEARERS,DESTROYER_BEARERS,OVERLORD_BEARERS,REMAINING_NECRON_SOURCE} from './necron-remaining-detachments';
 import {COURT_BEARERS,HYPERCRYPT_BEARERS,COURT_HYPERCRYPT_SOURCE} from './necron-canoptek-hypercrypt';
 import {expandRoster,reconcileInstanceAttachments} from './roster-instances';
-export interface Upgrade2026 {name:string;faction:'Necrons'|'Imperial Knights';detachment:string;unit:string;source:string;points?:number;repeatable?:boolean}
+export interface Upgrade2026 {name:string;faction:ArmySelection['faction'];detachment:string;unit:string;source:string;points?:number;repeatable?:boolean}
 const NECRON_SOURCE='https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf';
 export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Enlivened Sentinels',faction:'Necrons',detachment:'Hand of the Dynasty',unit:'Necron Warriors',source:NECRON_SOURCE},
@@ -122,7 +123,8 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  ...OVERLORD_BEARERS.flatMap(unit=>['Honourable Combatant','Unflinching Will','Warrior Noble','Eternal Conqueror'].map(name=>({name,faction:'Necrons' as const,detachment:'Obeisance Phalanx',unit,source:REMAINING_NECRON_SOURCE}))),
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
-export function eligibleUpgrades2026(army:ArmySelection,unit:string):Upgrade2026[]{
+export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Chaos Knights')return eligibleChaosKnightUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Knights',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-knights/'}));
  if(army.faction==='Imperial Knights')return eligibleKnightUpgrades(army,unit).map(u=>({...u,unit,faction:'Imperial Knights',source:'https://wahapedia.ru/wh40k11ed/factions/imperial-knights/'}));
  if(army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')&&PANTHEON_BINDINGS[unit])return [];
  return UPGRADES_2026.filter(u=>u.faction===army.faction&&u.unit===unit&&(army.detachments2026||[]).includes(u.detachment));
@@ -145,7 +147,7 @@ export function upgradeError2026(army:ArmySelection):string|null{
   if(!name)continue;
   if(binding)return 'A C’tan with a mandatory Necrodermal Binding cannot take another enhancement';
   if(s.unit==='Transcendent C’tan')return 'Transcendent C’tan cannot take ordinary enhancements';
-  const option=eligibleUpgrades2026(army,s.unit).find(x=>x.name===name);
+  const option=eligibleUpgrades2026(army,s.unit,s.id).find(x=>x.name===name);
   if(!option||(army.faction==='Necrons'&&!Object.prototype.hasOwnProperty.call(NECRON_ENHANCEMENT_POINTS,name)))return 'Enhancement unavailable for this unit or detachment';
   const formation=s.attachedTo??s.id;
   if(formations.has(formation))return 'Only one enhancement or Upgrade is allowed per attached formation';
@@ -175,7 +177,7 @@ export function selectUpgrade2026(army:ArmySelection,key:string,name:string|null
  return next;
 }
 export function availableUpgrades2026(army:ArmySelection,instance:{id:string;unit:string}):Upgrade2026[]{
- return eligibleUpgrades2026(army,instance.unit).filter(u=>{
+ return eligibleUpgrades2026(army,instance.unit,instance.id).filter(u=>{
   if(upgradeName2026(army,instance)===u.name)return true;
   try{selectUpgrade2026(army,instance.id,u.name);return true;}catch{return false;}
  });

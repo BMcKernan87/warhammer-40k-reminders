@@ -1,3 +1,4 @@
+import {CHAOS_KNIGHT_UNITS} from './chaos-knights-data';
 import {IMPERIAL_KNIGHT_UNITS} from './imperial-knights-data';
 import {reconcileRetinues} from './necron-retinues';
 import {reconcileWarlord} from './necron-muster-legality';
@@ -25,7 +26,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Black Templars':{detachments:['Select detachment (unverified)'],units:["High Marshal Helbrecht","Primaris Crusader Squad","Sword Brethren"],enhancements:[]},
  'Blood Angels':{detachments:['Select detachment (unverified)'],units:["Commander Dante","Death Company Marines","Sanguinary Guard"],enhancements:[]},
  'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:["Bloodletters","Plaguebearers","Daemonettes","Pink Horrors"],enhancements:[]},
- 'Chaos Knights':{detachments:['Select detachment (unverified)'],units:["Knight Rampager","Knight Despoiler","War Dog Brigand"],enhancements:[]},
+ 'Chaos Knights':{detachments:['Select detachment (unverified)'],units:CHAOS_KNIGHT_UNITS,enhancements:[]},
  'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:["Legionaries","Chosen","Chaos Terminator Squad","Abaddon the Despoiler"],enhancements:[]},
  'Dark Angels':{detachments:['Select detachment (unverified)'],units:["Azrael","Deathwing Knights","Inner Circle Companions"],enhancements:[]},
  'Death Guard':{detachments:['Select detachment (unverified)'],units:["Plague Marines","Deathshroud Terminators","Mortarion"],enhancements:[]},
@@ -46,7 +47,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];retiredSquadNumbers?:Record<string,number>;battleSize2026?:BattleSize2026;detachments2026?:string[];upgrades2026?:Record<string,string>;warlordId?:string}
+export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];retiredSquadNumbers?:Record<string,number>;battleSize2026?:BattleSize2026;detachments2026?:string[];upgrades2026?:Record<string,string>;warlordId?:string;chaosWarDogCharacterIds?:string[]}
 export function newSelection(faction:Faction='Necrons'):ArmySelection{return {faction,detachment:CATALOG[faction].detachments[0],units:{}}}
 export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelection{
  if(!CATALOG[s.faction].units.includes(name)||!Number.isInteger(count)||count<1)throw Error('Invalid unit selection');
@@ -59,6 +60,8 @@ export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
 export function validateSelection(x:unknown):x is ArmySelection{
  if(!x||typeof x!=='object')return false;
  const s=x as Partial<ArmySelection>;
+ const dogIds=s.chaosWarDogCharacterIds;
+ if(dogIds!==undefined&&(s.faction!=='Chaos Knights'||!Array.isArray(dogIds)||dogIds.length>3||new Set(dogIds).size!==dogIds.length||dogIds.some(id=>typeof id!=='string')))return false;
  if(s.warlordId!==undefined&&typeof s.warlordId!=='string')return false;
  if(s.retiredSquadNumbers!==undefined&&(!s.retiredSquadNumbers||typeof s.retiredSquadNumbers!=='object'||Array.isArray(s.retiredSquadNumbers)||Object.values(s.retiredSquadNumbers).some(n=>!Number.isSafeInteger(n)||n<0||n>1000000000)))return false;
  return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>CATALOG[s.faction!].units.includes(name)&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&!!EQUIPMENT_OPTIONS[s.faction!]?.find(option=>option.unit===name&&option.choices.includes(currentEquipmentName(name,choice))))))&&(!s.battleSize2026||Object.prototype.hasOwnProperty.call(BATTLE_SIZES_2026,s.battleSize2026))&&(!s.detachments2026||(Array.isArray(s.detachments2026)&&s.detachments2026.every(d=>typeof d==='string')&&detachmentBudget(s.faction!,s.detachments2026,s.battleSize2026||'Strike Force').valid))&&validateUpgrades2026(s as ArmySelection)&&validateAttachments(s as ArmySelection)&&validateEnhancements(s as ArmySelection)&&validateRosterInstances(s as ArmySelection);

@@ -75,7 +75,7 @@ export function rosterMetadata(tables,unit,id){
   const value=plain(row.keyword).toUpperCase(), scope=plain(row.model||'');
   if(!value)fail(unit+' blank keyword');
   if(!scope||scope.toUpperCase()==='ALL MODELS'){keywords.add(value);continue;}
-  const entry=composition.find(c=>norm(c.model)===norm(scope.replace(/\s+MODELS?$/i,'')));
+  const entry=composition.find(c=>norm(c.model)===norm(scope.replace(/\s+ONLY$/i,'').replace(/\s+MODELS?$/i,'')));
   if(!entry)fail(unit+' unknown keyword scope '+scope);
   if(!byModel.has(entry.model))byModel.set(entry.model,new Set());
   byModel.get(entry.model).add(value);

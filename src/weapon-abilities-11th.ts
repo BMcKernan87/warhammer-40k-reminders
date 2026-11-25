@@ -16,6 +16,8 @@ export function weaponAbilityText(keyword:string,snap:boolean):string|undefined{
     case 'Assault': return snap?undefined:'Assault (after an Advance, an unengaged unit can use assault shooting with Assault weapons only and cannot then start an action this phase)';
     case 'Indirect Fire': return snap?undefined:'Indirect Fire (if unengaged and you did not Advance, indirect shooting can target unseen enemies. The target gets cover, Hit rolls cannot be re-rolled, and unmodified 1–5 fails, or 1–3 if stationary with a friendly spotter)';
     case 'Blast': return 'Blast (+1 attack per five models in the target when selected)';
+    case 'Devastating Wounds: Monster/vehicle': return 'Devastating Wounds (against a Monster or Vehicle only, a critical wound inflicts this weapon’s Damage as mortal wounds on one model after normal damage)';
+    case 'Psychic': return 'Psychic (these attacks are psychic attacks for rules that affect them)';
     case 'Devastating Wounds': return 'Devastating Wounds (on a critical wound, deal the weapon’s Damage as mortal wounds to one model after normal damage)';
     case 'Extra Attacks': return 'Extra Attacks (fight with this weapon in addition to your chosen melee weapon)';
     case 'Ignores Cover': return 'Ignores Cover (deny the target the Benefit of Cover)';

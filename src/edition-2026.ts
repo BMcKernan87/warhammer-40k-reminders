@@ -91,13 +91,13 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Warpmeld Pact",disposition:"Purge the Foe",dp:2},
  ],
  "Chaos Knights":[
-  {name:"Bastions of Tyranny",disposition:"Disruption",dp:1},
+  {name:"Bastions of Tyranny",disposition:"Priority Assets",dp:1},
   {name:"Hunting Warpack",disposition:"Reconnaissance",dp:1},
   {name:"Iconoclast Fiefdom",disposition:"Take and Hold",dp:1},
   {name:"Helhunt Lance",disposition:"Disruption",dp:2},
   {name:"Houndpack Lance",disposition:"Reconnaissance",dp:2},
-  {name:"Infernal Lance",disposition:"Purge the Foe",dp:3},
-  {name:"Lords of Dread",disposition:"Priority Assets",dp:2},
+  {name:"Infernal Lance",disposition:"Priority Assets",additionalDispositions:["Purge the Foe"],dp:3},
+  {name:"Lords of Dread",disposition:"Take and Hold",dp:2},
   {name:"Traitoris Lance",disposition:"Purge the Foe",dp:2},
  ],
  "Chaos Daemons":[

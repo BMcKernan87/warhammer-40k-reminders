@@ -12,7 +12,7 @@ export function necronDeploymentReminders(army:ArmySelection,roster:RosterInstan
  const formations=necronFormationRoots(army,roster);
  const out:GeneratedReminder[]=[];
  function add(id:string,title:string,window:ReminderWindow,timing:GeneratedReminder['timing'],summary:string,units:string[],source=core){
-  if(units.length)out.push({id:'11e-necron-'+id,title,window,timing,summary,units,source,origin:'army'});
+  if(units.length)out.push({id:'11e-necron-'+id,title,window,timing,turn:window==='End of opponent turn'?'opponent':undefined,summary,units,source,origin:'army'});
  }
  const aircraft=formations.filter(f=>necronKeywords.AIRCRAFT.has(f.body.unit)).map(f=>f.id);
  add('aircraft-deployment','Aircraft · compulsory reserves','Pre-battle','start',
