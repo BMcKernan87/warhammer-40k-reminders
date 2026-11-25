@@ -90,7 +90,7 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   if(rule.id==='hard-wired')text='Against the closest eligible enemy, re-roll Hit rolls of 1; if that enemy is within range of an opponent-controlled objective, re-roll any Hit roll instead. Both conditions are required for full re-rolls (FAQ).';
   if(rule.id==='doomsday-still')return 'Your Movement phase: if this model remains stationary, its doomsday cannon gains Devastating Wounds until turn end.';
   if(rule.id==='timesplinter-mantle')text='This formation has Stealth (Benefit of Cover against ranged attacks if every model has Stealth); incoming melee attacks suffer −1 to Hit.';
-  if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
+  if(rule.id==='szeras')text='While the friendly Battleline unit is within the aura, improve the AP of its outgoing attacks by 1 and worsen AP of incoming attacks by 1. The aura starts at 3″; both effects apply when their respective conditions occur.';
   if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
   if(rule.id==='orb')text+=' A given unit can be affected by a Resurrection Orb at most once per turn (FAQ).';
   if(rule.id==='vault')text+=' Available powers: Antimatter Meteor (Blast, Devastating Wounds, Indirect Fire); Cosmic Fire (Ignores Cover, Devastating Wounds, Torrent); Time’s Arrow (Anti-Character 4+, Devastating Wounds, Precision). These keywords apply only to the chosen weapons.';
@@ -175,6 +175,7 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    if(['Monolith','Obelisk','Tesseract Vault','Seraptek Heavy Construct'].includes(s.unit))emit('damaged-oc','Damaged profile · OC','Command','While this model has 1–'+threshold+' wounds remaining, subtract '+(s.unit==='Seraptek Heavy Construct'?5:4)+' from its OC. Re-evaluate when scoring.');
   }
   if(s.unit==='Seraptek Heavy Construct')emit('super-heavy','Super-heavy Walker','Movement','Normal, Advance and Fall Back moves may pass through non-Titanic models and terrain sections up to 4″ tall. Optionally gain Mobile for that move; if chosen, roll D6 after moving and become battle-shocked on 1.');
+  if(s.unit==='Trazyn the Infinite'&&f&&f.id!==s.id)emit('ancient-collector','Ancient Collector','Command','End of your Command phase: while Trazyn leads this formation, if it is within range of an objective you control, retain that objective until the opponent exceeds your Level of Control at the end of a phase.','end',[s.id,f.id]);
   if(s.unit==='Hexmark Destroyer')emit('lone','Lone Operative','Shooting','If unattached, enemy models outside 12″ cannot see or target this unit with indirect fire.');
   if(s.unit==='Illuminor Szeras'&&roster.some(m=>m.id!==s.id))emit('illuminor','Illuminor','Shooting','While within 3″ of another friendly Necron unit, Szeras gains Lone Operative (12″ visibility and indirect fire restriction).');
   if(s.unit==='Nekrosor Ammentar'){
