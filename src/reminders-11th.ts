@@ -1,3 +1,11 @@
+import {tyranidDetachmentReminders} from './tyranid-detachments';
+import {tyranidIntrinsicReminders} from './tyranid-intrinsic';
+import {tyranidProfileReminders} from './tyranid-datasheet-core';
+import {tyranidFactionReminders} from './tyranid-synapse';
+import {tyranidMusterUnits} from './tyranid-data';
+import {tyranidKeywords} from './tyranid-keywords';
+import {tyranidHasRangedWeapon} from './tyranid-loadouts';
+import {tyranidTransportReminders} from './tyranid-transports';
 import {tauDetachmentReminders} from './tau-detachments';
 import {tauIntrinsicReminders} from './tau-intrinsic';
 import {tauProfileReminders} from './tau-datasheet-core';
@@ -217,6 +225,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const orks=_army.faction==='Orks';
  const worldEaters=_army.faction==='World Eaters';
  const guard=_army.faction==='Astra Militarum';
+ const tyranid=_army.faction==='Tyranids';
  const tau=_army.faction==='T’au Empire';
  const mechanicus=_army.faction==='Adeptus Mechanicus';
  const sororitas=_army.faction==='Adepta Sororitas';
@@ -224,9 +233,9 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const deathGuard=_army.faction==='Death Guard';
  const thousandSons=_army.faction==='Thousand Sons';
  const emperorsChildren=_army.faction==='Emperor’s Children';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult||worldEaters||emperorsChildren||guard||thousandSons||deathGuard||greyKnights||sororitas||mechanicus||tau;
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult||worldEaters||emperorsChildren||guard||thousandSons||deathGuard||greyKnights||sororitas||mechanicus||tau||tyranid;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
- const selectedUnits=tau?new Set(tauMusterUnits(_army)):mechanicus?new Set(mechanicusMusterUnits(_army)):sororitas?new Set(sororitasMusterUnits(_army)):greyKnights?new Set(greyKnightsMusterUnits(_army)):deathGuard?new Set(deathGuardMusterUnits(_army)):thousandSons?new Set(thousandSonsMusterUnits(_army)):worldEaters?new Set(worldEatersMusterUnits(_army)):emperorsChildren?new Set(emperorsChildrenMusterUnits(_army)):guard?new Set(astraMusterUnits(_army)):undefined;
+ const selectedUnits=tyranid?new Set(tyranidMusterUnits(_army)):tau?new Set(tauMusterUnits(_army)):mechanicus?new Set(mechanicusMusterUnits(_army)):sororitas?new Set(sororitasMusterUnits(_army)):greyKnights?new Set(greyKnightsMusterUnits(_army)):deathGuard?new Set(deathGuardMusterUnits(_army)):thousandSons?new Set(thousandSonsMusterUnits(_army)):worldEaters?new Set(worldEatersMusterUnits(_army)):emperorsChildren?new Set(emperorsChildrenMusterUnits(_army)):guard?new Set(astraMusterUnits(_army)):undefined;
  const roster=expandRoster(_army).filter(s=>!selectedUnits||selectedUnits.has(s.unit));
  result.push(...alliedTitanAndKnightReminders(_army,roster));
  if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
@@ -236,6 +245,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  if(guard)result.push(...astraDatasheetReminders(_army,roster),...astraMilitarumDetachmentReminders(_army,roster),...astraOrderReminders(_army,roster),...astraEmbarkationReminders(_army,roster),...assignedAgentReminders(_army));
  if(cult)result.push(...gscEmbarkationReminders(_army,roster),...gscCultAmbushReminders(_army,roster),...gscDatasheetReminders(_army,roster),...gscDetachmentReminders(_army,roster),...gscAlliedReminders(_army,roster));
  if(emperorsChildren)result.push(...emperorsChildrenDetachmentReminders(_army,roster),...ecProfileReminders(_army,roster),...emperorsChildrenIntrinsicReminders(_army,roster),...emperorsChildrenArmyReminders(_army,roster),...emperorsChildrenTransportReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
+ if(tyranid)result.push(...tyranidDetachmentReminders(_army,roster),...tyranidProfileReminders(_army,roster),...tyranidIntrinsicReminders(_army,roster),...tyranidFactionReminders(_army,roster),...tyranidTransportReminders(_army,roster));
  if(tau)result.push(...tauDetachmentReminders(_army,roster),...tauProfileReminders(_army,roster),...tauIntrinsicReminders(_army,roster),...tauGreaterGoodReminders(_army,roster),...tauTransportReminders(_army,roster));
  if(mechanicus)result.push(...mechanicusDetachmentReminders(_army,roster),...mechanicusProfileReminders(_army,roster),...mechanicusIntrinsicReminders(_army,roster),...mechanicusDoctrinaReminders(_army,roster),...mechanicusTransportReminders(_army,roster),...assignedAgentReminders(_army));
  if(sororitas)result.push(...sororitasDetachmentReminders(_army,roster),...sororitasProfileReminders(_army,roster),...sororitasIntrinsicReminders(_army,roster),...sororitasFaithReminders(_army,roster),...sororitasTransportReminders(_army,roster),...assignedAgentReminders(_army));
@@ -256,6 +266,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
    if(guard)return [...astraMilitarumKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(cult)return [...gscArmyKeywords(_army,{unit,id:id??''})];
    if(emperorsChildren)return [...emperorsChildrenKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
+   if(tyranid)return [...tyranidKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(tau)return [...tauKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(mechanicus)return [...mechanicusKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(sororitas)return [...sororitasKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
@@ -275,7 +286,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const formations=guard?astraFormationGroups(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
   const legionRanged=deathGuard?deathGuardHasRangedWeapon:thousandSons?thousandSonsHasRangedWeapon:emperorsChildren?emperorsChildrenHasRangedWeapon:worldEaters?worldEaterHasRangedWeapon:undefined;
-  const hasGun=tau?tauHasRangedWeapon:mechanicus?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):mechanicusAgentName(s.unit)?assignedAgentHasRanged(s):mechanicusHasRangedWeapon(s)):sororitas?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):sororitasAgentName(s.unit)?assignedAgentHasRanged(s,sororitasAgentName(s.unit)):sororitasHasRangedWeapon(s)):greyKnights?(s:RosterInstance)=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||greyKnightsHasRangedWeapon(s):guard?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):astraAgentName(s.unit)?assignedAgentHasRanged(s,astraAgentName(s.unit)):astraMilitarumHasRangedWeapon(s)):
+  const hasGun=tyranid?tyranidHasRangedWeapon:tau?tauHasRangedWeapon:mechanicus?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):mechanicusAgentName(s.unit)?assignedAgentHasRanged(s):mechanicusHasRangedWeapon(s)):sororitas?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):sororitasAgentName(s.unit)?assignedAgentHasRanged(s,sororitasAgentName(s.unit)):sororitasHasRangedWeapon(s)):greyKnights?(s:RosterInstance)=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||greyKnightsHasRangedWeapon(s):guard?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):astraAgentName(s.unit)?assignedAgentHasRanged(s,astraAgentName(s.unit)):astraMilitarumHasRangedWeapon(s)):
     legionRanged?(s:RosterInstance)=>isWarhound(s.unit)||(isDreadblade(s.unit)?chaosKnightHasRangedWeapon(s):legionRanged(s)):cult?gscHasRangedWeapon:votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
