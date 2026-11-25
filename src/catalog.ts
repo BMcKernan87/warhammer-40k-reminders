@@ -1,3 +1,4 @@
+import {CSM_ARMY_UNITS} from './csm-army-data';
 import {TYRANID_UNITS} from './tyranid-data';
 import {TAU_UNITS} from './tau-data';
 import {MECHANICUS_ARMY_UNITS} from './mechanicus-army-data';
@@ -45,7 +46,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Blood Angels':{detachments:['Select detachment (unverified)'],units:["Commander Dante","Death Company Marines","Sanguinary Guard"],enhancements:[]},
  'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:DAEMON_UNITS,enhancements:[]},
  'Chaos Knights':{detachments:['Select detachment (unverified)'],units:CHAOS_KNIGHT_UNITS,enhancements:[]},
- 'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:["Legionaries","Chosen","Chaos Terminator Squad","Abaddon the Despoiler"],enhancements:[]},
+ 'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:CSM_ARMY_UNITS,enhancements:[]},
  'Dark Angels':{detachments:['Select detachment (unverified)'],units:["Azrael","Deathwing Knights","Inner Circle Companions"],enhancements:[]},
  'Death Guard':{detachments:['Select detachment (unverified)'],units:DEATH_GUARD_UNITS,enhancements:[]},
  'Drukhari':{detachments:['Select detachment (unverified)'],units:["Kabalite Warriors","Wyches","Incubi","Archon"],enhancements:[]},
@@ -65,7 +66,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'] as const){
+for(const faction of ['Chaos Space Marines','Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'] as const){
  CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
 

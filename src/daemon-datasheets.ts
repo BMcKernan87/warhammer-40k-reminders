@@ -48,7 +48,7 @@ function coreAndWeapons(c:DaemonRuleContext,members:readonly RosterInstance[]):v
 }
 
 export function daemonDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[] {
-  if(army.faction!=='Chaos Knights'&&army.faction!=='Chaos Daemons')return [];
+  if(army.faction!=='Chaos Knights'&&army.faction!=='Chaos Daemons'&&army.faction!=='Chaos Space Marines')return [];
   const allowed=army.faction==='Chaos Daemons'?daemonMusterUnits(army):undefined;
   const daemons=roster.filter(s=>cards[s.unit]&&(!allowed||allowed.includes(s.unit)));
   const bodies=new Map(daemons.map(s=>[s.id,knightJoinedBodyguard(army,s)]));

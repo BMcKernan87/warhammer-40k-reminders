@@ -1,3 +1,4 @@
+import {csmMarkChoices,csmMarksCompatible,type CsmMark} from './csm-muster-data';
 import {tyranidCanPromote} from './tyranid-muster-data';
 import {tauAdditionalLeaderPair} from './tau-muster-data';
 import {deathGuardAdditionalLeaderPair} from './death-guard-data';
@@ -16,7 +17,7 @@ import {EQUIPMENT_OPTIONS} from './equipment';
 import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhancements';
 import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];knightGear?:Record<string,string>;enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;characterPromotion?:boolean;wargear?:Record<string,number>}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];knightGear?:Record<string,string>;enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;characterPromotion?:boolean;csmMark?:CsmMark;wargear?:Record<string,number>}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances.map(squad=>{
   // Earlier saves can retain a unit-wide weapon alongside individual squad IDs.
@@ -194,6 +195,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
   if(x.characterPromotion!==undefined&&(x.characterPromotion!==true||!(astraCanPromote(army,x)||tyranidCanPromote(army,x))))return false;
+  if(x.csmMark!==undefined&&!csmMarkChoices(army,x).includes(x.csmMark))return false;
   if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||rosterAttachmentRole(army.faction,x.unit)!=='leader'))return false;
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
@@ -214,6 +216,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(x.attachedTo===undefined)continue;
   const body=army.instances.find(b=>b.id===x.attachedTo);
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
+  if(!csmMarksCompatible(army,x,body))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
   if(army.faction==='T’au Empire'&&leaders.length===2&&tauAdditionalLeaderPair(body,leaders[0].unit,leaders[1].unit))continue;
   if(army.faction==='Death Guard'&&leaders.length===2&&deathGuardAdditionalLeaderPair(body.unit,leaders[0].unit,leaders[1].unit))continue;
@@ -256,7 +259,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids'].includes(army.faction))return army;
+ if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){
@@ -298,11 +301,11 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
 /** Remove only attachments that become illegal when a detachment or upgrade is removed. */
 export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
  if(!army.instances)return army;
- let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy)&&!tyranidCanPromote(army,copy))delete copy.characterPromotion;return copy;});
+ let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy)&&!tyranidCanPromote(army,copy))delete copy.characterPromotion;if(copy.csmMark&&!csmMarkChoices(army,copy).includes(copy.csmMark))delete copy.csmMark;return copy;});
  for(const leader of instances){
   if(!leader.attachedTo)continue;
   const body=instances.find(b=>b.id===leader.attachedTo);
-  if(!body||!instanceBodyguards(army,leader).includes(body.unit))delete leader.attachedTo;
+  if(!body||!instanceBodyguards(army,leader).includes(body.unit)||!csmMarksCompatible(army,leader,body))delete leader.attachedTo;
  }
  const lostTyranidWarlord=army.faction==='Tyranids'&&army.instances.some(s=>s.id===army.warlordId&&s.characterPromotion)&&!instances.some(s=>s.id===army.warlordId&&s.characterPromotion);
  return reconcileRetinues({...army,instances,...(lostTyranidWarlord?{warlordId:undefined}:{})});

@@ -1,3 +1,4 @@
+import {eligibleCsmUpgrades} from './csm-detachment-data';
 import {eligibleTyranidUpgrades} from './tyranid-detachment-data';
 import {eligibleTauUpgrades} from './tau-detachment-data';
 import {eligibleMechanicusUpgrades} from './mechanicus-detachment-data';
@@ -140,6 +141,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Chaos Space Marines')return eligibleCsmUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Space Marines',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-space-marines/'}));
  if(army.faction==='Tyranids')return eligibleTyranidUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Tyranids',source:'https://wahapedia.ru/wh40k11ed/factions/tyranids/'}));
  if(army.faction==='T’au Empire')return eligibleTauUpgrades(army,unit,id).map(u=>({...u,unit,faction:'T’au Empire',source:'https://wahapedia.ru/wh40k11ed/factions/t-au-empire/'}));
  if(army.faction==='Adeptus Mechanicus')return eligibleMechanicusUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Adeptus Mechanicus',source:'https://wahapedia.ru/wh40k11ed/factions/adeptus-mechanicus/'}));
@@ -195,6 +197,8 @@ export function upgradeError2026(army:ArmySelection):string|null{
 export function selectUpgrade2026(army:ArmySelection,key:string,name:string|null):ArmySelection{
  const instance=expandRoster(army).find(x=>x.id===key);
  if(!instance&&!(army.units[key]>0))throw Error('Select a unit before assigning an upgrade');
+ // Do not erase a chosen Khorne allegiance to make a Psyker enhancement eligible.
+ if(name&&army.faction==='Chaos Space Marines'&&!eligibleUpgrades2026(army,instance?.unit??key,instance?.id).some(u=>u.name===name))throw Error('Enhancement unavailable for this unit or detachment');
  const upgrades2026={...army.upgrades2026};
  // Preserve old single-unit name keys, but never leave a fallback that affects other instances.
  if(instance&&Object.prototype.hasOwnProperty.call(upgrades2026,instance.unit)){

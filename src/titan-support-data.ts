@@ -13,7 +13,7 @@ export const isFreeblade=(unit:string)=>freeblades.has(unit);
 export const isWarhound=(unit:string)=>unit==='Warhound Titan'||unit==='Chaos Warhound Titan';
 export const freebladeHost=(faction:Faction)=>faction==='Imperial Agents'||faction==='Adeptus Custodes'||faction==='Astra Militarum'||faction==='Grey Knights'||faction==='Adepta Sororitas'||faction==='Adeptus Mechanicus';
 const loyal:Faction[]=['Astra Militarum','Imperial Agents','Adeptus Custodes','Imperial Knights','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'];
-const traitor:Faction[]=['Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard'];
+const traitor:Faction[]=['Chaos Space Marines','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard'];
 export function alliedWarhound(faction:Faction){
  return loyal.includes(faction)?'Warhound Titan':traitor.includes(faction)?'Chaos Warhound Titan':undefined;
 }
