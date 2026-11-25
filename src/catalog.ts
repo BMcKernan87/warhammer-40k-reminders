@@ -1,3 +1,4 @@
+import {MECHANICUS_ARMY_UNITS} from './mechanicus-army-data';
 import {SORORITAS_ARMY_UNITS} from './sororitas-army-data';
 import {GREY_KNIGHTS_UNITS} from './grey-knights-data';
 import {DEATH_GUARD_UNITS} from './death-guard-data';
@@ -35,7 +36,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Tyranids':{detachments:['Invasion Fleet','Synaptic Nexus','Unending Swarm','Assimilation Swarm','Vanguard Onslaught','Crusher Stampede'],units:['Hive Tyrant','The Swarmlord','Winged Hive Tyrant','Neurotyrant','Tervigon','Broodlord','Old One Eye','Deathleaper','Termagants','Hormagaunts','Gargoyles','Genestealers','Tyranid Warriors','Von Ryan’s Leapers','Lictor','Neurolictor','Zoanthropes','Venomthropes','Raveners','Ripper Swarms','Biovore','Pyrovore','Carnifexes','Exocrine','Haruspex','Maleceptor','Tyrannofex','Norn Emissary','Norn Assimilator','Screamer-Killer','Psychophage','Barbgaunts','Neurogaunts'],enhancements:[]},
  'Adepta Sororitas':{detachments:['Select detachment (unverified)'],units:SORORITAS_ARMY_UNITS,enhancements:[]},
  'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},
- 'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:["Skitarii Rangers","Skitarii Vanguard","Tech-Priest Dominus","Kataphron Breachers"],enhancements:[]},
+ 'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:MECHANICUS_ARMY_UNITS,enhancements:[]},
  'Aeldari':{detachments:['Select detachment (unverified)'],units:["Farseer","Guardian Defenders","Dire Avengers","Wraithguard"],enhancements:[]},
  'Astra Militarum':{detachments:['Select detachment (unverified)'],units:ASTRA_ARMY_UNITS,enhancements:[]},
  'Black Templars':{detachments:['Select detachment (unverified)'],units:["High Marshal Helbrecht","Primaris Crusader Squad","Sword Brethren"],enhancements:[]},
@@ -62,7 +63,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas'] as const){
+for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'] as const){
  CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
 

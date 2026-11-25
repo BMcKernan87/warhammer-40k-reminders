@@ -18,7 +18,7 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  const entries=rosterCost2026(army).entries;
  const prices=new Map(entries.map(e=>[e.id,e.points]));
  const cost=(f:ArmyFormation)=>f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0);
- const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
+ const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'||army.faction==='Adeptus Mechanicus'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
  if(army.faction==='Orks'&&mandatoryAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',mandatoryAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
  const compulsory=army.faction==='Orks'?orkMandatoryReservePoints(army,entries):mandatoryAircraft.reduce((points,f)=>points+cost(f),0);
  const available=Math.max(0,reserveLimit-compulsory);

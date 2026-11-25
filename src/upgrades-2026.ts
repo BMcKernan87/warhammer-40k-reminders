@@ -1,3 +1,4 @@
+import {eligibleMechanicusUpgrades} from './mechanicus-detachment-data';
 import {eligibleSororitasUpgrades} from './sororitas-detachment-data';
 import {eligibleGreyKnightsUpgrades} from './grey-knights-detachment-data';
 import {eligibleDeathGuardUpgrades} from './death-guard-detachment-data';
@@ -137,6 +138,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Adeptus Mechanicus')return eligibleMechanicusUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Adeptus Mechanicus',source:'https://wahapedia.ru/wh40k11ed/factions/adeptus-mechanicus/'}));
  if(army.faction==='Adepta Sororitas')return eligibleSororitasUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Adepta Sororitas',source:'https://wahapedia.ru/wh40k11ed/factions/adepta-sororitas/'}));
  if(army.faction==='Grey Knights')return eligibleGreyKnightsUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Grey Knights',source:'https://wahapedia.ru/wh40k11ed/factions/grey-knights/'}));
  if(army.faction==='Death Guard')return eligibleDeathGuardUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Death Guard',source:'https://wahapedia.ru/wh40k11ed/factions/death-guard/'}));

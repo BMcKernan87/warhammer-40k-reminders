@@ -1,3 +1,5 @@
+import {MECHANICUS_DETACHMENTS} from './mechanicus-detachments.generated';
+import {currentMechanicusDetachment} from './mechanicus-detachment-data';
 import {SORORITAS_DETACHMENTS} from './sororitas-detachments.generated';
 import {currentEcDetachment} from './emperors-children-detachment-data';
 import {EMP_CHILDREN_DETACHMENTS} from './emperors-children-detachments.generated';
@@ -78,18 +80,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  })),
  'Astra Militarum':ASTRA_DETACHMENTS,
 
- "Adeptus Mechanicus":[
-  {name:"Cohort Acquisitus",disposition:"Reconnaissance",dp:1},
-  {name:"Lords of the Forge",disposition:"Priority Assets",dp:1},
-  {name:"Luminen Auto-Choir",disposition:"Disruption",dp:1},
-  {name:"Cohort Cybernetica",disposition:"Take and Hold",dp:2},
-  {name:"Data-psalm Conclave",disposition:"Disruption",dp:2},
-  {name:"Eradication Cohort",disposition:"Purge the Foe",dp:3},
-  {name:"Explorator Maniple",disposition:"Priority Assets",dp:2},
-  {name:"Haloscreed Battle Clade",disposition:"Purge the Foe",dp:3},
-  {name:"Rad-zone Corps",disposition:"Take and Hold",dp:2},
-  {name:"Skitarii Hunter Cohort",disposition:"Reconnaissance",dp:2},
- ],
+ 'Adeptus Mechanicus':MECHANICUS_DETACHMENTS,
  "Imperial Knights":[
   {name:"Dominus Foebreakers",disposition:"Priority Assets",dp:1},
   {name:"Questor Forgepact",disposition:"Disruption",dp:1},
@@ -249,10 +240,10 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const groups=faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;
