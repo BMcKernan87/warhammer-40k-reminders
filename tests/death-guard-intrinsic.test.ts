@@ -1,0 +1,101 @@
+// @vitest-environment node
+import {expect,it} from 'vitest';
+import {newSelection,addSelectionUnit,type ArmySelection} from '../src/catalog';
+import {rosterCost2026} from '../src/datasheets-2026';
+import {deathGuardIntrinsicReminders as reminders} from '../src/death-guard-intrinsic';
+import {deathGuardLoadout} from '../src/death-guard-loadouts';
+import {selectDeathGuardWarlord} from '../src/death-guard-muster';
+import {setKnightGear} from '../src/knight-loadouts';
+import {individualArmy,setInstanceAttachment,setInstanceModelCount} from '../src/roster-instances';
+import {rosterFindings} from '../src/roster-findings';
+import {selectUpgrade2026} from '../src/upgrades-2026';
+const id=(s:string)=>s+'#1',horde='Poxwalkers (Numberless Horde reinforcements)';
+function army(names:string[],det='Virulent Vectorium',size:ArmySelection['battleSize2026']='Strike Force'){
+ let a=individualArmy({...newSelection('Death Guard'),detachments2026:[det],battleSize2026:size});for(const n of names)a=addSelectionUnit(a,n);return a;
+}
+const join=(a:ArmySelection,leader:string,troops:string)=>setInstanceAttachment(a,id(leader),id(troops));
+const get=(a:ArmySelection,title:string)=>reminders(a).filter(r=>r.title===title);
+function gear(a:ArmySelection,unit:string,items:string[],owner=''){
+ const s=a.instances!.find(s=>s.unit===unit)!,equipment=deathGuardLoadout(unit,s.models)!;
+ const matches=(xs:readonly string[])=>[...xs].sort().join('|')===[...items].sort().join('|');
+ const slot=equipment.slots.find(f=>f.name.startsWith(owner)&&f.choices.some(c=>matches(c.items)))!;
+ return setKnightGear(a,s.id,slot.name,slot.choices.find(c=>matches(c.items))!.name);
+}
+it('prints exact 1000-point Shamblerot arms and specific targets for two embarked leaders and a three-model Blightlord squad',()=>{
+ let a=army(['Lord of Poxes','Tallyman','Plague Marines','Plague Marines','Chaos Rhino','Blightlord Terminators','Lord of Virulence','Chaos Land Raider','Poxwalkers','Icon Bearer'],'Shamblerot Vectorium','Incursion');
+ a=setInstanceModelCount(a,id('Plague Marines'),10);
+ for(const l of ['Lord of Poxes','Tallyman'])a=join(a,l,'Plague Marines');
+ a=join(a,'Lord of Virulence','Blightlord Terminators');a=setInstanceAttachment(a,id('Icon Bearer'),'Plague Marines#2');a=selectDeathGuardWarlord(a,id('Lord of Virulence'));
+ expect(rosterCost2026(a).total).toBe(1000);expect(rosterFindings(a).filter(f=>f.severity==='error')).toEqual([]);
+ expect(get(a,'Shroud of Disease')[0].units).toEqual([id('Lord of Poxes'),id('Plague Marines'),id('Tallyman')]);
+ expect(get(a,'Malicious Calculations')[0].units).toContain(id('Lord of Poxes'));
+ expect(get(a,'Blistering Fusillade')[0].units).toContain(id('Lord of Virulence'));
+ expect(get(a,'Blight Bombardment')[0]).toMatchObject({turn:'own',timing:'start',summary:expect.stringContaining('Blast')});
+ expect(get(a,'Fire Support')[0].units).toEqual([id('Chaos Rhino'),id('Plague Marines'),'Plague Marines#2']);
+ expect(get(a,'Assault Ramp')[0].units).toContain(id('Blightlord Terminators'));
+ expect(get(a,'Unclean Icon')[0].units).toContain('Plague Marines#2');expect(get(a,'Unclean Icon')[0].units).not.toContain(id('Plague Marines'));
+ expect(get(a,'Curse of the Walking Pox').map(r=>r.units)).toEqual([[id('Poxwalkers')],[horde]]);
+ expect(get(a,'Infused with the Blessings of Nurgle').map(r=>r.units?.[0])).toEqual([id('Plague Marines'),'Plague Marines#2']);
+});
+it('prints a legal 2000-point Tallyband with real Throne and Legion scopes, Typhus’ bodyguards and Mortarion’s equipped reactive targets',()=>{
+ let a=army(['Mortarion','Rotigus','Great Unclean One','Nurglings','Plaguebearers','Plague Drones','Beasts of Nurgle','Typhus','Deathshroud Terminators','Plague Marines','Malignant Plaguecaster','Chaos Rhino','Plagueburst Crawler','Helbrute'],'Tallyband Summoners');
+ a=join(a,'Typhus','Deathshroud Terminators');a=join(a,'Malignant Plaguecaster','Plague Marines');
+ expect(rosterCost2026(a).total).toBe(2000);expect(rosterFindings(a).filter(f=>f.severity==='error')).toEqual([]);
+ expect(get(a,'Silent Bodyguard')[0].units).toEqual([id('Deathshroud Terminators'),id('Typhus')]);
+ expect(get(a,'The Destroyer Hive')[0].units).toContain(id('Deathshroud Terminators'));
+ expect(get(a,'Eater Plague')[0].summary).not.toContain('Poxwalker');
+ expect(get(a,'Death Approaches').map(r=>[r.window,r.turn])).toEqual([['Movement','own']]);
+ expect(get(a,'Death Approaches')[0].summary).toMatch(/6″.*Afflicted.*8″/);
+ expect(get(a,'Inflamed Reprisal')[0].summary).toMatch(/Ballistic Skill by 1.*Plagueburst mortar/s);
+ expect(get(a,'Inflamed Reprisal')[0].units).not.toContain(id('Rotigus'));
+ expect(get(a,'Gift of Contagion').find(r=>r.turn==='opponent')?.summary).toContain('Inflamed Reprisal');
+ expect(get(a,'Daemon Lord of Nurgle')[0].units).not.toContain(id('Mortarion'));
+ expect(get(a,'Virulent Blessing')[0].units).toContain(id('Plaguebearers'));
+ expect(get(a,'Death’s Heads').map(r=>[r.window,r.turn])).toEqual([['Shooting','own'],['Fight','own']]);
+ expect(get(a,'Reverberating Summons')).toEqual([]);
+ a=gear(a,'Great Unclean One',['Doomsday bell']);
+ expect(get(a,'Reverberating Summons')[0].units).toEqual([id('Great Unclean One'),id('Plaguebearers')]);
+ expect(get({...a,detachments2026:['Virulent Vectorium']},'Reverberating Summons')).toEqual([]);
+ expect(get(a,'Grotesque Regeneration').every(r=>r.timing==='end'&&r.turn==='either')).toBe(true);
+ const rows=reminders(a);expect(new Set(rows.map(r=>r.id)).size).toBe(rows.length);
+});
+it('makes formation-only effects and reserve grants disappear when their actual prerequisites are missing',()=>{
+ let a=army(['Typhus','Poxwalkers','Blightlord Terminators','Plague Surgeon','Plague Marines','Tallyman'],'Champions of Contagion');
+ expect(get(a,'Blistering Fusillade')).toEqual([]);expect(get(a,'Tainted Narthecium')).toEqual([]);
+ a=join(a,'Typhus','Poxwalkers');a=join(a,'Plague Surgeon','Plague Marines');a=join(a,'Tallyman','Plague Marines');
+ expect(get(a,'Eater Plague')[0].summary).toContain('return one destroyed Poxwalker');
+ expect(get(a,'Tainted Narthecium')[0].summary).toContain('one destroyed Bodyguard');
+ a=selectUpgrade2026(a,id('Plague Surgeon'),'Needle of Nurgle');
+ expect(get(a,'Tainted Narthecium')).toHaveLength(1);expect(get(a,'Tainted Narthecium')[0].summary).toContain('D3 destroyed Bodyguard');
+ expect(get(a,'Tainted Narthecium')[0].units).toContain(id('Tallyman'));
+ expect(get(a,'Malicious Calculations').some(r=>r.turn==='opponent')).toBe(false);
+ a=addSelectionUnit(a,'Mortarion');
+ expect(get(a,'Malicious Calculations').find(r=>r.turn==='opponent')?.summary).toContain('ignore the −1 BS');
+ expect(get(army(['Tallyman'],'Shamblerot Vectorium'),'Curse of the Walking Pox')[0].units).toEqual([horde]);
+ expect(get(army(['Tallyman']),'Curse of the Walking Pox')).toEqual([]);
+ a=setInstanceModelCount(a,id('Blightlord Terminators'),5);expect(get(a,'Blistering Fusillade')[0].summary).toContain('Afflicted');
+});
+it('scopes model/phase limits, mandatory equipment and defensive reminders on uncommon Death Guard sheets',()=>{
+ let a=army(['Foetid Bloat-drone','Foetid Bloat-drone with Heavy Blight Launcher','Chaos Spawn','Foul Blightspawn','Foul Blightspawn','Plague Marines','Biologus Putrifier','Chaos Predator Annihilator','Chaos Predator Destructor','Defiler','Myphitic Blight-hauler','Miasmic Malignifier','Mortarion','Daemon Prince of Nurgle','Daemon Prince of Nurgle with Wings','Noxious Blightbringer','Lord of Contagion','Lord of Contagion','Deathshroud Terminators']);
+ expect(get(a,'Hovering Death').map(r=>r.window)).toEqual(['Movement','Charge']);
+ a=gear(a,'Foetid Bloat-drone',['Plaguespitter','Plaguespitter']);
+ expect(get(a,'Hovering Death').map(r=>r.window)).toContain('Shooting');
+ expect(get(a,'Blinding Spray')).toHaveLength(1);expect(get(a,'Blinding Spray')[0].units).toContain('Foul Blightspawn#2');
+ expect(get(a,'Unholy Resilience').filter(r=>r.window==='Fight')).toHaveLength(1);
+ expect(get(a,'Unholy Resilience')[0].summary).toMatch(/first time.*battle round.*2\+.*once per battle/);
+ expect(get(a,'Tocsin of Misery')[0]).toMatchObject({turn:'opponent',window:'Command'});
+ expect(get(a,'Sickening Vitality')).toEqual([]);
+ a=join(a,'Biologus Putrifier','Plague Marines');expect(get(a,'Foul Infusion')[0].summary).toMatch(/Critical Hits on unmodified 5\+/);
+ expect(get(a,'Diseased Influence')[0].units).not.toContain(id('Miasmic Malignifier'));
+ expect(get(a,'Putrescent Fog').map(r=>r.turn)).toEqual(['opponent','own']);
+ expect(get(a,'Explosive Blight')[0].summary).toContain('before removing the last enemy model');
+ expect(get(a,'Lethal Ichor')[0].summary).toContain('up to six dice');
+ expect(get(a,'Metalophagic Infection')[0].summary).toContain('Monster or Vehicle');
+ expect(get(a,'Hail of Corrosive Disease')[0].summary).toContain('neither a Monster nor a Vehicle');
+ expect(get(a,'Tank Hunters')).toHaveLength(1);expect(get(a,'Tank Hunters')[0].turn).toBe('own');
+ expect(get(a,'Barrage of Filth')[0]).toMatchObject({turn:'own',window:'Shooting'});
+ expect(get(a,'Horrifying Visage')[0].summary).toContain('Battle-shock at −1');
+ expect(get(a,'Enfeebling Miasma')[0].summary).toContain('Monster or Vehicle');
+ expect(get(a,'Death Guard Defenders')[0].units).toContain(id('Plague Marines'));
+ expect(get(a,'Fevered Strategist')[0].summary).toContain('Once per battle round');
+});

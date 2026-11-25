@@ -5,7 +5,7 @@ import {knightJoinedBodyguard} from './leader-eligibility';
 import {expandRoster,type RosterInstance} from './roster-instances';
 
 interface LegionCargo {
- faction:'Emperor’s Children'|'Thousand Sons';
+ faction:'Emperor’s Children'|'Thousand Sons'|'Death Guard';
  idPrefix:string;
  sheets:readonly Datasheet2026[];
  keywords:(army:ArmySelection,squad:RosterInstance)=>ReadonlySet<string>;

@@ -4,7 +4,7 @@ import {parse} from 'yaml';
 import {compileModelEquipment} from './import-model-equipment-slots.mjs';
 import {loadExport} from './import-wahapedia-11e.mjs';
 
-export async function importLegionLoadouts({slug,factionId,sourceId,expected,paid,table,title,adjustRole,adjustLimits,conditionalProfiles={} },args){
+export async function importLegionLoadouts({slug,factionId,sourceId,expected,paid,table,title,adjustRole,adjustLimits,manualNames={},itemNames={},conditionalProfiles={} },args){
  const [csv,manualPath,directory,output]=args;
  const script='scripts/import-'+slug+'-loadouts.mjs';
  if(!output)throw Error('Usage: node '+script+' CSV_DIR MFM_YAML RELATIONAL_DATA_DIR OUTPUT_TS');
@@ -21,12 +21,12 @@ export async function importLegionLoadouts({slug,factionId,sourceId,expected,pai
   return choice.flatMap(({id,count})=>{
    const item=items.get(id);
    if(!item||!Number.isInteger(count)||count<1)throw Error('Missing '+title+' equipment '+id);
-   return Array(count).fill(cap(item.name));
+   return Array(count).fill(itemNames[id]??cap(item.name));
   });
  }
  const out=[];
  for(const price of mfm.units.filter(u=>!u.legends)){
-  const source=tables.Datasheets.find(s=>s.faction_id===factionId&&s.source_id===sourceId&&key(s.name)===key(price.name));
+  const source=tables.Datasheets.find(s=>s.faction_id===factionId&&s.source_id===sourceId&&key(s.name)===key(manualNames[price.name.toLowerCase()]??price.name));
   const unit=units.find(s=>key(s.name)===key(price.name)&&s.external_refs.some(r=>r.namespace==='mfm'));
   const comp=compositions.find(c=>c.unit_id===unit?.id);
   if(!source||comp?.game_version.edition!=='11th'||comp.game_version.dataslate!==mfm.firstSeen||comp.loadout.uniform.length)throw Error('Unmatched '+title+' card '+price.name);
