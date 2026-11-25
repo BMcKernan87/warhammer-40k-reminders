@@ -4,7 +4,7 @@ import {parse} from 'yaml';
 import {compileModelEquipment} from './import-model-equipment-slots.mjs';
 import {loadExport} from './import-wahapedia-11e.mjs';
 
-export async function importLegionLoadouts({slug,factionId,sourceId,expected,paid,table,title,adjustRole,adjustLimits,manualNames={},itemNames={},conditionalProfiles={} },args){
+export async function importFactionLoadouts({slug,factionId,sourceId,packAircraftOrModels=[],expected,paid,table,title,adjustRole,adjustEquipment,adjustLimits,manualNames={},itemNames={},conditionalProfiles={} },args){
  const [csv,manualPath,directory,output]=args;
  const script='scripts/import-'+slug+'-loadouts.mjs';
  if(!output)throw Error('Usage: node '+script+' CSV_DIR MFM_YAML RELATIONAL_DATA_DIR OUTPUT_TS');
@@ -26,7 +26,7 @@ export async function importLegionLoadouts({slug,factionId,sourceId,expected,pai
  }
  const out=[];
  for(const price of mfm.units.filter(u=>!u.legends)){
-  const source=tables.Datasheets.find(s=>s.faction_id===factionId&&s.source_id===sourceId&&key(s.name)===key(manualNames[price.name.toLowerCase()]??price.name));
+  const source=tables.Datasheets.find(s=>s.faction_id===factionId&&(s.source_id===sourceId||packAircraftOrModels.includes(s.name))&&key(s.name)===key(manualNames[price.name.toLowerCase()]??price.name));
   const unit=units.find(s=>key(s.name)===key(price.name)&&s.external_refs.some(r=>r.namespace==='mfm'));
   const comp=compositions.find(c=>c.unit_id===unit?.id);
   if(!source||comp?.game_version.edition!=='11th'||comp.game_version.dataslate!==mfm.firstSeen||comp.loadout.uniform.length)throw Error('Unmatched '+title+' card '+price.name);
@@ -47,6 +47,7 @@ export async function importLegionLoadouts({slug,factionId,sourceId,expected,pai
   const roles=templates.map(t=>adjustRole?.(source,t,slots,expanded,options)??compileModelEquipment(t,slots,expanded));
   const limits=loadout.limits.map(l=>({role:l.model,thresholds:l.breakpoints,choices:l.choices.map(expanded)}));
   adjustLimits?.(source,limits,options);
+  adjustEquipment?.(source,roles,limits,options);
   const profiles=tables.Datasheets_wargear.filter(w=>w.datasheet_id===source.id&&w.name);
   const ranged=[...new Set(profiles.filter(w=>w.type==='Ranged').map(w=>base(w.name)))];
   const fitted=new Set(roles.flatMap(r=>[...r.fixed,...r.slots.flatMap(s=>s.choices.flat())]).map(key));

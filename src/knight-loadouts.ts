@@ -1,3 +1,4 @@
+import {greyKnightsLoadout,resizeGreyKnightsGear,validGreyKnightsGear} from './grey-knights-loadouts';
 import {deathGuardLoadout,resizeDeathGuardGear,validDeathGuardGear} from './death-guard-loadouts';
 import {thousandSonsLoadout,resizeThousandSonsGear,validThousandSonsGear} from './thousand-sons-loadouts';
 import {emperorsChildrenLoadout,resizeEmperorsChildrenGear,validEmperorsChildrenGear} from './emperors-children-loadouts';
@@ -116,6 +117,7 @@ function accursedCultists(models:number):KnightEquipment {
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,models))return resizeDeathGuardGear(squad,models);
+  if(faction==='Grey Knights'&&greyKnightsLoadout(squad.unit,models))return resizeGreyKnightsGear(squad,models);
   if(faction==='Thousand Sons'&&thousandSonsLoadout(squad.unit,models))return resizeThousandSonsGear(squad,models);
   if(faction==='Emperor’s Children'&&emperorsChildrenLoadout(squad.unit,models))return resizeEmperorsChildrenGear(squad,models);
   if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,models))return resizeWorldEaterGear(squad,models);
@@ -182,6 +184,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   if(faction==='Orks')return orkLoadout(unit,models);
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
+  if(faction==='Grey Knights')return greyKnightsLoadout(unit,models)??agentLoadout(unit,models);
   if(faction==='Astra Militarum')return astraMilitarumLoadout(unit,models)??agentLoadout(unit==='Ministorum Priest (Imperial Agents)'?'Ministorum Priest':unit,models);
   if(faction==='Genestealer Cults')return gscLoadout(unit,models)??finalDayLoadout(unit,models)??broodBrotherLoadout(unit,models);
   if(faction==='Leagues of Votann')return votannLoadout(unit,models);
@@ -216,6 +219,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,squad.models))return validDeathGuardGear(squad.unit,gear,squad.models);
+  if(faction==='Grey Knights'&&greyKnightsLoadout(squad.unit,squad.models))return validGreyKnightsGear(squad.unit,gear,squad.models);
   if(faction==='Thousand Sons'&&thousandSonsLoadout(squad.unit,squad.models))return validThousandSonsGear(squad.unit,gear,squad.models);
   if(faction==='Emperor’s Children'&&emperorsChildrenLoadout(squad.unit,squad.models))return validEmperorsChildrenGear(squad.unit,gear,squad.models);
   if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,squad.models))return validWorldEaterGear(squad.unit,gear,squad.models);

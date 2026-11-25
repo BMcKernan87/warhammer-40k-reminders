@@ -7,6 +7,7 @@ export type ProfileStage=readonly [ReminderWindow,NonNullable<GeneratedReminder[
 const deploy:ProfileStage=['Pre-battle','either','during'],shoot:ProfileStage=['Shooting','own','during'],fight:ProfileStage=['Fight','either','during'];
 const snap:ProfileStage=['Movement','opponent','end'],enemyShooting:ProfileStage=['Shooting','opponent','during'],enemySnap:ProfileStage=['Movement','own','end'];
 type Emit=(title:string,stage:ProfileStage,summary:string,units?:string[])=>void;
+type FiringDeckCards=Readonly<Record<string,Pick<KnightCardStats,'weapons'>>>;
 type ModelLoadouts=(s:RosterInstance)=>readonly {model:string;items:readonly string[]}[];
 
 export function printCombatProfiles(squad:RosterInstance,stats:KnightCardStats,titanic:boolean,count:(s:RosterInstance,name:string)=>number,emit:Emit){
@@ -29,7 +30,7 @@ export function printCombatProfiles(squad:RosterInstance,stats:KnightCardStats,t
 }
 
 const weaponKey=(s:string)=>s.split(/\s+[-–—]\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g,'');
-function firingDeckWeapons(s:RosterInstance,cards:Readonly<Record<string,KnightCardStats>>,models:ModelLoadouts):string[]{
+function firingDeckWeapons(s:RosterInstance,cards:FiringDeckCards,models:ModelLoadouts):string[]{
  const guns=cards[s.unit]?.weapons.filter(w=>w.phase==='Shooting'&&!w.abilities.some(a=>a.toLowerCase()==='one shot'))??[];
  const bearers=new Map<string,number>();
  for(const model of models(s)){
@@ -42,7 +43,7 @@ function firingDeckWeapons(s:RosterInstance,cards:Readonly<Record<string,KnightC
  return [...bearers].map(([label,count])=>s.id+' ('+count+' × '+label+')');
 }
 
-export function printFiringDeck(squad:RosterInstance,deck:number,passengers:readonly {members:RosterInstance[]}[],cards:Readonly<Record<string,KnightCardStats>>,models:ModelLoadouts,emit:Emit){
+export function printFiringDeck(squad:RosterInstance,deck:number,passengers:readonly {members:RosterInstance[]}[],cards:FiringDeckCards,models:ModelLoadouts,emit:Emit){
   const groups=passengers.map(g=>({g,guns:g.members.flatMap(member=>firingDeckWeapons(member,cards,models))})).filter(g=>g.guns.length);
   if(groups.length)emit('Firing Deck '+deck,shoot,'When selected to shoot, choose up to '+deck+' embarked models whose units have not been selected to shoot this phase. Choose one ranged weapon other than One Shot per selected model. The transport has those weapons until it finishes attacking, and all units aboard are ineligible to shoot for the rest of the turn. Equipped passenger guns: '+groups.flatMap(g=>g.guns).join('. ')+'.',[squad.id,...groups.flatMap(({g})=>g.members.map(s=>s.id))]);
 }

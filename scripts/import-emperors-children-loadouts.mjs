@@ -1,7 +1,7 @@
-import {importLegionLoadouts} from './import-legion-loadouts.mjs';
+import {importFactionLoadouts} from './import-faction-loadouts.mjs';
 import {compileModelEquipment} from './import-model-equipment-slots.mjs';
 
-await importLegionLoadouts({
+await importFactionLoadouts({
  slug:'emperors-children',title:'Emperor’s Children',factionId:'EC',sourceId:'000000280',
  table:'EMPERORS_CHILDREN_KITS',expected:23,paid:1,
  adjustRole(source,t,slots,expanded,options){

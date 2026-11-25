@@ -1,3 +1,4 @@
+import {GREY_KNIGHTS_UNITS} from './grey-knights-data';
 import {DEATH_GUARD_UNITS} from './death-guard-data';
 import {THOUSAND_SONS_UNITS} from './thousand-sons-data';
 import {EMPERORS_CHILDREN_UNITS} from './emperors-children-data';
@@ -46,7 +47,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Drukhari':{detachments:['Select detachment (unverified)'],units:["Kabalite Warriors","Wyches","Incubi","Archon"],enhancements:[]},
  'Emperor’s Children':{detachments:['Select detachment (unverified)'],units:EMPERORS_CHILDREN_UNITS,enhancements:[]},
  'Genestealer Cults':{detachments:['Select detachment (unverified)'],units:[...GSC_UNITS,...GSC_ALLIED_SHEETS.map(s=>s.unit)],enhancements:[]},
- 'Grey Knights':{detachments:['Select detachment (unverified)'],units:["Strike Squad","Brotherhood Terminator Squad","Nemesis Dreadknight"],enhancements:[]},
+ 'Grey Knights':{detachments:['Select detachment (unverified)'],units:GREY_KNIGHTS_UNITS,enhancements:[]},
  'Imperial Agents':{detachments:['Select detachment (unverified)'],units:ASSIGNED_AGENT_UNITS,enhancements:[]},
  'Imperial Knights':{detachments:['Select detachment (unverified)'],units:IMPERIAL_KNIGHT_UNITS,enhancements:[]},
  'Leagues of Votann':{detachments:['Select detachment (unverified)'],units:VOTANN_UNITS,enhancements:[]},
@@ -60,7 +61,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  }
 };
-for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard'] as const){
+for(const faction of ['Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights'] as const){
  CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
 

@@ -1,6 +1,6 @@
 import {astraAgentName} from './astra-army-data';
 import type {ArmySelection} from './catalog';
-import {ASSIGNED_AGENT_SHEETS,ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
+import {ASSIGNED_AGENT_SHEETS,ASSIGNED_AGENT_UNITS,assignedAgentHost} from './assigned-agent-data';
 import type {RosterFinding} from './roster-findings';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {agentLoadout} from './assigned-agent-loadouts';
@@ -19,7 +19,7 @@ export function assignedAgentHasRanged(squad:RosterInstance,sourceUnit=squad.uni
 }
 
 export function assignedAgentFindings(army:ArmySelection):RosterFinding[]{
- if(!['Astra Militarum','Imperial Knights','Adeptus Custodes'].includes(army.faction))return [];
+ if(!assignedAgentHost(army.faction))return [];
  const name=(s:RosterInstance)=>army.faction==='Astra Militarum'?astraAgentName(s.unit):s.unit;
  const agents=expandRoster(army).filter(s=>{const unit=name(s);return unit!==undefined&&isAssignedAgent(unit);});
  if(!agents.length)return [];

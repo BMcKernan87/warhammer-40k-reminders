@@ -1,6 +1,6 @@
-import {importLegionLoadouts} from './import-legion-loadouts.mjs';
+import {importFactionLoadouts} from './import-faction-loadouts.mjs';
 
-await importLegionLoadouts({
+await importFactionLoadouts({
  slug:'death-guard',title:'Death Guard',factionId:'DG',sourceId:'000000014',table:'DEATH_GUARD_KITS',expected:36,paid:1,
  itemNames:{'icon-of-despair-aura':'Icon of despair'},
  manualNames:{'myphitic blight-haulers':'Myphitic Blight-hauler'},

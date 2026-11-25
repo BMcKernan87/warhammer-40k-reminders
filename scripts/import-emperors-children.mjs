@@ -1,6 +1,6 @@
-import {importLegionMuster} from './import-legion-muster.mjs';
+import {importFactionMuster} from './import-faction-muster.mjs';
 
-await importLegionMuster({
+await importFactionMuster({
  name:'Emperor’s Children',slug:'emperors-children',urlSlug:'emperor-s-children',factionId:'EC',sourceId:'000000280',
  daemons:'Legions of Excess',total:23,daemonCount:5,pack:'eng_30-09_wh40k_faction_pack_emperors_children-xp2mhzppxs-1cvykicdxu.pdf',prefix:'EMPERORS_CHILDREN',
  armyRuleExport(natives,tables){
