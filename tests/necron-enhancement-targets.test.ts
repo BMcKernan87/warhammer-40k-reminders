@@ -33,12 +33,12 @@ describe('Enhancements requiring a separately eligible unit or a Monolith', () =
     const detachment = "The Phaeron's Armoury";
     for (const units of [['Overlord'], ['Catacomb Command Barge', 'Monolith']]) {
       const a = army(detachment, ...units);
-      expect(named(selectUpgrade2026(a, id(a,units[0]), 'Prelocational Optimiser'), 'Relocational Optimiser')).toEqual([]);
+      expect(named(selectUpgrade2026(a, id(a,units[0]), 'Prelocational Optimiser'), 'Prelocational Optimiser')).toEqual([]);
     }
     let a = army(detachment, 'Overlord','Immortals','Monolith');
     const bearer = id(a,'Overlord'), body = id(a,'Immortals');
     a = setInstanceAttachment(a, bearer, body);
-    const row = named(selectUpgrade2026(a,bearer,'Prelocational Optimiser'),'Relocational Optimiser')[0];
+    const row = named(selectUpgrade2026(a,bearer,'Prelocational Optimiser'),'Prelocational Optimiser')[0];
     expect(row.units).toEqual([body]);
     expect(row.title).toContain(bearer);
   });

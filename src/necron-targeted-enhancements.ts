@@ -1,7 +1,7 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder, ReminderWindow} from './generated-reminders';
 import type {necronFormationRoots} from './necron-retinues';
-import {necronKeywords} from './necron-wargear';
+import {hasNecronRangedWeapon, necronKeywords} from './necron-wargear';
 import {eligibleUpgrades2026, upgradeName2026} from './upgrades-2026';
 
 type Formation = ReturnType<typeof necronFormationRoots>[number];
@@ -15,6 +15,7 @@ export function targetedNecronEnhancements(army: ArmySelection, formations: Form
     && (hasKeyword(formation, 'MOUNTED') || hasKeyword(formation, 'VEHICLE'))).map(formation => formation.id);
   const auraRecipients = formations.filter(formation => !hasKeyword(formation, 'MONSTER')
     && !hasKeyword(formation, 'TITANIC')).map(formation => formation.id);
+  const armed = new Set(formations.filter(f => f.members.some(hasNecronRangedWeapon)).map(f => f.id));
   const hasMonolith = formations.some(formation => formation.body.unit === 'Monolith');
 
   for (const formation of formations) {
@@ -28,8 +29,8 @@ export function targetedNecronEnhancements(army: ArmySelection, formations: Form
       };
       switch (name) {
         case 'Prelocational Optimiser':
-          if (hasMonolith && hasKeyword(formation, 'INFANTRY')) {
-            add('prelocational', 'Relocational Optimiser', 'Shooting',
+          if (hasMonolith && hasKeyword(formation, 'INFANTRY') && armed.has(formation.id)) {
+            add('prelocational', name, 'Shooting',
               'When this formation is selected to shoot in the turn it arrived via a Monolith’s Eternity Gate, choose Lethal Hits or Sustained Hits 1 for its ranged attacks.',
               [formation.id]);
           }
@@ -38,15 +39,15 @@ export function targetedNecronEnhancements(army: ArmySelection, formations: Form
           for (const window of ['Shooting', 'Fight'] as const) {
             add(window === 'Shooting' ? 'dread-shoot' : 'dread-fight', name, window,
               'Friendly non-Monster, non-Titanic units within 6″ of the bearer re-roll Hit rolls of 1 and Wound rolls of 1.',
-              auraRecipients);
+              window === 'Shooting' ? auraRecipients.filter(id => armed.has(id)) : auraRecipients);
           }
           break;
         case 'Demanding Leader':
           add('demanding', name, 'Command',
             'In your Command phase, choose one eligible Vehicle or Mounted unit within 6″ of the bearer. Until your next Command phase it may shoot after Falling Back.',
-            vehiclesOrMounted);
+            vehiclesOrMounted.filter(id => armed.has(id)));
           add('demanding-shoot', name, 'Shooting',
-            'The unit chosen in your Command phase can shoot after Falling Back until the start of your next Command phase.', vehiclesOrMounted);
+            'The unit chosen in your Command phase can shoot after Falling Back until the start of your next Command phase.', vehiclesOrMounted.filter(id => armed.has(id)));
           break;
         case 'Chrono-impedance Fields':
           add('impedance', name, 'Command',

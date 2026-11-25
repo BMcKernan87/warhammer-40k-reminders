@@ -50,9 +50,11 @@ describe('11e source reconciled vehicle and weapon reminders',()=>{
   expect(named(a,'Ranged weapon abilities').find(r=>r.title.startsWith('Canoptek Macrocytes'))?.summary).toContain('3 originally equipped models');
   expect(named(a,'Ranged weapon abilities').find(r=>r.title.startsWith('Canoptek Wraiths'))?.summary).toContain('2 originally equipped models');
  });
- it('retains FAQ Bodyguard survival condition and current Cosmic Precision eligibility',()=>{
+ it('targets surviving multi-model units for Undying Legions and applies current Cosmic Precision eligibility',()=>{
   const a={...army('Immortals','Plasmancer'),detachments2026:['Awakened Dynasty']};
-  expect(named(a,'Protocol of the Undying Legions').every(r=>r.summary.includes('at least one Bodyguard model'))).toBe(true);
+  const eligible=named(a,'Protocol of the Undying Legions');
+  expect(eligible.map(r=>r.window).sort()).toEqual(['Fight','Shooting']);
+  for(const rule of eligible)expect(rule.units).toEqual([id(a,'Immortals')]);
   const b={...a,detachments2026:['Hypercrypt Legion']};
   expect(named(b,'Cosmic Precision')[0].summary).toContain('ingress move');
   expect(named(b,'Cosmic Precision')[0].summary).toContain('large-model');

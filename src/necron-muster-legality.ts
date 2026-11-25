@@ -3,12 +3,13 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 import {NECRON_SUPPORTS,necronAttachmentRole} from './attachments';
 import {instanceBodyguards} from './leader-eligibility';
 import {BATTLE_SIZES_2026} from './edition-2026';
-export const NECRON_EPIC_HEROES_11E=new Set(['Illuminor Szeras','Imotekh the Stormlord','Nekrosor Ammentar','Orikan the Diviner','Trazyn the Infinite','C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','The Silent King']);
-export const CHARACTERS=new Set([...NECRON_EPIC_HEROES_11E,'Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Transcendent C’tan','Lokhust Lord','Catacomb Command Barge']);
+import {necronKeywords} from './necron-wargear';
+export const NECRON_EPIC_HEROES_11E=necronKeywords['EPIC HERO'];
+export const CHARACTERS=necronKeywords.CHARACTER;
 const STAR_GODS=new Set(['C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','Transcendent C’tan']);
 export function necronUnitLimit(army:ArmySelection,unit:string):number{
  const limit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].unitLimit;
- return NECRON_EPIC_HEROES_11E.has(unit)?1:limit*(['Necron Warriors','Immortals','Ghost Ark'].includes(unit)?2:1);
+ return NECRON_EPIC_HEROES_11E.has(unit)?1:limit*((necronKeywords.BATTLELINE.has(unit)||necronKeywords['DEDICATED TRANSPORT'].has(unit))?2:1);
 }
 // Keep incomplete rosters editable; enforce muster legality in the existing findings, not storage schema.
 export function legalWarlordCandidates(army:ArmySelection):RosterInstance[]{

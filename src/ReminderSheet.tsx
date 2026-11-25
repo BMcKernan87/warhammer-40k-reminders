@@ -16,6 +16,10 @@ function listedSquads(rule: GeneratedReminder) {
     return start < 0 || /[0-9]/.test(rule.title.charAt(start + unit.length));
   }).join(', ');
 }
+function timingLabel(rule: GeneratedReminder) {
+  const turn = rule.turn && {own: 'Your turn', opponent: 'Opponent’s turn', either: 'Either turn'}[rule.turn];
+  return turn ? turn + ' · ' + rule.timing : rule.timing;
+}
 function Subjects({rule}: {rule: GeneratedReminder}) {
   const names = listedSquads(rule);
   return names ? <small className="rule-subjects">Roster: {names}</small> : null;
@@ -52,7 +56,7 @@ export function ReminderSheet({profile, onCompleted}: Props) {
       {groups.map(group => <section key={group.window}>
         <h3>{group.window}</h3>
         {group.reminders.length === 0 && <p>No reminders for this phase.</p>}
-        {group.reminders.map(rule => <p key={rule.id}><strong>{rule.title}</strong> ({rule.timing}) — {rule.summary}<Subjects rule={rule}/></p>)}
+        {group.reminders.map(rule => <p key={rule.id}><strong>{rule.title}</strong> ({timingLabel(rule)}) — {rule.summary}<Subjects rule={rule}/></p>)}
       </section>)}
     </section>
     <section className="panel"><h2>11th-edition army setup</h2><p>{armyLabel}</p>
@@ -74,7 +78,7 @@ export function ReminderSheet({profile, onCompleted}: Props) {
         {group.reminders.filter(rule => showCompleted || !isChecked(rule)).map(rule =>
           <div className="check" key={rule.id}>
             <input id={'check-' + rule.id} type="checkbox" checked={isChecked(rule)} onChange={event => toggle(rule, event.target.checked)}/>
-            <span><label htmlFor={'check-' + rule.id}><strong>{rule.title}</strong> · {rule.timing}</label><br/>{rule.summary}<Subjects rule={rule}/><br/>
+            <span><label htmlFor={'check-' + rule.id}><strong>{rule.title}</strong> · {timingLabel(rule)}</label><br/>{rule.summary}<Subjects rule={rule}/><br/>
               <a href={rule.source} target="_blank" rel="noreferrer">Rule source</a></span>
           </div>)}
       </section>)}

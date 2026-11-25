@@ -43,15 +43,15 @@ export function formationBodyguardStrength(army:ArmySelection,id:string):number{
  const size=(s:RosterInstance)=>s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??1;
  return size(body)+roster.filter(s=>s.retinueTo===id&&eligibleRetinueBodies(army,s.id).some(b=>b.id===id)).reduce((n,s)=>n+size(s),0);
 }
-const infantryCharacters=new Set(['Chronomancer','Geomancer','Hexmark Destroyer','Illuminor Szeras','Imotekh the Stormlord','Nekrosor Ammentar','Orikan the Diviner','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Trazyn the Infinite']);
+const infantryCharacter=(unit:string)=>necronKeywords.INFANTRY.has(unit)&&necronKeywords.CHARACTER.has(unit);
 // A whole formation must fit; a Warriors squad with two attached characters or a retinue cannot embark.
 export function ghostArkPassengers(army:ArmySelection):RosterInstance[]{
  const roster=expandRoster(army);
  return roster.filter(s=>{
   if(s.attachedTo||s.retinueTo)return false;
   const members=[s,...roster.filter(m=>m.attachedTo===s.id||m.retinueTo===s.id)];
-  if(s.unit==='Necron Warriors')return (s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??0)<=10&&members.length<=2&&members.slice(1).every(m=>infantryCharacters.has(m.unit));
-  return members.length===1&&infantryCharacters.has(s.unit)&&!NECRON_SUPPORTS.has(s.unit);
+  if(s.unit==='Necron Warriors')return (s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??0)<=10&&members.length<=2&&members.slice(1).every(m=>infantryCharacter(m.unit));
+  return members.length===1&&infantryCharacter(s.unit)&&!NECRON_SUPPORTS.has(s.unit);
  });
 }
 

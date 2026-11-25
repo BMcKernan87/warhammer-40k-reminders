@@ -11,9 +11,17 @@ import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhanc
 import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];enhancement?:string;attachedTo?:string;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];enhancement?:string;attachedTo?:string;keepUnattached?:boolean;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
- if(army.instances)return army.instances;
+ if(army.instances)return army.instances.map(squad=>{
+  // Earlier saves can retain a unit-wide weapon alongside individual squad IDs.
+  // An explicit distribution or per-squad choice always takes precedence.
+  if(squad.weaponCounts)return squad;
+  const saved=squad.equipment??army.equipment?.[squad.unit];
+  if(!saved)return squad;
+  const equipment=currentEquipmentName(squad.unit,saved);
+  return equipment===squad.equipment?squad:{...squad,equipment};
+ });
  const result:RosterInstance[]=[];
  for(const [unit,count] of Object.entries(army.units))for(let i=1;i<=count;i++)result.push({id:unit+'#'+i,unit,models:verifiedUnitSizes2026(army,unit)?.[0]??legalUnitSizes(army.faction,unit)?.[0],equipment:army.equipment?.[unit]??EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===unit)?.defaultChoice,enhancement:i===1?army.enhancements?.[unit]:undefined});
  for(const [leader,bodyguard] of Object.entries(army.attachments||{})){
@@ -129,7 +137,10 @@ export function setInstanceModelLoadouts(army:ArmySelection,id:string,rows:Model
  return {...army,instances:instances.map(s=>s.id===id?updated:s)};
 }
 export function individualArmy(army:ArmySelection):ArmySelection {
- if(army.instances)return army;
+ if(army.instances){
+  if(!army.equipment||!Object.keys(army.equipment).length)return army;
+  return {...army,instances:expandRoster(army),equipment:{}};
+ }
  const instances=expandRoster(army);
  const upgrades2026=Object.fromEntries(instances.flatMap(s=>{
   const upgrade=army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
@@ -157,7 +168,11 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
   if(!body||!instanceBodyguards(army,leader).includes(body.unit))throw Error('Leader cannot join this Bodyguard');
   if(leader.id===body.id)throw Error('A Leader cannot attach to itself');
   leader.attachedTo=bodyguardId;
- }else delete leader.attachedTo;
+  delete leader.keepUnattached;
+ }else{
+  delete leader.attachedTo;
+  if(army.faction==='Necrons'&&necronAttachmentRole(leader.unit)==='leader')leader.keepUnattached=true;
+ }
  const updated=reconcileRetinues({...army,instances});
  if(!validateRosterInstances(updated))throw Error('Incompatible Leader attachment or duplicate assignment');
  const upgradeError=upgradeError2026(updated);if(upgradeError)throw Error(upgradeError);
@@ -169,6 +184,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
+  if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||army.faction!=='Necrons'||necronAttachmentRole(x.unit)!=='leader'))return false;
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(verifiedUnitSizes2026(army,x.unit)||legalUnitSizes(army.faction,x.unit))?.includes(x.models)))return false;
@@ -228,15 +244,28 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
  if(army.faction!=='Necrons'||!army.instances)return army;
  let current=army;
- for(const leader of expandRoster(current)){
-  if(leader.attachedTo||!necronAttachmentRole(leader.unit))continue;
-  const candidates=expandRoster(current).filter(body=>
-   instanceBodyguards(current,leader).includes(body.unit)&&
-   !expandRoster(current).some(other=>other.attachedTo===body.id&&necronAttachmentRole(other.unit)===necronAttachmentRole(leader.unit))&&
-   expandRoster(current).filter(other=>other.attachedTo===body.id).length<2
-  );
-  const legal=candidates.flatMap(body=>{try{return [setInstanceAttachment(current,leader.id,body.id)];}catch{return [];}});
-  if(legal.length===1)current=legal[0];
+ let changed=true;
+ while(changed){
+  changed=false;
+  const roster=expandRoster(current);
+  const unresolved=roster.filter(s=>necronAttachmentRole(s.unit)&&!s.attachedTo&&!s.keepUnattached);
+  // A unique destination is still ambiguous if two characters require the same available slot.
+  const proposals=new Map<string,{leader:RosterInstance;bodyId:string}[]>();
+  for(const leader of unresolved){
+   const legal=roster.filter(body=>instanceBodyguards(current,leader).includes(body.unit)).filter(body=>{
+    try{setInstanceAttachment(current,leader.id,body.id);return true;}catch{return false;}
+   });
+   if(legal.length!==1)continue;
+   const key=necronAttachmentRole(leader.unit)+'/'+legal[0].id;
+   proposals.set(key,[...(proposals.get(key)??[]),{leader,bodyId:legal[0].id}]);
+  }
+  // Required Supports take precedence when upgrades on two candidates conflict across roles.
+  const choices=[...proposals.values()].filter(group=>group.length===1).map(group=>group[0]);
+  const forced=choices.find(choice=>necronAttachmentRole(choice.leader.unit)==='support')??choices[0];
+  if(forced){
+   current=setInstanceAttachment(current,forced.leader.id,forced.bodyId);
+   changed=true;
+  }
  }
  return current;
 }

@@ -112,6 +112,66 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   if(rule.gear&&['gloom','fabricator','plasmacyte','amulet','orb'].includes(rule.id))text+=' Apply only while the relevant equipped bearer survives or the applicable use remains available.';
   return [side+limit+intro,text].filter(Boolean).join(' ').trim();
 }
+type Formation=ReturnType<typeof necronFormationRoots>[number];
+// These cards say "this unit" or "a model in this unit". The distinction matters
+// when a support or retinue joins. An ability explicitly naming its model stays personal.
+const unitEffects=new Set([
+  'chronometron','timesplinter-mantle','warden','will','shroud','crawlers','legion',
+  'wraith-form','implacable-eradication','guardian','whirling','plasmacyte','hard-wired',
+  'tomb-evasion','tunnelling','praetorian-fallback','charge-reroll','flesh-hunger',
+]);
+
+function isDestroyerModel(army:ArmySelection,s:RosterInstance):boolean{
+  if(necronKeywords['DESTROYER CULT'].has(s.unit))return true;
+  if(!army.detachments2026?.includes('Cursed Legion'))return false;
+  const upgrade=army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
+  return (upgrade==='Murdermind'&&necronKeywords.CRYPTEK.has(s.unit))||
+    (upgrade==='Destroyer Ankh'&&['Overlord','Overlord with translocation shroud','Catacomb Command Barge'].includes(s.unit));
+}
+
+// Roster eligibility is known; range, remaining models and other battlefield conditions remain in the text.
+function datasheetTargets(ruleId:string,bearer:RosterInstance,formations:Formation[],army:ArmySelection):string[]|undefined{
+  const withMember=(test:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(test)).map(f=>f.id);
+  switch(ruleId){
+    case 'invasion': case 'monolith': case 'nodes':
+      return withMember(s=>necronKeywords.INFANTRY.has(s.unit));
+    case 'ghost-repair':
+      return withMember(s=>s.unit==='Necron Warriors');
+    case 'spyder-swarm':
+      return withMember(s=>s.unit==='Canoptek Scarab Swarms');
+    case 'szeras':
+      return withMember(s=>necronKeywords.BATTLELINE.has(s.unit));
+    case 'macro-mandible':
+      return withMember(s=>necronKeywords.CANOPTEK.has(s.unit));
+    case 'fabricator':
+      return withMember(s=>necronKeywords.VEHICLE.has(s.unit));
+    case 'orb':
+      if(bearer.unit==='Catacomb Command Barge')return withMember(s=>necronKeywords.INFANTRY.has(s.unit)||necronKeywords.MOUNTED.has(s.unit));
+      break;
+    case 'murder':
+      return formations.filter(f=>!f.members.some(s=>s.id===bearer.id)&&f.members.some(s=>isDestroyerModel(army,s))).map(f=>f.id);
+    case 'trazyn':
+      return formations.flatMap(f=>f.members.filter(s=>necronKeywords.INFANTRY.has(s.unit)&&necronKeywords.CHARACTER.has(s.unit)&&!necronKeywords['EPIC HERO'].has(s.unit)&&s.unit!=='Skorpekh Lord').map(s=>s.id));
+  }
+}
+
+const printedScouts:Record<string,number>={'Canoptek Macrocytes':8,'Tomb Blades':9,'Triarch Stalker':8};
+export function naturalScoutReminders(army:ArmySelection):GeneratedReminder[]{
+  if(army.faction!=='Necrons')return [];
+  const out:GeneratedReminder[]=[];
+  for(const formation of necronFormationRoots(army)){
+    const distance=printedScouts[formation.body.unit];
+    if(!distance)continue;
+    const allScout=formation.members.every(s=>printedScouts[s.unit]===distance||
+      (s.unit==='Geomancer'&&s.attachedTo===formation.id&&formation.body.unit==='Canoptek Macrocytes'));
+    if(!allScout)continue;
+    out.push({id:'11e-scout-'+formation.id,title:formation.id+' · Scouts '+distance+'″',window:'Pre-battle',timing:'during',
+      summary:'Resolve Pre-battle Abilities. From Strategic Reserves, you may set up wholly within your deployment zone. If already wholly within that zone, you may Scout up to '+distance+'″, finishing more than 8″ horizontally from every enemy unit.',
+      source:necronSource(formation.body.unit),origin:'unit',units:[formation.id]});
+  }
+  return out;
+}
+
 export function necronDatasheetReminders2026(army:ArmySelection):GeneratedReminder[]{
   if(army.faction!=='Necrons')return [];
   const roster=expandRoster(army);
@@ -124,21 +184,15 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       // Include the decision in Movement as well as its consequence in Shooting.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&validSupportAttachment(army,leader)&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
-      if(rule.id==='murder'&&!roster.some(other=>other.id!==squad.id&&necronKeywords['DESTROYER CULT'].has(other.unit)))continue;
-      if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
-      if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
-      if(rule.id==='szeras'&&!roster.some(other=>other.unit==='Necron Warriors'||other.unit==='Immortals'))continue;
-      if(rule.id==='nodes'&&!roster.some(other=>other.id!==squad.id&&necronKeywords.INFANTRY.has(other.unit)))continue;
-      if(rule.id==='orb'&&squad.unit==='Catacomb Command Barge'&&!roster.some(s=>necronKeywords.INFANTRY.has(s.unit)||necronKeywords.MOUNTED.has(s.unit)))continue;
-      if((rule.id==='invasion'||rule.id==='monolith')&&!roster.some(other=>necronKeywords.INFANTRY.has(other.unit)))continue;
-      if(rule.id==='trazyn'&&!roster.some(other=>other.id!==squad.id&&['Overlord','Overlord with translocation shroud','Chronomancer','Geomancer','Hexmark Destroyer','Plasmancer','Psychomancer','Royal Warden','Technomancer'].includes(other.unit)))continue;
+      const targets=datasheetTargets(rule.id,squad,formations,army);
+      if(targets?.length===0)continue;
 
       let suffix=existingIds[rule.id]??rule.id;
       if(rule.id==='harbinger'&&body?.unit==='Immortals')suffix='plasmancer-immortals';
       if(rule.id==='rites'&&body?.unit==='Canoptek Wraiths')suffix='technomancer-wraiths';
-      const affectsFormation=rule.scope==='leading'||['chronometron','timesplinter-mantle','warden','will','shroud'].includes(rule.id)||(rule.id==='orb'&&squad.unit!=='Catacomb Command Barge');
-      const joined=affectsFormation&&body?formations.find(f=>f.id===body.id):undefined;
-      const affected=joined?[squad.id,...joined.members.filter(m=>m.id!==squad.id).map(m=>m.id)]:[squad.id];
+      const affectsFormation=rule.scope==='leading'||unitEffects.has(rule.id)||(rule.id==='orb'&&squad.unit!=='Catacomb Command Barge');
+      const joined=affectsFormation?formations.find(f=>f.members.length>1&&f.members.some(m=>m.id===squad.id)):undefined;
+      const affected=targets??(joined?[squad.id,...joined.members.filter(m=>m.id!==squad.id).map(m=>m.id)]:[squad.id]);
       for(const window of referenceWindows(rule)){
         if(window==='Movement'&&rule.id.startsWith('weapons-')&&necronKeywords.TITANIC.has(squad.unit))continue;
         const weapon=rule.id.startsWith('weapons-');
@@ -148,9 +202,11 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
         const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
         const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
         ids.add(id);
-        output.push({id,title:squad.id+' · '+rule.title+(joined?' → '+joined.id:''),
+        const candidates=targets?' Eligible '+(rule.id==='trazyn'?'models':'formations')+': '+targets.join(', ')+'.':
+          joined?' While joined: '+joined.members.map(m=>m.id).join(', ')+'.':'';
+        output.push({id,title:squad.id+' · '+rule.title+(joined&&joined.id!==squad.id?' → '+joined.id:''),
           window,timing:overwatch||rule.signal==='phaseEnd'?'end':['monolith','geomancer','lightning','spyder-swarm'].includes(rule.id)?'during':rule.signal==='phaseStart'?'start':'during',
-          summary:(overwatch?'End of the opponent’s Movement phase, when using Fire Overwatch. ':'')+summary,source:necronSource(squad.unit),origin:'unit',
+          summary:(overwatch?'End of the opponent’s Movement phase, when using Fire Overwatch. ':'')+summary+candidates,source:necronSource(squad.unit),origin:'unit',
           units:affected});
       }
     }
@@ -180,7 +236,7 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
  const formation=(s:RosterInstance)=>formations.find(f=>f.members.some(m=>m.id===s.id));
  const combat=['Shooting','Fight'] as const;
  for(const s of roster){
-  const emit=(key:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units:string[]=[s.id])=>out.push({id:'11e-necron-extra-'+key+'-'+s.id+'-'+window,title:s.id+' · '+title,window,timing,summary,source:necronSource(s.unit),origin:'unit',units});
+  const emit=(key:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units:string[]=[s.id],source=necronSource(s.unit))=>out.push({id:'11e-necron-extra-'+key+'-'+s.id+'-'+window,title:s.id+' · '+title,window,timing,summary,source,origin:'unit',units});
   const f=formation(s);
   if(deepStrike.has(s.unit)&&f?.id===s.id&&f.members.every(m=>deepStrike.has(m.unit))){
    emit('deep-strike','Deep Strike','Pre-battle','This formation can be declared in reserves under the normal mission limits.','start',[f.id]);
@@ -207,7 +263,7 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
   if(s.unit==='Illuminor Szeras'&&roster.some(m=>m.id!==s.id))emit('illuminor','Illuminor','Shooting','While within 3″ of another friendly Necron unit, Szeras gains Lone Operative (12″ visibility and indirect fire restriction).');
   if(s.unit==='Nekrosor Ammentar'){
    emit('fights-first','Fights First','Fight','If every surviving model in this unit has Fights First, resolve it in the Fights First step when eligible.');
-   if(roster.some(m=>m.id!==s.id&&necronKeywords['DESTROYER CULT'].has(m.unit)))emit('disciples','Protective Disciples','Shooting','While within 3″ of another friendly Destroyer Cult unit, gain Lone Operative (12″ visibility and indirect fire restriction).');
+   if(roster.some(m=>m.id!==s.id&&isDestroyerModel(army,m)))emit('disciples','Protective Disciples','Shooting','While within 3″ of another friendly Destroyer Cult unit, gain Lone Operative (12″ visibility and indirect fire restriction).');
   }
   if(s.unit==='C’tan Shard of the Deceiver')emit('grand-illusion','Grand Illusion','Pre-battle','After both armies deploy, select up to three friendly Necron formations to redeploy; they can enter Strategic Reserves regardless of the normal reserve quantity limit.','end',formations.map(m=>m.id));
   if(s.unit==='C’tan Shard of the Deceiver'||s.unit==='Flayed Ones')emit('stealth','Stealth','Shooting','When every surviving model in the unit has Stealth, ranged attacks against it grant the Benefit of Cover, unless ignored.');
@@ -216,12 +272,18 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    emit('quantum-invader','Quantum Invader','Movement','This model may arrive during the Reinforcements step of your first, second or third Movement phase regardless of mission rules.');
    emit('hover','Hover','Movement','When taking to the skies, do not subtract 2″ from the maximum distance.');
   }
+  if(s.unit==='Monolith'){
+   const infantry=datasheetTargets('monolith',s,formations,army)!;
+   if(infantry.length)emit('eternity-gate-shooting','Eternity Gate · shooting','Shooting','If a formation used this Monolith’s gate this turn it may shoot, including when set up away from a battlefield edge. Eligible formations: '+infantry.join(', ')+'.','during',infantry);
+  }
+  if(s.unit==='Canoptek Wraiths'&&army.detachments2026?.includes('Canoptek Court'))emit('wraith-form-reactive','Wraith Form · Reactive Subroutines','Movement','In the opponent’s Movement phase, if Reactive Subroutines lets this formation make a Normal move over an enemy, Wraith Form can trigger. Choose one crossed enemy and roll one D6 per surviving model in this formation, with each 4+ causing a mortal wound.','during',[f?.id??s.id]);
   if(s.unit==='Ophydian Destroyers')emit('tunnelling-ingress','Tunnelling Horrors · ingress','Movement','If Tunnelling Horrors was used last turn, this unit must make an ingress move now, including on your first turn.');
   if(s.unit==='Canoptek Scarab Swarms')for(const window of ['Command','Movement','Charge','Fight'] as const)emit('chittering','Chittering Swarm',window,'Engaged enemy models lose 1 OC (minimum 1). '+(roster.some(m=>necronKeywords.CRYPTEK.has(m.unit))?'While within 6″ of a friendly Cryptek model, Scarab models have OC 1.':''));
   if(s.unit==='Catacomb Command Barge')emit('carrier','Carrier Wave (Aura)','Command','Friendly Necron models in units within 6″ of this Barge gain +1 OC. Check when scoring.');
   if(s.unit==='The Silent King'){
    emit('leadership','The Silent King · Leadership','Command','Friendly Necron units within 6″ of Szarekh improve Leadership by 1.');
-   emit('march','Relentless March (Aura)','Movement','If selected this battle round, friendly non-Monster Necron units within 6″ of Szarekh gain +2″ Move.');
+   // The official September 30 v1.3 replacement for Bringer of Unity applies to all Necrons.
+   emit('march','Relentless March (Aura)','Movement','If selected this battle round, friendly Necron units within 6″ of Szarekh gain +2″ Move, including friendly Monsters.','during',formations.map(root=>root.id),'https://assets.warhammer-community.com/eng_30-09_wh40k_faction_pack_necrons-1urphgbmpy-wbhocjbaba.pdf');
    emit('blades','Phaeron of the Blades (Aura)','Charge','If selected this battle round, friendly non-Monster Necron units within 6″ of Szarekh may re-roll charge rolls.');
    emit('blades','Phaeron of the Blades (Aura)','Fight','If selected this battle round, eligible friendly non-Monster units within 6″ of Szarekh add 1 to melee Strength.');
    for(const window of combat)emit('stars','Phaeron of the Stars (Aura)',window,'If selected this battle round, friendly non-Monster Necron units within 6″ of Szarekh re-roll Hit and Wound rolls of 1.');

@@ -1,58 +1,10 @@
 import type {ArmySelection} from './catalog';
-/** Current Necron Leader permissions, updated for 11e Necron Support and Leader eligibility. */
-export const NECRON_LEADERS:Record<string,readonly string[]>={
- "Royal Warden": ["Immortals","Necron Warriors"],
- "Lokhust Lord": ["Lokhust Destroyers","Lokhust Heavy Destroyers"],
- "Skorpekh Lord": ["Skorpekh Destroyers"],
- "Technomancer": [
-  "Canoptek Wraiths",
-  "Immortals",
-  "Necron Warriors"
- ],
- "Plasmancer": [
-  "Immortals",
-  "Necron Warriors"
- ],
- "Chronomancer": [
-  "Immortals",
-  "Necron Warriors"
- ],
- "Geomancer": [
-  "Canoptek Macrocytes",
-  "Immortals",
-  "Necron Warriors"
- ],
- "Psychomancer": [
-  "Immortals",
-  "Necron Warriors"
- ],
- "Overlord": [
-  "Immortals",
-  "Lychguard",
-  "Necron Warriors"
- ],
- "Overlord with translocation shroud": [
-  "Immortals",
-  "Lychguard",
-  "Necron Warriors"
- ],
- "Imotekh the Stormlord": [
-  "Immortals",
-  "Lychguard",
-  "Necron Warriors"
- ],
- "Orikan the Diviner": [
-  "Immortals",
-  "Necron Warriors"
- ],
- "Trazyn the Infinite": [
-  "Immortals",
-  "Lychguard",
-  "Necron Warriors"
- ]
-};
-/** 11e attachment slots: a Bodyguard can have one Leader and one Support. */
-export const NECRON_SUPPORTS=new Set(['Technomancer','Plasmancer','Chronomancer','Orikan the Diviner','Geomancer','Psychomancer']);
+import {IMPORTED_DATASHEETS_2026} from './datasheets-2026.generated';
+
+// The MFM identifies which Bodyguards a Leader or Support can join (core 19.01).
+const attachmentSheets=IMPORTED_DATASHEETS_2026.filter(sheet=>sheet.attachmentRole&&sheet.bodyguards?.length);
+export const NECRON_LEADERS:Record<string,readonly string[]>=Object.fromEntries(attachmentSheets.map(sheet=>[sheet.unit,sheet.bodyguards!]));
+export const NECRON_SUPPORTS=new Set(attachmentSheets.filter(sheet=>sheet.attachmentRole==='support').map(sheet=>sheet.unit));
 export function necronAttachmentRole(unit:string):'leader'|'support'|null{
  if(NECRON_SUPPORTS.has(unit))return 'support';
  return Object.prototype.hasOwnProperty.call(NECRON_LEADERS,unit)?'leader':null;

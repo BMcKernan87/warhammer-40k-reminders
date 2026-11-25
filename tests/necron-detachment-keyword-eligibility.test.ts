@@ -5,7 +5,7 @@ const has=(unit:string,detachment:string,id:string)=>generate11thReminders({...a
 describe('Necron detachment rules require eligible datasheet keywords',()=>{
  it('Canoptek Court Power Matrix needs a Cryptek or Canoptek unit',()=>{
   expect(has('Necron Warriors','Canoptek Court','11e-necron-canoptek-power-matrix')).toBe(false);
-  expect(has('Canoptek Wraiths','Canoptek Court','11e-necron-canoptek-power-matrix')).toBe(true);
+  expect(has('Canoptek Doomstalker','Canoptek Court','11e-necron-canoptek-power-matrix')).toBe(true);
   expect(has('Technomancer','Canoptek Court','11e-necron-canoptek-power-matrix')).toBe(true);
  });
  it('Cryptek Conclave augmentation requires a Cryptek',()=>{

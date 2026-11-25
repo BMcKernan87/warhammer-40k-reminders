@@ -5,6 +5,7 @@ import {expandRoster} from './roster-instances';
 export interface Rule11th extends GeneratedReminder{
  faction?:Faction;
  detachments?:readonly string[];
+ requiresRangedWeapon?:true;
  anyUnits?:readonly string[];
  allUnits?:readonly string[];
  equipment?:Readonly<Record<string,string>>;
@@ -22,7 +23,7 @@ export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):
   if(rule.enhancements&&!instances.some(instance=>rule.enhancements!.includes(army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit]??'')&&(!rule.anyUnits||rule.anyUnits.includes(instance.unit))&&(!rule.units||rule.units.includes(instance.unit))))return false;
   if(rule.equipment&&!Object.entries(rule.equipment).every(([unit,choice])=>army.equipment?.[unit]===choice||army.instances?.some(x=>x.unit===unit&&x.equipment===choice)))return false;
   return true;
- }).flatMap(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,...reminder})=>{
+ }).flatMap(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,requiresRangedWeapon:_ranged,...reminder})=>{
   if(!______){
    if(_____&&army.instances?.length){
     const equipped=instances.filter(instance=>Object.entries(_____).some(([unit,choice])=>instance.unit===unit&&(instance.equipment??army.equipment?.[unit])===choice)&&(!reminder.units||reminder.units.includes(instance.unit)));

@@ -43,7 +43,8 @@ describe('five detachment source reconciliation',()=>{
   a=setInstanceAttachment(a,t,b);
   expect(named(a,'Solar Pulse')[0].units).toEqual([t]);
   expect(named(a,'Curse of the Cryptek').every(r=>r.units?.join(',')===t)).toBe(true);
-  expect(named(a,'Cynosure of Eradication').every(r=>r.units?.includes(b)&&r.units?.includes(w)&&!r.units?.includes(t))).toBe(true);
+  expect(named(a,'Cynosure of Eradication').find(r=>r.window==='Shooting')?.units).toEqual([b]);
+  expect(named(a,'Cynosure of Eradication').find(r=>r.window==='Fight')?.units).toEqual([b,w]);
   expect(named(a,'Canoptek Court · Power Matrix').every(r=>r.summary.includes('every model'))).toBe(true);
  });
  it('Hypercrypt recall names both mandatory targets and precision does not require Deep Strike on Hyperphasing arrivals',()=>{
