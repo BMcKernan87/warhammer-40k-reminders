@@ -1,9 +1,10 @@
 import type {ArmySelection} from './catalog';
+import {verifiedUnitSizes2026} from './datasheets-2026';
 import {necronFormationRoots} from './necron-retinues';
 import {resolvedWarlord} from './necron-muster-legality';
 import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {necronKeywords as k} from './necron-wargear';
+import {hasNecronRangedWeapon,necronKeywords as k} from './necron-wargear';
 
 export const REMAINING_NECRON_SOURCE='https://wahapedia.ru/wh40k11ed/factions/necrons/';
 export const NECRON_CHARACTER_BEARERS=['Chronomancer','Geomancer','Hexmark Destroyer','Overlord','Overlord with translocation shroud','Plasmancer','Psychomancer','Royal Warden','Skorpekh Lord','Technomancer','Lokhust Lord','Catacomb Command Barge'] as const;
@@ -24,6 +25,8 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const legal=new Map(formations.flatMap(f=>f.members.filter(s=>s.id!==f.id&&s.attachedTo===f.id).map(s=>[s.id,f.id] as const)));
  const matching=(predicate:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(predicate)).map(f=>f.id);
  const all=formations.map(f=>f.id);
+ const shooters=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
+ const armed=(ids:string[])=>ids.filter(id=>shooters.has(id));
  const led=formations.filter(f=>f.members.some(s=>legal.has(s.id)&&characters.has(s.unit))).map(f=>f.id);
  const characterUnits=matching(s=>characters.has(s.unit));
  const infantryCharacters=roster.filter(s=>characters.has(s.unit)&&k.INFANTRY.has(s.unit)).map(s=>s.id);
@@ -34,16 +37,17 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  };
  const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',modelOnly=false)=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,modelOnly?[s.id]:targetIds(s),timing);
  if(selected.includes('Awakened Dynasty')){
+  const undyingTargets=formations.filter(f=>f.members.length>1||(f.body.models??verifiedUnitSizes2026(army,f.body.unit)?.[0]??1)>1).map(f=>f.id);
   for(const phase of attackPhases){
-   emit('awakened-command-'+phase,'Command Protocols',phase,'While a Necron Character is attached and leading the formation, add 1 to its attacks’ Hit rolls.',led);
-   emit('awakened-undying-'+phase,'Protocol of the Undying Legions · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After enemy attacks destroy at least one model in the unit, activate Reanimation for D3 wounds, or D3+1 if led by a Necron Character. Apply other applicable Reanimation rules. A surviving attached Character alone cannot reanimate a destroyed Bodyguard; at least one Bodyguard model must remain.',all);
+   emit('awakened-command-'+phase,'Command Protocols',phase,'While a Necron Character is attached and leading the formation, add 1 to its attacks’ Hit rolls.',phase==='Shooting'?armed(led):led);
+   emit('awakened-undying-'+phase,'Protocol of the Undying Legions · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After an enemy finishes its attacks, select a surviving unit that lost a model to those attacks. Activate Reanimation for D3 wounds, or D3+1 if a Necron Character leads it. Apply active Reanimation abilities. An attached Leader or Support can restore lost Bodyguards even if it is the last model in the formation.',undyingTargets);
   }
   for(const phase of phases)emit('awakened-revenant-'+phase,'Protocol of the Eternal Revenant · 1CP',phase,'Immediately after your Infantry Character model is destroyed, target that destroyed model. At phase end return it as a separate one-model unit with half its starting wounds, as close to its death location as possible and unengaged. Once per model per battle.',infantryCharacters);
   emit('awakened-void','Protocol of the Hungry Void · 1CP','Fight','Before the unit fights, increase melee Strength by 1 this phase; if led by a Necron Character, also improve melee AP by 1, without stacking with another AP improvement.',all);
-  emit('awakened-storm','Protocol of the Sudden Storm · 1CP','Movement','Your Movement: grant Assault to the unit’s ranged weapons until turn end; if led by a Necron Character, also re-roll its Advance this phase.',all);
-  emit('awakened-storm-shoot','Protocol of the Sudden Storm · carryover','Shooting','If the Movement stratagem was used on this unit, its ranged weapons retain Assault for this turn.',all);
-  emit('awakened-tyrant','Protocol of the Conquering Tyrant · 1CP','Shooting','Your Shooting: before choosing the unit to shoot, re-roll its Hit rolls of 1 against targets within half weapon range this phase. If a Necron Character leads it, re-roll any Hit roll instead, but only when the attack qualifies for the half range benefit (FAQ).',all);
-  if(formations.length>1)emit('awakened-stars','Protocol of the Vengeful Stars · 2CP','Shooting','Opponent’s Shooting: after an enemy destroys a friendly Necron unit, select a Character unit that was within 6″ of the destroyed unit when it was destroyed; after the attacker finishes, it may shoot only that attacker if eligible.',characterUnits);
+  emit('awakened-storm','Protocol of the Sudden Storm · 1CP','Movement','Your Movement: grant Assault to the unit’s ranged weapons until turn end; if led by a Necron Character, also re-roll its Advance this phase.',all.filter(id=>shooters.has(id)||led.includes(id)));
+  emit('awakened-storm-shoot','Protocol of the Sudden Storm · carryover','Shooting','If the Movement stratagem was used on this unit, its ranged weapons retain Assault for this turn.',armed(all));
+  emit('awakened-tyrant','Protocol of the Conquering Tyrant · 1CP','Shooting','Your Shooting: before choosing the unit to shoot, re-roll its Hit rolls of 1 against targets within half weapon range this phase. If a Necron Character leads it, re-roll any Hit roll instead, but only when the attack qualifies for the half range benefit (FAQ).',armed(all));
+  if(formations.length>1)emit('awakened-stars','Protocol of the Vengeful Stars · 2CP','Shooting','Opponent’s Shooting: after an enemy destroys a friendly Necron unit, select a Character unit that was within 6″ of the destroyed unit when it was destroyed; after the attacker finishes, it may shoot only that attacker if eligible. Destroying only the Bodyguard or a Character in an attached unit does not trigger this reaction while another model in that formation survives.',armed(characterUnits));
   for(const s of roster.filter(s=>NECRON_CHARACTER_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Veil of Darkness':
@@ -67,12 +71,12 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  if(selected.includes('Annihilation Legion')){
   const destroyer=(s:RosterInstance)=>k['DESTROYER CULT'].has(s.unit)||(selected.includes('Cursed Legion')&&((upgrade(s)==='Murdermind'&&k.CRYPTEK.has(s.unit))||(upgrade(s)==='Destroyer Ankh'&&[...OVERLORD_BEARERS,'Catacomb Command Barge'].includes(s.unit))));
   const hunters=matching(s=>destroyer(s)||s.unit==='Flayed Ones');
-  const ranged=matching(destroyer);
+  const ranged=armed(matching(destroyer));
   emit('annihilation-protocol-charge','Annihilation Protocol','Charge','Destroyer Cult and Flayed Ones units may re-roll charges; add 1 if any declared target is below half strength.',hunters);
   emit('annihilation-protocol-shoot','Annihilation Protocol','Shooting','Destroyer Cult units improve ranged AP by 1 when attacking their closest eligible target.',ranged);
   for(const phase of attackPhases){
    emit('annihilation-masks-'+phase,'Masks of Death · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After the enemy selects targets, impose −1 to Hit against the targeted eligible unit for the phase.',hunters);
-   emit('annihilation-spoor-'+phase,'The Spoor of Frailty · 1CP',phase,(phase==='Shooting'?'Your Shooting: ':'Either Fight: ')+'Before selecting the unit to attack, gain +1 Hit against targets below starting strength; also +1 Wound if the target is below half strength, for this phase.',hunters);
+   emit('annihilation-spoor-'+phase,'The Spoor of Frailty · 1CP',phase,(phase==='Shooting'?'Your Shooting: ':'Either Fight: ')+'Before selecting the unit to attack, gain +1 Hit against targets below starting strength; also +1 Wound if the target is below half strength, for this phase.',phase==='Shooting'?armed(hunters):hunters);
   }
   emit('annihilation-reanimate','Murderous Reanimation · 1CP','Fight','After the unit kills an enemy unit or first reduces it below half strength, activate its Reanimation Protocols.',hunters);
   emit('annihilation-hunters','Pitiless Hunters · 1CP','Fight','Before the unit fights, extend its pile-in and consolidation limits to 6″ this phase; all other move requirements remain.',hunters);
@@ -95,8 +99,8 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
   const nonTitanic=formations.filter(f=>!f.members.some(s=>k.TITANIC.has(s.unit))).map(f=>f.id);
   emit('obeisance-worthy-command','Worthy Foes','Command','Your Command: mark one enemy unit until your next Command phase. Qualifying Noble, Lychguard and Triarch units gain +1 Wound against that marked unit.',worthy);
   for(const phase of attackPhases){
-   emit('obeisance-worthy-'+phase,'Worthy Foes',phase,'Gain +1 to Wound against the marked enemy until the start of your next Command phase; the entire qualifying unit benefits, including attached models.',worthy);
-   emit('obeisance-artifice-'+phase,'Enslaved Artifice · 1CP',phase,(phase==='Shooting'?'Your Shooting: ':'Either Fight: ')+'Before attacking with a non-Titanic unit, its unmodified Hit rolls of 5+ count as critical Hits this phase.',nonTitanic);
+   emit('obeisance-worthy-'+phase,'Worthy Foes',phase,'Gain +1 to Wound against the marked enemy until the start of your next Command phase; the entire qualifying unit benefits, including attached models.',phase==='Shooting'?armed(worthy):worthy);
+   emit('obeisance-artifice-'+phase,'Enslaved Artifice · 1CP',phase,(phase==='Shooting'?'Your Shooting: ':'Either Fight: ')+'Before attacking with a non-Titanic unit, its unmodified Hit rolls of 5+ count as critical Hits this phase.',phase==='Shooting'?armed(nonTitanic):nonTitanic);
    emit('obeisance-nano-'+phase,'Nanoassembly Protocols · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After enemy target selection, reduce incoming attack Damage by 1 against the targeted Vehicle unit this phase.',vehicles);
   }
   const warlord=resolvedWarlord(army);

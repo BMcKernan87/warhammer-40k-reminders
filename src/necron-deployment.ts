@@ -15,7 +15,7 @@ export function necronDeploymentReminders(army:ArmySelection,roster:RosterInstan
  function add(id:string,title:string,window:ReminderWindow,timing:GeneratedReminder['timing'],summary:string,units:string[],source=core){
   if(units.length)out.push({id:'11e-necron-'+id,title,window,timing,summary,units,source,origin:'army'});
  }
- const reserveEligible=formations.filter(f=>f.body.unit!=='Convergence Of Dominion').map(f=>f.id);
+ const reserveEligible=formations.filter(f=>!necronKeywords.FORTIFICATION.has(f.body.unit)).map(f=>f.id);
  const reserveLimit=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].points/2;
  add('reserve-declaration','Declare Strategic Reserves','Pre-battle','start',
   'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.',reserveEligible);
@@ -23,7 +23,7 @@ export function necronDeploymentReminders(army:ArmySelection,roster:RosterInstan
   'In your Move Units step, select a unit in Strategic Reserves to arrive, normally from round two. Set it up wholly within 6″ of a battlefield edge and more than 8″ horizontally from enemies. Until round three, stay outside the enemy deployment zone. Apply any specific alternative placement or first-turn ability. Embarked units arrive aboard their transport.',reserveEligible);
  add('reserve-deadline','Strategic Reserves · round three deadline','End of battle round','end',
   'At the end of battle round three, destroy reserves that have never made an ingress move. Exempt repositioned units and passengers aboard a transport that made ingress. At the end of the final turn, destroy any units still in Strategic Reserves without triggering destruction rules.',reserveEligible);
- const aircraft=formations.filter(f=>f.body.unit==='Doom Scythe').map(f=>f.id);
+ const aircraft=formations.filter(f=>necronKeywords.AIRCRAFT.has(f.body.unit)).map(f=>f.id);
  add('aircraft-deployment','Aircraft · compulsory reserves','Pre-battle','start',
   'Place each Aircraft in Strategic Reserves when declaring formations. Include its points in the starting allowance.',aircraft);
  add('aircraft-ingress','Aircraft · movement','Movement','during','An Aircraft can make only ingress moves. Models can move through it. Being engaged solely with Aircraft allows a unit to make a Normal or Advance move.',aircraft);

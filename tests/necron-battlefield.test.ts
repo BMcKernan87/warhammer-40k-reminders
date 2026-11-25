@@ -160,7 +160,9 @@ describe('battle actions, usage and persistence',()=>{
  it('gates equipment and summaries on individual squads and emits unique print IDs',()=>{
    const a=setInstanceWargear(roster('Canoptek Macrocytes','Canoptek Macrocytes'),'Canoptek Macrocytes#2','Accelerator mandible',1);
    const list=generate11thReminders(a);
-   expect(list.filter(r=>r.title.includes('Accelerator Mandible')).map(r=>r.units)).toEqual([['Canoptek Macrocytes#2']]);
+   const mandibles=list.filter(r=>r.title.includes('Accelerator Mandible'));
+   expect(mandibles.map(r=>r.title)).toEqual(['Canoptek Macrocytes#2 · Accelerator Mandible']);
+   expect(mandibles[0].units).toEqual(['Canoptek Macrocytes#1','Canoptek Macrocytes#2']);
    expect(new Set(list.map(r=>r.id)).size).toBe(list.length);
    expect(battlefieldReminders(a,at('Fight'),'phaseStart').map(r=>r.squadId)).toEqual(['Canoptek Macrocytes#2']);
  });

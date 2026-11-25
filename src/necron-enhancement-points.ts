@@ -1,5 +1,5 @@
 /** Points from the 11e Necrons faction page, MFM 1.4, checked 2026-11-24.
- * Keep the old internal Prelocational spelling until saved roster migration is implemented.
+ * The official Necrons faction pack and MFM both spell the enhancement Prelocational Optimiser.
  */
 export const NECRON_ENHANCEMENT_POINTS_SOURCE='https://wahapedia.ru/wh40k11ed/factions/necrons/';
 export const NECRON_ENHANCEMENT_POINTS:Readonly<Record<string,number>>={
