@@ -57,3 +57,15 @@ export function ghostArkPassengers(army:ArmySelection):RosterInstance[]{
   return members.length===1&&infantryCharacters.has(s.unit)&&!NECRON_SUPPORTS.has(s.unit);
  });
 }
+
+// Only a legally joined Leader, Support or retinue shares a formation root.
+// Purchased squads retain separate identity and points.
+export function necronFormationRoots(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)) {
+ const snapshot={...army,instances:[...roster]};
+ const joined=new Map<string,string>();
+ for(const s of roster){
+  if(s.attachedTo&&validSupportAttachment(snapshot,s))joined.set(s.id,s.attachedTo);
+  if(s.retinueTo&&eligibleRetinueBodies(snapshot,s.id).some(b=>b.id===s.retinueTo))joined.set(s.id,s.retinueTo);
+ }
+ return roster.filter(s=>!joined.has(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>joined.get(s.id)===body.id)]}));
+}
