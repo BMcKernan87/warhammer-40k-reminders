@@ -36,7 +36,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  if(selected.includes('Awakened Dynasty')){
   for(const phase of attackPhases){
    emit('awakened-command-'+phase,'Command Protocols',phase,'While a Necron Character is attached and leading the formation, add 1 to its attacks’ Hit rolls.',led);
-   emit('awakened-undying-'+phase,'Protocol of the Undying Legions · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After enemy attacks destroy at least one model in the unit, activate Reanimation for D3 wounds, or D3+1 if led by a Necron Character. Apply other applicable Reanimation rules.',all);
+   emit('awakened-undying-'+phase,'Protocol of the Undying Legions · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After enemy attacks destroy at least one model in the unit, activate Reanimation for D3 wounds, or D3+1 if led by a Necron Character. Apply other applicable Reanimation rules. A surviving attached Character alone cannot reanimate a destroyed Bodyguard; at least one Bodyguard model must remain.',all);
   }
   for(const phase of phases)emit('awakened-revenant-'+phase,'Protocol of the Eternal Revenant · 1CP',phase,'When an Infantry Character dies, return it at phase end as a separate one-model unit with half its starting wounds, as near its death location as possible and unengaged. Each model can benefit once per battle.',infantryCharacters);
   emit('awakened-void','Protocol of the Hungry Void · 1CP','Fight','Before the unit fights, increase melee Strength by 1 this phase; if led by a Necron Character, also improve melee AP by 1, without stacking with another AP improvement.',all);
