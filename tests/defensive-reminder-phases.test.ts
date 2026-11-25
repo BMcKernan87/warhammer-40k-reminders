@@ -3,7 +3,7 @@ import {newSelection,addSelectionUnit} from '../src/catalog';
 import {generate11thReminders} from '../src/reminders-11th';
 describe('Defensive reminder phase coverage',()=>{
  it('shows Bound Creation in both combat phases only with a Cryptek',()=>{
-  const army={...newSelection('Necrons'),instances:[{id:'thralls',unit:'Cryptothralls',attachedTo:'body'},{id:'cryptek',unit:'Plasmancer',attachedTo:'body'},{id:'body',unit:'Immortals'}]};
+  const army={...newSelection('Necrons'),instances:[{id:'thralls',unit:'Cryptothralls',retinueTo:'body'},{id:'cryptek',unit:'Plasmancer',attachedTo:'body'},{id:'body',unit:'Immortals'}]};
   expect(generate11thReminders(army).filter(r=>r.title.includes('Bound Creation')).map(r=>r.window).sort()).toEqual(['Fight','Shooting']);
   expect(generate11thReminders({...army,instances:army.instances.filter(s=>s.id!=='cryptek')}).filter(r=>r.title.includes('Bound Creation'))).toHaveLength(0);
  });

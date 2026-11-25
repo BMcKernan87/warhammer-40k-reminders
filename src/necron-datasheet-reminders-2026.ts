@@ -1,6 +1,7 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {leaderBodyguards} from './leader-eligibility';
+import {instanceBodyguards} from './leader-eligibility';
+import {eligibleRetinueBodies,retinueCrypteks,formationBodyguardStrength,ghostArkPassengers} from './necron-retinues';
 import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
 import {ACTIONS,type Signal} from './battlefield-events';
@@ -22,6 +23,8 @@ const actionPhase:Partial<Record<Signal,Phase>>={
   chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',killed:'Fight',reanimate:'Command',
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
+  if(rule.id==='macro-projector'||rule.id==='reanimation-beam')return [...PHASES];
+  if(rule.id==='tomb-shield-save')return ['Shooting','Fight'];
   if(rule.id==='tunnelling')return ['End of opponent turn'];
   if(rule.id==='terror'||rule.id==='cover')return ['Shooting'];
   if(rule.id==='harbinger'||rule.id==='lokhust-lead')return ['Shooting'];
@@ -82,6 +85,7 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
   if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
   if(rule.id==='orb')text+=' Only one unit can resurrect in a turn.';
+  if(rule.gear&&['gloom','fabricator','plasmacyte','amulet','orb'].includes(rule.id))text+=' Apply only while the relevant equipped bearer survives or the applicable use remains available.';
   return [side+limit+intro,text].filter(Boolean).join(' ').trim();
 }
 export function necronDatasheetReminders2026(army:ArmySelection):GeneratedReminder[]{
@@ -90,7 +94,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   const output:GeneratedReminder[]=[];
   const ids=new Set<string>();
   for(const squad of roster){
-    const body=roster.find(s=>s.id===squad.attachedTo&&s.id!==squad.id&&leaderBodyguards(army.faction,squad.unit).includes(s.unit));
+    const body=roster.find(s=>s.id===squad.attachedTo&&s.id!==squad.id&&instanceBodyguards(army,squad).includes(s.unit));
     for(const rule of BATTLEFIELD_RULES){
       if(rule.id==='doomsday-still')continue; // The shooting reminder already includes the stationary condition.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
@@ -118,10 +122,12 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       }
     }
   }
-  for(const s of roster.filter(s=>s.unit==='Cryptothralls'&&roster.some(leader=>necronKeywords.CRYPTEK.has(leader.unit)&&(leader.attachedTo===s.id||(s.attachedTo&&leader.attachedTo===s.attachedTo))))){
-    for(const window of ['Shooting','Fight'] as const)output.push({id:'11e-necron-cryptothralls-bound-'+s.id+(window==='Fight'?'-fight':''),title:s.id+' · Bound Creation',window,timing:'during',
-      summary:'A Cryptek model in the same unit as these Cryptothralls has Feel No Pain 4+.',
-      source:necronSource(s.unit),origin:'unit',units:[s.id]});
+  for(const s of roster.filter(s=>s.unit==='Cryptothralls'&&s.retinueTo&&eligibleRetinueBodies(army,s.id).some(b=>b.id===s.retinueTo))){
+    const body=s.retinueTo!,crypteks=retinueCrypteks(army,body);
+    output.push({id:'11e-necron-retinue-'+s.id,title:s.id+' · Cryptek Retinue → '+body,window:'Pre-battle',timing:'start',summary:'Declare Battle Formations: join this Bodyguard for the battle; its Starting Strength becomes '+formationBodyguardStrength(army,body)+'.',source:necronSource(s.unit),origin:'unit',units:[s.id,body]});
+    for(const window of ['Shooting','Fight'] as const)output.push({id:'11e-necron-cryptothralls-bound-'+s.id+(window==='Fight'?'-fight':''),title:s.id+' · Bound Creation → '+crypteks.map(l=>l.id).join(', '),window,timing:'during',summary:'While these Cryptothralls and the Cryptek remain in the same formation, the Cryptek model has Feel No Pain 4+.',source:necronSource(s.unit),origin:'unit',units:[s.id,body,...crypteks.map(l=>l.id)]});
   }
+  const arks=roster.filter(s=>s.unit==='Ghost Ark');
+  if(arks.length)output.push({id:'11e-necron-ghost-ark-embark',title:'Ghost Ark · Dedicated Transport',window:'Pre-battle',timing:'start',summary:'Declare Battle Formations: each Ghost Ark must begin with at least one eligible whole unit embarked, or be destroyed without destruction triggers. Capacity: 10 Warriors and one Necrons Infantry Character. Eligible formation candidates: '+(ghostArkPassengers(army).map(s=>s.id).join(', ')||'none')+'. Do not assign the same unit to multiple transports.',source:necronSource('Ghost Ark'),origin:'unit',units:arks.map(s=>s.id)});
   return output;
 }

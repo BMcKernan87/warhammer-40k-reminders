@@ -1,3 +1,4 @@
+import {ghostArkPassengers} from './necron-retinues';
 import {necronUnitLimit,legalWarlordCandidates,resolvedWarlord,unresolvedSupports} from './necron-muster-legality';
 import {BATTLE_SIZES_2026,DETACHMENTS_2026,detachmentBudget} from './edition-2026';
 import type {ArmySelection} from './catalog';
@@ -26,6 +27,9 @@ export function rosterFindings(army:ArmySelection):RosterFinding[]{
  if(army.detachments2026?.length&&DETACHMENTS_2026[army.faction]){const budget=detachmentBudget(army.faction,army.detachments2026,army.battleSize2026||'Strike Force');if(!budget.valid)findings.push({code:'detachment-points',severity:'error',message:'Selected 2026 detachments exceed their DP budget or are invalid.'});else findings.push({code:'detachment-points',severity:'info',message:'2026 detachments: '+budget.spent+' of '+budget.limit+' DP used; Force Dispositions: '+budget.dispositions.join(', ')+'.'});}
  if(army.faction==='Necrons'&&instances.length){
   for(const support of unresolvedSupports(army))findings.push({code:'mandatory-support',severity:'error',unit:support.unit,message:support.id+' must join an eligible Bodyguard before battle.'});
+  const arks=instances.filter(s=>s.unit==='Ghost Ark');
+  const passengers=ghostArkPassengers(army);
+  if(arks.length>passengers.length)findings.push({code:'dedicated-transport-passengers',severity:'error',unit:'Ghost Ark',message:'Not enough distinct eligible whole formations to start all '+arks.length+' Ghost Arks embarked; empty Dedicated Transports are destroyed at Declare Battle Formations.'});
   const candidates=legalWarlordCandidates(army);
   if(!candidates.length)findings.push({code:'warlord-required',severity:'error',message:'Include an eligible non-C’tan Character to serve as Warlord.'});
   else if(!resolvedWarlord(army))findings.push({code:'warlord-required',severity:'error',message:'Choose an eligible Warlord from the roster.'});

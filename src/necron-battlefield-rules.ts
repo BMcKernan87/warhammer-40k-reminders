@@ -43,8 +43,8 @@ const armyBattleline = (unit?: RosterInstance) => unit?.unit === 'Necron Warrior
 
 function hasKeyword(c:TriggerContext,keyword:keyof typeof necronKeywords):boolean {
   if(!c.subject)return false;
-  const bodyId=c.subject.attachedTo??c.subject.id;
-  return c.roster.some(s=>(s.id===bodyId||s.attachedTo===bodyId)&&necronKeywords[keyword].has(s.unit));
+  const bodyId=c.subject.retinueTo??c.subject.attachedTo??c.subject.id;
+  return c.roster.some(s=>(s.id===bodyId||s.attachedTo===bodyId||s.retinueTo===bodyId)&&necronKeywords[keyword].has(s.unit));
 }
 function augmentationRange({battle,bearer}:TriggerContext):number {
   const completed=new Set(battle.events.filter(e=>e.observation?.squadId===bearer.id&&e.observation.action==='meleeKill'&&
@@ -69,14 +69,17 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('charge-reroll','Relentless Combatants','Triarch Praetorians','chargeRoll','You may re-roll this squad’s Charge roll.'),
   rule('praetorian-fallback','Relentless Combatants','Triarch Praetorians','fallback','This squad may still declare a charge this turn.'),
   rule('tomb-evasion','Evasion Engrams','Tomb Blades',['shot','shotHit'],'You may make a Normal move of up to 6″. Taking the move prevents this squad from declaring a charge this turn.',{turn:'own',phase:'Shooting'}),
-  rule('nebuloscope','Nebuloscope','Tomb Blades','shoot',c=>`The ranged weapons of the ${c.bearer.wargear!.Nebuloscope} equipped model(s) have Ignores Cover.`,{gear:has('Nebuloscope')}),
+  rule('nebuloscope','Nebuloscope','Tomb Blades','shoot',c=>`The ranged weapons of surviving Nebuloscope bearers have Ignores Cover (${c.bearer.wargear!.Nebuloscope} originally equipped).`,{gear:has('Nebuloscope')}),
   rule('hunters','Hyperspace Hunters','Deathmarks','arrival','You may shoot the arriving unit if it is a legal target. All attacks from this reaction must target it.',{scope:'nearby',within:18,visible:true,phase:'Movement',turn:'opponent',limit:'turn'}),
   rule('flesh-hunger','Flesh Hunger','Flayed Ones','fight','Against this below-half-strength target, every successful melee hit is a Critical Hit.',{when:c=>!!c.observation?.belowHalf}),
-  rule('thrall-fight','Systematic Vigour','Cryptothralls','meleeCasualty','Roll for the destroyed Cryptothrall. On 2+, it fights after the enemy unit finishes its attacks, then is removed.'),
+  rule('tomb-shield-move','Shieldvanes','Tomb Blades','phaseStart','Surviving shieldvane bearers have Move 8″, not 12″.',{phase:'Movement',gear:has('Shieldvanes')}),
+  rule('tomb-shield-save','Shieldvanes','Tomb Blades','allocated','Surviving shieldvane bearers have a 3+ Save.',{gear:has('Shieldvanes')}),
+  rule('tomb-shadowloom','Shadowloom','Tomb Blades','targeted','Surviving shadowloom bearers have Stealth; the ranged target gains its Stealth cover benefit only if every model in the unit has Stealth.',{phase:'Shooting',gear:has('Shadowloom')}),
+  rule('thrall-fight','Systematic Vigour','Cryptothralls','meleeCasualty','If the destroyed Cryptothrall has not fought this phase, roll D6. On 2+, it fights after the enemy unit finishes its attacks, then is removed.'),
   rule('scarab','Self-destruction','Canoptek Scarab Swarms',atStart,'If engaged, one Scarab can be destroyed. Choose an enemy in that model’s Engagement Range. Add 1 to the die against a Vehicle. A 2–5 deals D3 mortal wounds and a 6+ deals 3.',{phase:'Fight'}),
   rule('harassment','Harassment Swarm','Canoptek Macrocytes','enemyAttacks','Subtract 1 from the attacking unit’s Hit rolls while it is within this aura.',{scope:'nearby',within:3,when:c=>c.observation?.target==='other'}),
-  rule('macro-mandible','Accelerator Mandible','Canoptek Macrocytes',atStart,'Choose a friendly Canoptek unit within 3″ of the bearer’s unit. Improve its Weapon Skill by 1 for this phase.',{phase:'Fight',gear:has('Accelerator mandible')}),
-  rule('macro-projector','Nanoscarab Projector','Canoptek Macrocytes','reanimate','The bearer may add one wound to this Reanimation Protocols activation.',{gear:has('Atomiser beam and nanoscarab projector'),scope:'nearby',within:3,limit:'round'}),
+  rule('macro-mandible','Accelerator Mandible','Canoptek Macrocytes',atStart,'If the Accelerator Mandible bearer survives, choose a friendly Canoptek unit within 3″ of its unit. Improve its Weapon Skill by 1 for this phase.',{phase:'Fight',gear:has('Accelerator mandible')}),
+  rule('macro-projector','Nanoscarab Projector','Canoptek Macrocytes','reanimate','If the Nanoscarab Projector bearer survives, it may add one wound to this Reanimation Protocols activation.',{gear:has('Atomiser beam and nanoscarab projector'),scope:'nearby',within:3,limit:'round'}),
   rule('crawlers','Weapon Sentinels','Canoptek Tomb Crawlers','shoot','For these attacks within 12″, you may ignore Ballistic Skill, Hit and Wound modifiers.',{when:c=>c.observation?.range!==undefined && c.observation.range<=12}),
   rule('ghost-repair','Repair Barge','Ghost Ark','enemyWounded','This Ghost Ark may activate the affected Warriors’ Reanimation Protocols.',{scope:'nearby',within:3,when:c=>c.subject?.unit==='Necron Warriors',limit:'turn'}),
   rule('reanimation-beam','Nanoscarab Reanimation Beam','Canoptek Reanimator','reanimate','This activation heals an extra D3 wounds. Multiple copies of the same aura do not add further dice.',{scope:'nearby',within:3}),

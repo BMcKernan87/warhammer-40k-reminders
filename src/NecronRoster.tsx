@@ -1,4 +1,5 @@
 import React from 'react';
+import {eligibleRetinueBodies,setRetinue,formationBodyguardStrength} from './necron-retinues';
 import {legalWarlordCandidates,resolvedWarlord,selectWarlord} from './necron-muster-legality';
 import {NECRON_SUPPORTS} from './attachments';
 import type {ArmySelection} from './catalog';
@@ -37,6 +38,7 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
   const roster=expandRoster(army);
   const bodies=roster.filter(body=>instanceBodyguards(army,squad).includes(body.unit) && validMurdermindFormation(army,body,[squad,...roster.filter(l=>l.id!==squad.id&&l.attachedTo===body.id)]) &&
     !roster.some(l=>l.id!==squad.id&&l.attachedTo===body.id&&necronAttachmentRole(l.unit)===necronAttachmentRole(squad.unit))).filter(body=>{try{setInstanceAttachment(army,squad.id,body.id);return true;}catch{return false;}});
+  const retinueBodies=eligibleRetinueBodies(army,squad.id);
   const fixed=[sheet.fixed,choices.length===1?choices[0]:''].filter(Boolean).join(' · ');
   const special=squad.unit==='Canoptek Macrocytes' ? Object.values(squad.wargear??{}).reduce((sum,n)=>sum+n,0) : 0;
   return <section className="loadout" aria-label={'Squad '+squad.id}>
@@ -62,6 +64,8 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
         </select></label>))}
       {isModeledLeader('Necrons',squad.unit)&&<label>Attached to <select aria-label={'Attach squad '+squad.id} value={squad.attachedTo??''} onChange={e=>edit(a=>setInstanceAttachment(a,squad.id,e.target.value||null))}>
         <option value="">{NECRON_SUPPORTS.has(squad.unit)?'Bodyguard required':'Unattached'}</option>{bodies.map(b=><option key={b.id}>{b.id}</option>)}</select></label>}
+      {squad.unit==='Cryptothralls'&&<label>Cryptek Retinue <select aria-label={'Retinue for '+squad.id} value={squad.retinueTo??''} onChange={e=>edit(a=>setRetinue(a,squad.id,e.target.value||null))}><option value="">Separate unit</option>{retinueBodies.map(b=><option key={b.id} value={b.id}>{b.id}</option>)}</select></label>}
+      {formationBodyguardStrength(army,squad.id)>models&&<span>Bodyguard starting strength: {formationBodyguardStrength(army,squad.id)}</span>}
       {binding&&<span>{binding.name} · mandatory +{binding.points} pts</span>}
       {upgrades.length>0&&<label>11th-edition enhancement <select aria-label={'11th upgrade for squad '+squad.id} value={army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit]??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>
         <option value="">None</option>{upgrades.map(u=><option key={u.name} value={u.name}>{u.name==='Prelocational Optimiser'?'Relocational Optimiser':u.name} (+{NECRON_ENHANCEMENT_POINTS[u.name]} pts)</option>)}</select></label>}
