@@ -1,3 +1,4 @@
+import {tyranidCanPromote} from './tyranid-muster-data';
 import {tauAdditionalLeaderPair} from './tau-muster-data';
 import {deathGuardAdditionalLeaderPair} from './death-guard-data';
 import {astraAttachmentSlots,astraCanPromote,usesAstraAttachmentSlots} from './astra-muster-data';
@@ -68,8 +69,10 @@ export function setInstanceModelCount(army:ArmySelection,id:string,models:number
   if(!validateRosterInstances(updated))throw Error('Invalid model count');
   return updated;
  }
- target.models=models;
+ // The equipment resolver needs the original physical composition to retain
+ // the selected weapons and remap model-role fields when the size changes.
  if(target.knightGear)target.knightGear=resizeKnightComposition(target,models,army.faction);
+ target.models=models;
  if(target.wargear){
   const gear:Record<string,number>={};
   for(const slot of NECRON_LOADOUTS[target.unit]?.slots??[]){
@@ -186,10 +189,11 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
 export function validateRosterInstances(army:ArmySelection):boolean{
  if(!army.instances)return true;
  if(!Array.isArray(army.instances))return false;
+ if(army.faction==='Tyranids'&&army.instances.filter(s=>s?.characterPromotion).length>2)return false;
  const seen=new Set<string>();const counts:Record<string,number>={};
  for(const x of army.instances){
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
-  if(x.characterPromotion!==undefined&&(x.characterPromotion!==true||!astraCanPromote(army,x)))return false;
+  if(x.characterPromotion!==undefined&&(x.characterPromotion!==true||!(astraCanPromote(army,x)||tyranidCanPromote(army,x))))return false;
   if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||rosterAttachmentRole(army.faction,x.unit)!=='leader'))return false;
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
@@ -252,7 +256,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire'].includes(army.faction))return army;
+ if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){
@@ -294,11 +298,12 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
 /** Remove only attachments that become illegal when a detachment or upgrade is removed. */
 export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
  if(!army.instances)return army;
- let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy))delete copy.characterPromotion;return copy;});
+ let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy)&&!tyranidCanPromote(army,copy))delete copy.characterPromotion;return copy;});
  for(const leader of instances){
   if(!leader.attachedTo)continue;
   const body=instances.find(b=>b.id===leader.attachedTo);
   if(!body||!instanceBodyguards(army,leader).includes(body.unit))delete leader.attachedTo;
  }
- return reconcileRetinues({...army,instances});
+ const lostTyranidWarlord=army.faction==='Tyranids'&&army.instances.some(s=>s.id===army.warlordId&&s.characterPromotion)&&!instances.some(s=>s.id===army.warlordId&&s.characterPromotion);
+ return reconcileRetinues({...army,instances,...(lostTyranidWarlord?{warlordId:undefined}:{})});
 }

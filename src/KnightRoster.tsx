@@ -1,3 +1,5 @@
+import {tyranidWarlordCandidates,resolvedTyranidWarlord,selectTyranidWarlord,setTyranidCharacter} from './tyranid-muster';
+import {tyranidCanPromote} from './tyranid-muster-data';
 import {tauWarlordCandidates,resolvedTauWarlord,selectTauWarlord} from './tau-muster';
 import {mechanicusWarlordCandidates,resolvedMechanicusWarlord,selectMechanicusWarlord} from './mechanicus-muster';
 import {sororitasWarlordCandidates,resolvedSororitasWarlord,selectSororitasWarlord} from './sororitas-muster';
@@ -39,6 +41,7 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
+  const tyranid=army.faction==='Tyranids';
   const tau=army.faction==='T’au Empire';
   const mechanicus=army.faction==='Adeptus Mechanicus';
   const sisters=army.faction==='Adepta Sororitas';
@@ -50,9 +53,9 @@ export function KnightRoster({army,onChange}:Props) {
   const eaters=army.faction==='World Eaters';
   const cult=army.faction==='Genestealer Cults';
   const votann=army.faction==='Leagues of Votann';
-  const warlords=tau?tauWarlordCandidates(army):mechanicus?mechanicusWarlordCandidates(army):sisters?sororitasWarlordCandidates(army):grey?greyKnightsWarlordCandidates(army):deathGuard?deathGuardWarlordCandidates(army):thousand?thousandSonsWarlordCandidates(army):legion?emperorsChildrenWarlordCandidates(army):guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=tau?resolvedTauWarlord(army):mechanicus?resolvedMechanicusWarlord(army):sisters?resolvedSororitasWarlord(army):grey?resolvedGreyKnightsWarlord(army):deathGuard?resolvedDeathGuardWarlord(army):thousand?resolvedThousandSonsWarlord(army):legion?resolvedEmperorsChildrenWarlord(army):guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=tau?selectTauWarlord:mechanicus?selectMechanicusWarlord:sisters?selectSororitasWarlord:grey?selectGreyKnightsWarlord:deathGuard?selectDeathGuardWarlord:thousand?selectThousandSonsWarlord:legion?selectEmperorsChildrenWarlord:guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=tyranid?tyranidWarlordCandidates(army):tau?tauWarlordCandidates(army):mechanicus?mechanicusWarlordCandidates(army):sisters?sororitasWarlordCandidates(army):grey?greyKnightsWarlordCandidates(army):deathGuard?deathGuardWarlordCandidates(army):thousand?thousandSonsWarlordCandidates(army):legion?emperorsChildrenWarlordCandidates(army):guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=tyranid?resolvedTyranidWarlord(army):tau?resolvedTauWarlord(army):mechanicus?resolvedMechanicusWarlord(army):sisters?resolvedSororitasWarlord(army):grey?resolvedGreyKnightsWarlord(army):deathGuard?resolvedDeathGuardWarlord(army):thousand?resolvedThousandSonsWarlord(army):legion?resolvedEmperorsChildrenWarlord(army):guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=tyranid?selectTyranidWarlord:tau?selectTauWarlord:mechanicus?selectMechanicusWarlord:sisters?selectSororitasWarlord:grey?selectGreyKnightsWarlord:deathGuard?selectDeathGuardWarlord:thousand?selectThousandSonsWarlord:legion?selectEmperorsChildrenWarlord:guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>
@@ -74,6 +77,7 @@ export function KnightRoster({army,onChange}:Props) {
       return <section key={squad.id} className="loadout" aria-label={'Squad '+squad.id}>
         <div className="squad-heading"><strong>{squad.id}</strong>{sheet&&<a href={sheet.source} target="_blank" rel="noreferrer">Datasheet</a>}</div>
         <div className="loadout-controls">
+          {tyranid&&tyranidCanPromote(army,squad)&&<label><input type="checkbox" aria-label={'Promote '+squad.id+' to Character'} checked={!!squad.characterPromotion} disabled={!squad.characterPromotion&&roster.filter(s=>s.characterPromotion).length>=2} onChange={e=>edit(a=>setTyranidCharacter(a,squad.id,e.target.checked))}/> Subterranean Character</label>}
           {guard&&astraCanPromote(army,squad)&&<label><input type="checkbox" aria-label={'Promote '+squad.id+' to Character'} checked={!!squad.characterPromotion} onChange={e=>edit(a=>setAstraCharacter(a,squad.id,e.target.checked))}/> Steel Hammer Character</label>}
           {guard&&loyalProtectors.has(squad.unit)&&<label>Command Squad <select aria-label={'Command Squad for '+squad.id} value={squad.retinueTo??''} onChange={e=>edit(a=>setAstraProtector(a,squad.id,e.target.value||null))}>
             <option value="">Command Squad required</option>{astraProtectorHosts(army,squad.id).map(s=><option key={s.id}>{s.id}</option>)}

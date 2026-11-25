@@ -1,3 +1,5 @@
+import {TYRANID_DETACHMENTS} from './tyranid-detachments.generated';
+import {currentTyranidDetachment} from './tyranid-detachment-data';
 import {TAU_DETACHMENTS} from './tau-detachments.generated';
 import {currentTauDetachment} from './tau-detachment-data';
 import {MECHANICUS_DETACHMENTS} from './mechanicus-detachments.generated';
@@ -214,17 +216,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  {name:'War Horde',disposition:'Take and Hold',additionalDispositions:['Purge the Foe'],dp:3},
  {name:'Wreckas',disposition:'Priority Assets',dp:1},
  {name:'Wurrband',disposition:'Disruption',dp:1}],
- Tyranids:[
- {name:'Ambush Predators',disposition:'Disruption',dp:1},
- {name:'Talons of the Norn Queen',disposition:'Take and Hold',dp:1},
- {name:'Warrior Bioform Onslaught',disposition:'Take and Hold',dp:1},
- {name:'Assimilation Swarm',disposition:'Priority Assets',dp:2},
- {name:'Crusher Stampede',disposition:'Purge the Foe',dp:2},
- {name:'Invasion Fleet',disposition:'Take and Hold',dp:3},
- {name:'Subterranean Assault',disposition:'Disruption',dp:3},
- {name:'Synaptic Nexus',disposition:'Disruption',dp:2},
- {name:'Unending Swarm',disposition:'Take and Hold',dp:2},
- {name:'Vanguard Onslaught',disposition:'Reconnaissance',dp:2}]
+ Tyranids:TYRANID_DETACHMENTS
 };
 export type BattleSize2026='Incursion'|'Strike Force';
 export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;enhancements:number;unitLimit:number}>={
@@ -234,7 +226,7 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
  const groups=faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];

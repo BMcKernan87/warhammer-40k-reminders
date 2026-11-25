@@ -1,3 +1,4 @@
+import {TYRANID_UNITS} from './tyranid-data';
 import {TAU_UNITS} from './tau-data';
 import {MECHANICUS_ARMY_UNITS} from './mechanicus-army-data';
 import {SORORITAS_ARMY_UNITS} from './sororitas-army-data';
@@ -34,7 +35,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
   enhancements:[]
  },
  'Orks':{detachments:['War Horde','Da Big Hunt','Bully Boyz','Green Tide','Dread Mob','Kult of Speed'],units:ORK_UNITS,enhancements:[]},
- 'Tyranids':{detachments:['Invasion Fleet','Synaptic Nexus','Unending Swarm','Assimilation Swarm','Vanguard Onslaught','Crusher Stampede'],units:['Hive Tyrant','The Swarmlord','Winged Hive Tyrant','Neurotyrant','Tervigon','Broodlord','Old One Eye','Deathleaper','Termagants','Hormagaunts','Gargoyles','Genestealers','Tyranid Warriors','Von Ryan’s Leapers','Lictor','Neurolictor','Zoanthropes','Venomthropes','Raveners','Ripper Swarms','Biovore','Pyrovore','Carnifexes','Exocrine','Haruspex','Maleceptor','Tyrannofex','Norn Emissary','Norn Assimilator','Screamer-Killer','Psychophage','Barbgaunts','Neurogaunts'],enhancements:[]},
+ 'Tyranids':{detachments:['Invasion Fleet','Synaptic Nexus','Unending Swarm','Assimilation Swarm','Vanguard Onslaught','Crusher Stampede'],units:TYRANID_UNITS,enhancements:[]},
  'Adepta Sororitas':{detachments:['Select detachment (unverified)'],units:SORORITAS_ARMY_UNITS,enhancements:[]},
  'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},
  'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:MECHANICUS_ARMY_UNITS,enhancements:[]},
