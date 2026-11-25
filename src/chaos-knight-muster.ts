@@ -1,6 +1,8 @@
 import type {ArmySelection} from './catalog';
 import {CHAOS_KNIGHT_SHEETS,chaosKnightMusterUnits} from './chaos-knights-data';
 import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
+import {daemonicPactFindings,isDaemonicPactUnit} from './daemonic-pact';
+import {knightJoinedBodyguard} from './leader-eligibility';
 import {rosterCost2026} from './datasheets-2026';
 import {BATTLE_SIZES_2026} from './edition-2026';
 import type {RosterFinding} from './roster-findings';
@@ -49,6 +51,12 @@ export function chaosKnightMusterFindings(army:ArmySelection):RosterFinding[] {
  }
  if(!resolvedChaosKnightWarlord(army))findings.push({code:'warlord-required',severity:'error',message:chaosKnightWarlordCandidates(army).length?'Choose a Chaos Knights Character as Warlord.':'Include an eligible Chaos Knights Character to serve as Warlord.'});
  const costs=rosterCost2026(army);
+ findings.push(...daemonicPactFindings(army,roster,costs));
+ if(roster.some(s=>isDaemonicPactUnit(s.unit))&&roster.some(s=>!isDaemonicPactUnit(s.unit)&&!has(s.unit,'CHAOS KNIGHTS')&&!has(s.unit,'HERETIC ASTARTES')))findings.push({code:'daemonic-pact-faction',severity:'error',message:'Daemonic Pact requires every other model to have Chaos Knights or Heretic Astartes.'});
+ for(const squad of roster){
+  const support=sheets.get(squad.unit)?.attachmentRole==='support';
+  if((support||squad.attachedTo)&&!knightJoinedBodyguard(army,squad))findings.push({code:support?'mandatory-support':'invalid-attachment',severity:'error',unit:squad.unit,message:squad.id+' requires a compatible Bodyguard with an available '+(support?'Support':'Leader')+' slot.'});
+ }
  const damned=costs.entries.filter(s=>has(s.unit,'DAMNED'));
  if(army.detachments2026?.includes('Iconoclast Fiefdom')&&damned.length){
   const subtotal=damned.reduce((n,s)=>n+(s.points??0),0);

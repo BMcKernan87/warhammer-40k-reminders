@@ -4,6 +4,7 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 import {CHAOS_KNIGHT_STRATAGEMS,CHAOS_KNIGHT_TRAITS,CHAOS_KNIGHT_UPGRADES} from './chaos-knight-detachments.generated';
 
 const source='https://wahapedia.ru/wh40k11ed/factions/chaos-knights/';
+export const walkerText='On Normal, Advance and Fall Back moves, pass through non-Titanic models and terrain sections up to 4″ high. You may cross engagement range but cannot end engaged. If the model moves through taller terrain, roll a D6 after the move. On 1 it is battle-shocked.';
 const norm=(s:string)=>s.trim().replace(/[‑–]/g,'-').replaceAll('’',"'").toLowerCase();
 const byUnit=new Map(CHAOS_KNIGHT_TRAITS.map(r=>[norm(r.unit),r]));
 const trait=(s:RosterInstance)=>byUnit.get(norm(s.unit));
@@ -92,7 +93,6 @@ export function chaosKnightDetachmentReminders(army:ChaosArmy,roster:readonly Ro
  const groups=chaosGroups(army,roster);
  const {native,titan,dogs,characters,damned,tyrant}=groups;
  const has=(name:string)=>army.detachments2026?.includes(name);
- const walkerText='On Normal, Advance and Fall Back moves, pass through non-Titanic models and terrain sections up to 4″ high. You may cross engagement range but cannot end engaged. If the model moves through taller terrain, roll a D6 after the move. On 1 it is battle-shocked.';
  function add(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],summary:string,targets:readonly RosterInstance[],origin:GeneratedReminder['origin']='detachment',previousWindow?:ReminderWindow){
   if(!targets.length)return;
   const units=targets.map(t=>t.id);

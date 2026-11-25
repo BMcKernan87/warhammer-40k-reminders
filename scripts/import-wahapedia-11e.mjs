@@ -60,7 +60,7 @@ function numeric(v,label,min=0){if(!/^\d+$/.test(v)||!Number.isSafeInteger(Numbe
 export function modelProfile(model,unit){
  return {move:model.m,toughness:numeric(model.t,unit+' invalid toughness',1),save:model.sv,wounds:numeric(model.w,unit+' invalid wounds',1),leadership:model.ld,objectiveControl:model.oc==='-'?'-':numeric(model.oc,unit+' invalid OC')};
 }
-export function rosterMetadata(tables,unit,id){
+export function rosterMetadata(tables,unit,id,battleOnlyModels=[]){
  const composition=sortedRows(tables.Datasheets_unit_composition.filter(r=>r.datasheet_id===id)).map(row=>{
   const label=plain(row.description).replace(/\s+[–—-]\s+EPIC HERO$/i,'');
   const match=label.match(/^(\d+)(?:\s*[-–]\s*(\d+))?\s+(.+)$/);
@@ -70,15 +70,16 @@ export function rosterMetadata(tables,unit,id){
   return {model:match[3],min,max};
  });
  const keywords=new Set(), byModel=new Map();
+ const modelNames=[...composition.map(c=>c.model),...battleOnlyModels];
  if(!composition.length)fail(unit+' missing composition');
  for(const row of tables.Datasheets_keywords.filter(r=>r.datasheet_id===id)){
   const value=plain(row.keyword).toUpperCase(), scope=plain(row.model||'');
   if(!value)fail(unit+' blank keyword');
   if(!scope||scope.toUpperCase()==='ALL MODELS'){keywords.add(value);continue;}
-  const entry=composition.find(c=>norm(c.model)===norm(scope.replace(/\s+ONLY$/i,'').replace(/\s+MODELS?$/i,'')));
+  const entry=modelNames.find(name=>norm(name)===norm(scope.replace(/\s+ONLY$/i,'').replace(/\s+MODELS?$/i,'')));
   if(!entry)fail(unit+' unknown keyword scope '+scope);
-  if(!byModel.has(entry.model))byModel.set(entry.model,new Set());
-  byModel.get(entry.model).add(value);
+  if(!byModel.has(entry))byModel.set(entry,new Set());
+  byModel.get(entry).add(value);
  }
  if(!keywords.size)fail(unit+' missing common keywords');
  const modelKeywords=Object.fromEntries([...byModel].map(([name,values])=>[name,[...values].sort()]));

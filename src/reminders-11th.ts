@@ -1,3 +1,4 @@
+import {shadowLegionHasRangedWeapon, shadowMarineReminders} from './shadow-legion-cards';
 import {applyStratagemWindow} from './stratagem-windows';
 import {targetedNecronEnhancements} from './necron-targeted-enhancements';
 import {necronDeploymentReminders} from './necron-deployment';
@@ -6,7 +7,9 @@ import {formationDeploymentReminders} from './formation-deployment';
 import {coreStratagemReminders} from './core-stratagems-11th';
 import {DATASHEETS_2026} from './datasheets-2026';
 import {knightJoinedBodyguard} from './leader-eligibility';
+import {daemonArmyReminders} from './chaos-daemon-detachments';
 import {chaosKnightDetachmentReminders,resolvedWarDogCharacterIds} from './chaos-knight-detachments';
+import {daemonDatasheetReminders,daemonHasRangedWeapon} from './daemon-datasheets';
 import {chaosKnightDatasheetReminders,chaosKnightHasRangedWeapon} from './chaos-knight-datasheets';
 import {knightDetachmentReminders} from './imperial-knight-detachments';
 import {agentTransports} from './agent-transports';
@@ -15,7 +18,7 @@ import {assignedAgentHasRanged,assignedAgentReminders} from './knight-assigned-a
 import {imperialKnightDatasheetReminders,knightHasRangedWeapon} from './imperial-knight-datasheets';
 import {ghostArkPassengers,necronFormationRoots} from './necron-retinues';
 import {verifiedUnitSizes2026} from './datasheets-2026';
-import {expandRoster} from './roster-instances';
+import {expandRoster,type RosterInstance} from './roster-instances';
 import {canoptekHypercryptReminders} from './necron-canoptek-hypercrypt';
 import {remainingNecronReminders} from './necron-remaining-detachments';
 import {hasNecronRangedWeapon,necronKeywords} from './necron-wargear';
@@ -116,9 +119,12 @@ export function eligibleScoutReminders(army:ArmySelection):GeneratedReminder[]{
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const chaos=_army.faction==='Chaos Knights';
  const agents=_army.faction==='Imperial Agents';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents;
+ const daemons=_army.faction==='Chaos Daemons';
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
+ if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
+ if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
  if(formedArmy){
   const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
   // Formation eligibility includes keywords printed for an individual model.
@@ -135,7 +141,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=_army.faction==='Necrons'?hasNecronRangedWeapon:chaos?chaosKnightHasRangedWeapon:
+  const hasGun=_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>knightHasRangedWeapon(s)||assignedAgentHasRanged(s.unit);
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));
@@ -143,7 +149,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   if(agents)result.push(...assignedAgentReminders(_army),...agentDetachmentReminders(_army,roster));
   else if(chaos)result.push(...chaosKnightDetachmentReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
   else if(_army.faction==='Imperial Knights')result.push(...knightDetachmentReminders(_army,roster),...imperialKnightDatasheetReminders(_army,roster),...assignedAgentReminders(_army));
-  else result.push(...necronDeploymentReminders(_army,roster));
+  else if(_army.faction==='Necrons')result.push(...necronDeploymentReminders(_army,roster));
  }
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
