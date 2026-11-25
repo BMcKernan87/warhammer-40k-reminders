@@ -98,6 +98,13 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
  result.push(...matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened'));
  const roster=expandRoster(_army);
+ if(_army.faction==='Necrons'){
+  // Recursive Reanimation triggers whenever protocols activate, not only Command.
+  const recursive=result.filter(r=>r.id.startsWith('11e-necron-skyshroud-recursive'));
+  for(const r of recursive)for(const window of ['Movement','Shooting','Charge','Fight'] as const)result.push({...r,id:r.id+'-'+window,window});
+  const hand=result.find(r=>r.id==='11e-necron-hod-hypermotility');
+  if(hand)result.push({...hand,id:hand.id+'-shooting',window:'Shooting',summary:'Warriors and Immortals formations have Assault on ranged attacks, including after advancing.'});
+ }
  result.push(...canoptekHypercryptReminders(_army,roster),...remainingNecronReminders(_army,roster));
  if(_army.faction==='Necrons'&&_army.detachments2026?.includes('Cryptek Conclave')){
   for(const body of roster.filter(s=>['Necron Warriors','Immortals'].includes(s.unit)&&roster.some(l=>l.attachedTo===s.id&&necronKeywords.CRYPTEK.has(l.unit)&&necronKeywords.INFANTRY.has(l.unit)))){
