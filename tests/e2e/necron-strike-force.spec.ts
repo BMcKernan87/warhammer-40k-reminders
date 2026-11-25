@@ -1,0 +1,57 @@
+import {test,expect,type Page} from '@playwright/test';
+async function add(page:Page,unit:string){
+ await page.getByLabel('Select unit',{exact:true}).selectOption(unit);
+ await page.getByRole('button',{name:'Add',exact:true}).click();
+}
+const panel=(page:Page)=>page.getByRole('heading',{name:'Phase reminders',exact:true}).locator('..');
+test('builds and prints a complete 1995-point Awakened Dynasty from the production app',async({page})=>{
+ test.setTimeout(60000);
+ const errors:string[]=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('./');
+ await page.getByRole('checkbox',{name:/Awakened Dynasty/}).check();
+ for(const unit of ['Overlord','Technomancer','Plasmancer','Immortals','Necron Warriors','Canoptek Wraiths','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','Doomsday Ark','Lokhust Heavy Destroyers','Canoptek Reanimator','Canoptek Scarab Swarms'])await add(page,unit);
+ for(const [unit,count] of [['Immortals',10],['Necron Warriors',20],['Canoptek Wraiths',6],['Lokhust Heavy Destroyers',3]] as const)await page.getByLabel('Models for squad '+unit+'#1',{exact:true}).selectOption(String(count));
+ for(const leader of ['Overlord','Technomancer','Plasmancer'])await page.getByLabel('Attach squad '+leader+'#1',{exact:true}).selectOption('');
+ await page.getByLabel('Attach squad Overlord#1',{exact:true}).selectOption('Necron Warriors#1');
+ await page.getByLabel('Attach squad Technomancer#1',{exact:true}).selectOption('Canoptek Wraiths#1');
+ await page.getByLabel('Attach squad Plasmancer#1',{exact:true}).selectOption('Immortals#1');
+ await page.getByLabel('Warlord',{exact:true}).selectOption('Overlord#1');
+ await page.getByLabel('11th upgrade for squad Overlord#1',{exact:true}).selectOption('Veil of Darkness');
+ await page.getByLabel('11th upgrade for squad Technomancer#1',{exact:true}).selectOption('Nether-realm Casket');
+ await expect(page.getByText('Recorded 11th-edition total: 1995 points',{exact:true})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Roster validation findings'}).getByText('ERROR',{exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Play reminders'}).click();
+ const cues=panel(page);
+ await expect(cues.getByText('Command Protocols',{exact:true})).toHaveCount(2);
+ await expect(cues.getByText(/Plasmancer#1 · Harbinger of Destruction → Immortals#1/)).toBeVisible();
+ await expect(cues.getByText(/Technomancer#1 · Rites of Reanimation → Canoptek Wraiths#1/)).toHaveCount(5);
+ await expect(cues.getByText(/Power Matrix/)).toHaveCount(0);
+ await expect(cues.getByText(/Veil of Darkness/).first()).toBeVisible();
+ await page.emulateMedia({media:'print'});
+ await expect(page.locator('.print-sheet')).toBeVisible();
+ await expect(page.locator('.print-sheet h3')).toHaveCount(7);
+ await expect(page.locator('.print-sheet').getByText('Command Protocols',{exact:true})).toHaveCount(2);
+ expect(errors).toEqual([]);
+});
+test('retinue assignment, mixed weapons and enhancement choices persist and drive the actual phase sheet',async({page})=>{
+ await page.goto('./');
+ await page.getByRole('checkbox',{name:/Canoptek Court/}).check();
+ await page.getByRole('checkbox',{name:/Hand of the Dynasty/}).check();
+ for(const unit of ['Immortals','Technomancer','Cryptothralls','Canoptek Wraiths'])await add(page,unit);
+ await page.getByLabel('Attach squad Technomancer#1',{exact:true}).selectOption('Immortals#1');
+ await page.getByLabel('Retinue for Cryptothralls#1',{exact:true}).selectOption('Immortals#1');
+ await expect(page.getByText('Bodyguard starting strength: 7',{exact:true})).toBeVisible();
+ await page.getByLabel('Equipment for Canoptek Wraiths',{exact:true}).selectOption('mixed');
+ await page.getByLabel('Whip coils models in Canoptek Wraiths#1',{exact:true}).selectOption('1');
+ await page.getByLabel('Particle caster in Canoptek Wraiths#1',{exact:true}).selectOption('2');
+ await page.getByLabel('11th upgrade for squad Technomancer#1',{exact:true}).selectOption('Hyperphasic Fulcrum');
+ await page.reload();
+ await expect(page.getByLabel('Retinue for Cryptothralls#1',{exact:true})).toHaveValue('Immortals#1');
+ await expect(page.getByLabel('Whip coils models in Canoptek Wraiths#1',{exact:true})).toHaveValue('1');
+ await expect(page.getByLabel('Particle caster in Canoptek Wraiths#1',{exact:true})).toHaveValue('2');
+ await page.getByRole('button',{name:'Play reminders'}).click();
+ await expect(panel(page).getByText(/Cryptothralls#1 · Cryptek Retinue → Immortals#1/)).toBeVisible();
+ await expect(panel(page).getByText(/Bound Creation/)).toHaveCount(2);
+ await expect(panel(page).getByText(/Hyperphasic Fulcrum/)).toHaveCount(2);
+});
