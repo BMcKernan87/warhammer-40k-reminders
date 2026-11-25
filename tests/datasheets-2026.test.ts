@@ -8,7 +8,7 @@ describe('11th edition datasheet and points registry',()=>{
   expect(cost.total).toBe(65);
   expect(cost.knownPoints).toBe(65);
   expect(cost.unknownUnits).toEqual([]);
-  expect(verifiedUnitSizes2026(army,'Immortals')).toEqual([5,10]);
+  expect(verifiedUnitSizes2026(army,'Immortals')).toEqual([5,6,7,8,9,10]);
  });
  it('uses separately attributed point values only for sourced Ctan units',()=>{
   const army={...newSelection('Necrons'),units:{'C’tan Shard of the Nightbringer':1,'C’tan Shard of the Void Dragon':1}};

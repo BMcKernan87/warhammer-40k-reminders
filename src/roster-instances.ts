@@ -1,8 +1,9 @@
+import {applyModelLoadouts,modelLoadoutRows,validModelLoadouts,type ModelLoadout} from './necron-model-loadouts';
 import {reconcileRetinues,validRetinues} from './necron-retinues';
 import {reconcileWarlord} from './necron-muster-legality';
 import {NECRON_LOADOUTS,slotLimit,validOptionalGear,currentEquipmentName} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
-import {instanceBodyguards,validMurdermindFormation,isModeledLeader} from './leader-eligibility';
+import {instanceBodyguards,isModeledLeader} from './leader-eligibility';
 import {supportsMixedPrimaryWeapons} from './mixed-weapons';
 import {legalUnitSizes,defaultUnitSize} from './unit-sizes';
 import {EQUIPMENT_OPTIONS} from './equipment';
@@ -10,7 +11,7 @@ import {NECRON_ENHANCEMENTS,NECRON_CHARACTERS,NECRON_EPIC_HEROES} from './enhanc
 import {upgradeError2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
-export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;enhancement?:string;attachedTo?:string;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
+export interface RosterInstance {id:string;unit:string;equipment?:string;models?:number;weaponCounts?:Record<string,number>;modelLoadouts?:ModelLoadout[];enhancement?:string;attachedTo?:string;retinueTo?:string;resurrectionOrb?:boolean;wargear?:Record<string,number>}
 export function expandRoster(army:ArmySelection):RosterInstance[]{
  if(army.instances)return army.instances;
  const result:RosterInstance[]=[];
@@ -35,6 +36,7 @@ export function setInstanceWeaponCounts(army:ArmySelection,id:string,weaponCount
  if(Object.values(weaponCounts).reduce((sum,count)=>sum+count,0)!==models)throw Error('Each model must have exactly one selected primary weapon');
  target.weaponCounts={...weaponCounts};
  delete target.equipment;
+ if(target.modelLoadouts)target.modelLoadouts=modelLoadoutRows(target,models);
  const updated={...army,instances};
  if(!validateRosterInstances(updated))throw Error('Invalid weapon configuration');
  return updated;
@@ -46,6 +48,14 @@ export function setInstanceModelCount(army:ArmySelection,id:string,models:number
  if(!target)throw Error('Unknown squad');
  const legal=verifiedUnitSizes2026(army,target.unit)||legalUnitSizes(army.faction,target.unit);
  if(!legal||!legal.includes(models))throw Error('Unsupported unit size');
+ if(target.modelLoadouts){
+  const rows=target.modelLoadouts.slice(0,models);
+  while(rows.length<models)rows.push({primary:NECRON_LOADOUTS[target.unit].primary?.[0],gear:[]});
+  const resized=applyModelLoadouts(target,models,rows);
+  const updated={...army,instances:instances.map(s=>s.id===id?resized:s)};
+  if(!validateRosterInstances(updated))throw Error('Invalid model count');
+  return updated;
+ }
  target.models=models;
  if(target.wargear){
   const gear:Record<string,number>={};
@@ -88,6 +98,7 @@ export function setInstanceEquipment(army:ArmySelection,id:string,equipment:stri
  if(target.unit==='Overlord'&&target.resurrectionOrb&&equipment==='Tachyon arrow and Overlord’s blade')throw Error('Resurrection Orb cannot be equipped alongside tachyon arrow');
  target.equipment=equipment;
  delete target.weaponCounts;
+ if(target.modelLoadouts)target.modelLoadouts=modelLoadoutRows(target,target.modelLoadouts.length);
  return {...army,instances};
 }
 export function setInstanceResurrectionOrb(army:ArmySelection,id:string,equipped:boolean):ArmySelection{
@@ -106,7 +117,16 @@ export function setInstanceWargear(army:ArmySelection,id:string,choice:string,co
  const changed={...target,wargear:{...target.wargear,[choice]:count}};
  if(!validOptionalGear(changed,target.models??verifiedUnitSizes2026(army,target.unit)?.[0]??1))throw Error('Wargear exceeds this squad’s permitted options or model count');
  if(count===0)delete changed.wargear[choice];
+ if(changed.modelLoadouts)changed.modelLoadouts=modelLoadoutRows(changed,changed.modelLoadouts.length);
  return {...army,instances:instances.map(s=>s.id===id?changed:s)};
+}
+export function setInstanceModelLoadouts(army:ArmySelection,id:string,rows:ModelLoadout[]):ArmySelection{
+ const instances=expandRoster(army);
+ const squad=instances.find(s=>s.id===id);
+ if(army.faction!=='Necrons'||!squad)throw Error('Unknown Necron squad');
+ const models=squad.models??verifiedUnitSizes2026(army,squad.unit)?.[0]??1;
+ const updated=applyModelLoadouts(squad,models,rows);
+ return {...army,instances:instances.map(s=>s.id===id?updated:s)};
 }
 export function individualArmy(army:ArmySelection):ArmySelection {
  if(army.instances)return army;
@@ -153,6 +173,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(verifiedUnitSizes2026(army,x.unit)||legalUnitSizes(army.faction,x.unit))?.includes(x.models)))return false;
   if(x.wargear!==undefined&&(army.faction!=='Necrons'||!validOptionalGear(x, x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??1)))return false;
+  if(x.modelLoadouts!==undefined&&(army.faction!=='Necrons'||!validModelLoadouts(x,x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??1)))return false;
   if(x.weaponCounts!==undefined){if(!supportsMixedPrimaryWeapons(army.faction,x.unit))return false;if(x.equipment!==undefined)return false;const options=EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===x.unit);if(!options||!x.weaponCounts||typeof x.weaponCounts!=='object'||Array.isArray(x.weaponCounts))return false;const entries=Object.entries(x.weaponCounts);if(entries.some(([weapon,count])=>!options.choices.includes(weapon)||!Number.isInteger(count)||count<0)||entries.reduce((sum,[,count])=>sum+count,0)!==(x.models??verifiedUnitSizes2026(army,x.unit)?.[0]??defaultUnitSize(army.faction,x.unit)??1))return false;}
   if(x.equipment!==undefined&&!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===x.unit&&typeof x.equipment==='string'&&o.choices.includes(currentEquipmentName(x.unit,x.equipment))))return false;
   if(x.enhancement!==undefined&&(!NECRON_CHARACTERS.has(x.unit)||NECRON_EPIC_HEROES.has(x.unit)||!NECRON_ENHANCEMENTS[army.detachment]?.includes(x.enhancement)))return false;
@@ -167,7 +188,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   const body=army.instances.find(b=>b.id===x.attachedTo);
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   const leaders=army.instances.filter(l=>l.attachedTo===body.id);
-  if(leaders.length>2||!validMurdermindFormation(army,body,leaders))return false;
+  if(leaders.length>2)return false;
   if(leaders.length===2&&(army.faction!=='Necrons'||new Set(leaders.map(l=>necronAttachmentRole(l.unit))).size!==2))return false;
  }
  return validRetinues(army);
@@ -228,12 +249,6 @@ export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
   if(!leader.attachedTo)continue;
   const body=instances.find(b=>b.id===leader.attachedTo);
   if(!body||!instanceBodyguards(army,leader).includes(body.unit))delete leader.attachedTo;
- }
- for(const body of instances){
-  const leaders=instances.filter(l=>l.attachedTo===body.id);
-  if(!validMurdermindFormation(army,body,leaders)){
-   for(const l of leaders)if(!instanceBodyguards({...army,upgrades2026:{}},l).includes(body.unit))delete l.attachedTo;
-  }
  }
  return reconcileRetinues({...army,instances});
 }

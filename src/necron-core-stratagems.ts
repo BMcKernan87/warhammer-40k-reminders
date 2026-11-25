@@ -2,21 +2,18 @@ import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import type {RosterInstance} from './roster-instances';
 import {necronFormationRoots} from './necron-retinues';
-import {CHARACTERS} from './necron-muster-legality';
-import {necronKeywords as k} from './necron-wargear';
+import {hasNecronRangedWeapon,necronKeywords as k} from './necron-wargear';
 
 const source='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
-const walkers=new Set(['Canoptek Doomstalker','Canoptek Reanimator','Triarch Stalker','Seraptek Heavy Construct']);
-const aircraft=new Set(['Doom Scythe']);
 export function necronCoreStratagemReminders(army:ArmySelection,roster:RosterInstance[]):GeneratedReminder[]{
  if(army.faction!=='Necrons')return [];
  const roots=necronFormationRoots(army,roster);
  const match=(test:(unit:string)=>boolean)=>roots.filter(f=>f.members.some(s=>test(s.unit))).map(f=>f.id);
- const all=roots.map(f=>f.id),characters=match(u=>CHARACTERS.has(u));
- const vehicleMonster=match(u=>(k.VEHICLE.has(u)||k.MONSTER.has(u))&&!aircraft.has(u)&&u!=='Convergence Of Dominion');
- const heroic=roots.filter(f=>!f.members.some(s=>k.VEHICLE.has(s.unit))||f.members.some(s=>CHARACTERS.has(s.unit)||walkers.has(s.unit))).map(f=>f.id);
- const ingress=roots.filter(f=>!f.members.some(s=>aircraft.has(s.unit)||s.unit==='Convergence Of Dominion')).map(f=>f.id);
- const overwatch=roots.filter(f=>!f.members.some(s=>k.TITANIC.has(s.unit))).map(f=>f.id);
+ const all=roots.map(f=>f.id),characters=match(u=>k.CHARACTER.has(u));
+ const vehicleMonster=match(u=>(k.VEHICLE.has(u)||k.MONSTER.has(u))&&!k.AIRCRAFT.has(u)&&!k.FORTIFICATION.has(u));
+ const heroic=roots.filter(f=>!f.members.some(s=>k.VEHICLE.has(s.unit))||f.members.some(s=>k.CHARACTER.has(s.unit)||k.WALKER.has(s.unit))).map(f=>f.id);
+ const ingress=roots.filter(f=>!f.members.some(s=>k.AIRCRAFT.has(s.unit)||k.FORTIFICATION.has(s.unit))).map(f=>f.id);
+ const overwatch=roots.filter(f=>!f.members.some(s=>k.TITANIC.has(s.unit))&&f.members.some(hasNecronRangedWeapon)).map(f=>f.id);
  const out:GeneratedReminder[]=[];
  const emit=(id:string,title:string,window:ReminderWindow,summary:string,units:string[],timing:GeneratedReminder['timing']='during')=>{
   if(units.length)out.push({id:'11e-core-'+id,title,window,timing,summary,units,source,origin:'army'});

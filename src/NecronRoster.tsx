@@ -1,12 +1,13 @@
-import React from 'react';
+import React, {useState} from 'react';
+import {modelLoadoutRows, modelLoadoutUnits, type ModelLoadout} from './necron-model-loadouts';
 import {NECRON_RETINUES,eligibleRetinueBodies,setRetinue,formationBodyguardStrength} from './necron-retinues';
 import {legalWarlordCandidates,resolvedWarlord,selectWarlord} from './necron-muster-legality';
 import {NECRON_SUPPORTS} from './attachments';
 import type {ArmySelection} from './catalog';
-import {expandRoster,individualArmy,removeRosterInstance,setInstanceAttachment,setInstanceEquipment,setInstanceModelCount,setInstanceResurrectionOrb,setInstanceWargear,setInstanceWeaponCounts,type RosterInstance} from './roster-instances';
+import {expandRoster,individualArmy,removeRosterInstance,setInstanceAttachment,setInstanceEquipment,setInstanceModelCount,setInstanceModelLoadouts,setInstanceResurrectionOrb,setInstanceWargear,setInstanceWeaponCounts,type RosterInstance} from './roster-instances';
 import {NECRON_LOADOUTS,availableGearCount,currentEquipmentName,necronSource} from './necron-wargear';
 import {necronAttachmentRole} from './attachments';
-import {isModeledLeader,instanceBodyguards,validMurdermindFormation} from './leader-eligibility';
+import {isModeledLeader,instanceBodyguards} from './leader-eligibility';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 import {availableUpgrades2026,selectUpgrade2026} from './upgrades-2026';
 import {NECRON_ENHANCEMENT_POINTS,PANTHEON_BINDINGS} from './necron-enhancement-points';
@@ -26,6 +27,33 @@ function redistribute(squad:RosterInstance,choices:readonly string[],choice:stri
   counts[others[0]]+=rest;
   return counts;
 }
+function ModelEquipment({squad,models,edit}:{squad:RosterInstance;models:number;edit:Edit}) {
+  const [draft,setDraft]=useState<ModelLoadout[]>();
+  const sheet=NECRON_LOADOUTS[squad.unit];
+  if(!draft)return <button className="secondary" onClick={()=>setDraft(modelLoadoutRows(squad,models))}>Edit equipment by model</button>;
+  function update(index:number,row:ModelLoadout) {
+    setDraft(previous=>previous?.map((item,i)=>i===index?row:item));
+  }
+  return <div className="model-equipment">
+    {draft.map((row,index)=><fieldset className="loadout-controls" key={index}>
+      <legend>Model {index+1}</legend>
+      {sheet.primary&&<label>Primary weapon <select aria-label={'Primary weapon for model '+(index+1)+' in '+squad.id}
+        value={row.primary} onChange={e=>update(index,{...row,primary:e.target.value})}>
+        {sheet.primary.map(choice=><option key={choice}>{choice}</option>)}
+      </select></label>}
+      {sheet.slots?.map(slot=>{
+        const current=row.gear.find(item=>slot.choices.includes(item))??'';
+        const label=slot.choices.join(' / ');
+        return <label key={label}>{label} <select aria-label={label+' for model '+(index+1)+' in '+squad.id}
+          value={current} onChange={e=>update(index,{...row,gear:[...row.gear.filter(item=>!slot.choices.includes(item)),...(e.target.value?[e.target.value]:[])]})}>
+          <option value="">None</option>{slot.choices.map(choice=><option key={choice}>{choice}</option>)}
+        </select></label>;
+      })}
+    </fieldset>)}
+    <button onClick={()=>{edit(a=>setInstanceModelLoadouts(a,squad.id,draft));setDraft(undefined);}}>Apply model loadouts</button>
+    <button className="secondary" onClick={()=>setDraft(undefined)}>Cancel</button>
+  </div>;
+}
 function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit:Edit}) {
   const sheet=NECRON_LOADOUTS[squad.unit];
   const sizes=verifiedUnitSizes2026(army,squad.unit)??[1];
@@ -36,10 +64,10 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
   const upgrades=availableUpgrades2026(army,squad);
   const binding=army.detachments2026?.includes('Pantheon of Woe')?PANTHEON_BINDINGS[squad.unit]:undefined;
   const roster=expandRoster(army);
-  const bodies=roster.filter(body=>instanceBodyguards(army,squad).includes(body.unit) && validMurdermindFormation(army,body,[squad,...roster.filter(l=>l.id!==squad.id&&l.attachedTo===body.id)]) &&
+  const bodies=roster.filter(body=>instanceBodyguards(army,squad).includes(body.unit) &&
     !roster.some(l=>l.id!==squad.id&&l.attachedTo===body.id&&necronAttachmentRole(l.unit)===necronAttachmentRole(squad.unit))).filter(body=>{try{setInstanceAttachment(army,squad.id,body.id);return true;}catch{return false;}});
   const retinueBodies=eligibleRetinueBodies(army,squad.id);
-  const fixed=[sheet.fixed,choices.length===1?choices[0]:''].filter(Boolean).join(' · ');
+  const fixed=[sheet.fixed,squad.unit==='Catacomb Command Barge'&&!squad.wargear?.['Overlord’s blade']?'Staff of light':'',choices.length===1?choices[0]:''].filter(Boolean).join(' · ');
   const special=squad.unit==='Canoptek Macrocytes' ? Object.values(squad.wargear??{}).reduce((sum,n)=>sum+n,0) : 0;
   return <section className="loadout" aria-label={'Squad '+squad.id}>
     <div className="squad-heading"><strong>{squad.id}</strong><a href={necronSource(squad.unit)} target="_blank" rel="noreferrer">Datasheet</a></div>
@@ -70,6 +98,7 @@ function Loadout({army,squad,edit}:{army:ArmySelection;squad:RosterInstance;edit
       {upgrades.length>0&&<label>11th-edition enhancement <select aria-label={'11th upgrade for squad '+squad.id} value={army.upgrades2026?.[squad.id]??army.upgrades2026?.[squad.unit]??''} onChange={e=>edit(a=>selectUpgrade2026(a,squad.id,e.target.value||null))}>
         <option value="">None</option>{upgrades.map(u=><option key={u.name} value={u.name}>{u.name==='Prelocational Optimiser'?'Relocational Optimiser':u.name} (+{NECRON_ENHANCEMENT_POINTS[u.name]} pts)</option>)}</select></label>}
     </div>
+    {modelLoadoutUnits.has(squad.unit)&&<ModelEquipment key={JSON.stringify([squad.id,models,squad.equipment,squad.weaponCounts,squad.wargear,squad.modelLoadouts])} squad={squad} models={models} edit={edit}/>}
     <button className="secondary" aria-label={'Remove squad '+squad.id} onClick={()=>edit(a=>removeRosterInstance(a,squad.id))}>Remove squad</button>
   </section>;
 }

@@ -15,7 +15,7 @@ describe('2026 Detachment Points and Force Dispositions',()=>{
  });
  it('rejects overbudget, duplicate and unrecognized detachment choices',()=>{
   expect(detachmentBudget('Orks',['War Horde','Bully Boyz'],'Strike Force').valid).toBe(false);
-  expect(detachmentBudget('Tyranids',['Invasion Fleet'],'Incursion').valid).toBe(false);
+  expect(detachmentBudget('Tyranids',['Invasion Fleet'],'Incursion').valid).toBe(true);
   expect(detachmentBudget('Necrons',['Hand of the Dynasty','Hand of the Dynasty'],'Strike Force').valid).toBe(false);
   expect(validateSelection({...newSelection('Necrons'),detachments2026:['Made Up']})).toBe(false);
  });

@@ -62,7 +62,7 @@ describe('five detachment source reconciliation',()=>{
   a=setInstanceEquipment(a,lord,'Staff of light');
   a=setInstanceResurrectionOrb(a,lord,true);
   expect(named(a,'Resurrection Orb').length).toBeGreaterThan(0);
-  expect(named(a,'Resurrection Orb').every(r=>r.summary.includes('A given unit')&&!r.summary.includes('Only one unit'))).toBe(true);
+  expect(named(a,'Resurrection Orb').every(r=>r.summary.includes('A given unit')&&r.summary.includes('at most one unit each turn'))).toBe(true);
   expect(named(a,'Systematic Vigour')[0].summary).toContain('may fight again');
   expect(named(a,'Hard-wired for Destruction')[0].summary).toContain('Both conditions');
  });

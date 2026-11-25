@@ -31,6 +31,12 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
   s=>{s.datasheets[0].laterCopyPointsBySize={'1':{'1':80}};},
   s=>{s.datasheets[0].sizes=[1,1];},
   s=>{s.datasheets[0].pointsBySize['1']=-1;},
+  s=>{s.datasheets[0].composition[0].max+=1;},
+  s=>{s.datasheets[0].modelKeywords={Imaginary:['CHARACTER']};},
+  s=>{s.datasheets[0].keywords=['Necrons'];},
+  s=>{s.datasheets[0].attachmentRole='support';s.datasheets[0].bodyguards=['Imaginary'];},
+  s=>{s.datasheets.find(d=>d.unit==='Doom Scythe').profile.objectiveControl='absent';},
+  s=>{s.datasheets.find(d=>d.unit==='The Silent King').modelProfiles.SZAREKH.wounds=-1;},
   s=>{s.datasheets[0].unknownRule='not silently discarded';},
  ])('rejects malformed, duplicate, obsolete or incomplete records',mutate=>{
   const copy=structuredClone(snapshot);mutate(copy);expect(()=>generateDatasheets(copy)).toThrow(/11e datasheet import/);

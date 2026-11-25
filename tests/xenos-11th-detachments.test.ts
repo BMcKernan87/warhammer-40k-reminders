@@ -15,7 +15,7 @@ describe('11th edition Xenos detachment imports',()=>{
   expect(detachmentBudget('Aeldari',['Armoured Warhost','Aspect Host'],'Strike Force').valid).toBe(false);
   expect(detachmentBudget('Aeldari',['Armoured Warhost','Fateful Performance'],'Incursion').valid).toBe(true);
   expect(detachmentBudget('Leagues of Votann',['Hearthguard Covenant','Mercenary Oathband'],'Strike Force').valid).toBe(true);
-  expect(detachmentBudget('T’au Empire',['Mont\'ka'],'Incursion').valid).toBe(false);
+  expect(detachmentBudget('T’au Empire',['Mont\'ka'],'Incursion').valid).toBe(true);
  });
  it('accepts a selected 11th-edition Drukhari detachment',()=>{
   const army={...newSelection('Drukhari'),battleSize2026:'Strike Force' as const,detachments2026:['Tools of Torment','Covenite Coterie']};

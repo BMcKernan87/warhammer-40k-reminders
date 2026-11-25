@@ -35,10 +35,3 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
  const base=leaderBodyguards(army.faction,leader.unit);
  return hasMurdermind(army,leader)?[...new Set([...base,...MURDERMIND_BODYGUARDS])]:base;
 }
-export function validMurdermindFormation(army:ArmySelection,body:{id:string;unit:string},leaders:readonly {id:string;unit:string}[]):boolean{
- if(!leaders.some(l=>hasMurdermind(army,l)&&!leaderBodyguards(army.faction,l.unit).includes(body.unit)))return true;
- return MURDERMIND_BODYGUARDS.some(u=>u===body.unit)&&leaders.every(l=>hasMurdermind(army,l)||['Skorpekh Lord','Lokhust Lord','Hexmark Destroyer','Nekrosor Ammentar'].includes(l.unit)||(_armyAnkh(army,l)));
-}
-function _armyAnkh(army:ArmySelection,l:{id:string;unit:string}):boolean{
- return ['Overlord','Overlord with translocation shroud','Catacomb Command Barge'].includes(l.unit)&&(army.upgrades2026?.[l.id]??army.upgrades2026?.[l.unit])==='Destroyer Ankh';
-}
