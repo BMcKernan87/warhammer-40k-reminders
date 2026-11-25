@@ -19,7 +19,7 @@ const CORE_11TH:readonly GeneratedReminder[]=[
  {id:'11e-shoot',title:'Shoot with eligible units',window:'Shooting',timing:'during',summary:'Select eligible units to shoot, choose weapons and targets, then resolve attacks.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-charge',title:'Declare and resolve charges',window:'Charge',timing:'during',summary:'Declare eligible charges, roll the charge distance and complete legal charge moves.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-fight',title:'Fight phase sequence',window:'Fight',timing:'during',summary:'Resolve start-of-phase effects, pile-in moves, Fights First combats, remaining fights and consolidation.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-core-overwatch',title:'Fire Overwatch · 1CP',window:'Movement',timing:'end',summary:'End of opponent’s Movement phase: choose one friendly unengaged non-Titanic unit to snap shoot one visible eligible enemy within 24″. Hits on unmodified 6s, no Hit re-rolls unless a specific rule overrides the threshold. No Charge-phase Fire Overwatch.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-core-overwatch',title:'Fire Overwatch · 1CP',window:'Movement',timing:'end',summary:'End of opponent’s Movement phase: choose one friendly unengaged non-Titanic unit to snap shoot one visible eligible enemy within 24″. Normally hits only on unmodified 6s; these are not critical hits. A specific rule may change the hit threshold, but Hit rolls cannot be re-rolled. No Charge-phase Fire Overwatch.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-move-every-unit',title:'Select every unit to move',window:'Movement',timing:'during',summary:'Select each of your units once in the Move Units step, including units in Strategic Reserves or embarked in Transports. Remaining stationary counts as a selection.',source:CORE_SOURCE,origin:'army'}
 ];
 const DETACHMENT_RULES:readonly Rule11th[]=[
@@ -120,6 +120,12 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   }
  }else result.push(...staticRows);
  if(_army.faction==='Necrons'){
+  if(_army.detachments2026?.includes('Cryptek Conclave')){
+   const roots=necronFormationRoots(_army,roster);
+   const cryptekRoots=roots.filter(f=>f.members.some(m=>necronKeywords.CRYPTEK.has(m.unit)));
+   const conditional=roots.filter(f=>!cryptekRoots.includes(f)&&f.members.some(m=>!necronKeywords.VEHICLE.has(m.unit)&&!necronKeywords.MONSTER.has(m.unit))).map(f=>f.id);
+   if(cryptekRoots.length&&conditional.length)result.push({id:'11e-necron-conclave-synergy-carryover',title:'Synergistic Empowerment · temporary Cryptek keyword',window:'Shooting',timing:'during',summary:'Only if a model in this formation received the Cryptek keyword through Synergistic Empowerment at phase start: that model’s ranged weapons gain Assault, the formation qualifies for an Augmentations weapon ability when selected to shoot, and it can qualify for Cryptek-only stratagems. The effect ends this phase.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'detachment',units:conditional});
+  }
   // Recursive Reanimation triggers whenever protocols activate, not only Command.
   const recursive=result.filter(r=>r.id.startsWith('11e-necron-skyshroud-recursive'));
   for(const r of recursive)for(const window of ['Movement','Shooting','Charge','Fight'] as const)result.push({...r,id:r.id+'-'+window,window});

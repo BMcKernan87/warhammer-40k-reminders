@@ -54,7 +54,7 @@ describe('11e source reconciled vehicle and weapon reminders',()=>{
   const a={...army('Immortals','Plasmancer'),detachments2026:['Awakened Dynasty']};
   expect(named(a,'Protocol of the Undying Legions').every(r=>r.summary.includes('at least one Bodyguard model'))).toBe(true);
   const b={...a,detachments2026:['Hypercrypt Legion']};
-  expect(named(b,'Cosmic Precision')[0].summary).toContain('Deep Strike or Hyperphasing');
+  expect(named(b,'Cosmic Precision')[0].summary).toContain('ingress move');
   expect(named(b,'Cosmic Precision')[0].summary).toContain('large-model');
  });
  it('includes the Silent King as Vehicle without falsely making it Titanic',()=>{

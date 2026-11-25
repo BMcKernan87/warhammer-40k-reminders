@@ -51,7 +51,7 @@ describe('five detachment source reconciliation',()=>{
   const l=id(a,'Overlord'),b=id(a,'Immortals'),m=id(a,'Monolith');
   a=setInstanceAttachment(a,l,b);
   expect(named(a,'Hyperphasic Recall').map(r=>r.units)).toEqual([[b,m],[b,m]]);
-  expect(named(a,'Cosmic Precision')[0].summary).toContain('does not require');
+  expect(named(a,'Cosmic Precision')[0].summary).toContain('does not require Deep Strike or prior Hyperphasing');
   expect(named(a,'Hyperphasing')[0].summary).toContain('first battle round');
   expect(named(a,'Reanimation Crypts')[0].units).toEqual([l]);
  });
