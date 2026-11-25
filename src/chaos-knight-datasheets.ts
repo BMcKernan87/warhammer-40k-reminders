@@ -74,7 +74,7 @@ const auras:Readonly<Record<string,Aura>>={
 
 const scout='During Resolve Pre-battle Abilities, if wholly in your deployment zone Scout up to 6″ and finish more than 8″ horizontally from enemies. From Strategic Reserves, you may instead enter wholly within your deployment zone.';
 export function chaosKnightDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[] {
-  const knightHost=['World Eaters','Emperor’s Children','Thousand Sons','Death Guard'].includes(army.faction);
+  const knightHost=['Chaos Space Marines','World Eaters','Emperor’s Children','Thousand Sons','Death Guard'].includes(army.faction);
   const dreadblades=army.faction==='Chaos Daemons'||knightHost;
   if(!dreadblades&&army.faction!=='Chaos Knights')return [];
   const supported=knightHost?undefined:new Set(army.faction==='Chaos Daemons'?daemonMusterUnits(army):chaosKnightMusterUnits(army));

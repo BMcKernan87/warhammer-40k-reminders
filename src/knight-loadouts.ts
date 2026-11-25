@@ -1,3 +1,4 @@
+import {csmArmyLoadout,resizeCsmArmyGear,validCsmArmyGear} from './csm-army-loadouts';
 import {tyranidLoadout,resizeTyranidGear,validTyranidGear} from './tyranid-loadouts';
 import {tauLoadout,resizeTauGear,validTauGear} from './tau-loadouts';
 import {mechanicusLoadout,resizeMechanicusGear,validMechanicusGear} from './mechanicus-loadouts';
@@ -121,6 +122,7 @@ function accursedCultists(models:number):KnightEquipment {
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
+  if(faction==='Chaos Space Marines'&&csmArmyLoadout(squad.unit,models))return resizeCsmArmyGear(squad,models);
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,models))return resizeDeathGuardGear(squad,models);
   if(faction==='Tyranids'&&tyranidLoadout(squad.unit,models))return resizeTyranidGear(squad,models);
   if(faction==='T’au Empire'&&tauLoadout(squad.unit,models))return resizeTauGear(squad,models);
@@ -186,13 +188,14 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
   if(unit===alliedWarhound(faction))return warhoundEquipment;
+  if(faction==='Chaos Space Marines')return csmArmyLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:daemonLoadout(unit,models));
   if(faction==='Death Guard')return deathGuardLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
   if(faction==='Thousand Sons')return thousandSonsLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
   if(faction==='Emperor’s Children')return emperorsChildrenLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
   if(faction==='World Eaters')return worldEaterLoadout(unit,models)??(isWorldEatersDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
   if(faction==='Orks')return orkLoadout(unit,models);
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
-  if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
+  if(faction==='Chaos Daemons'&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
   if(faction==='Tyranids')return tyranidLoadout(unit,models);
   if(faction==='T’au Empire')return tauLoadout(unit,models);
   if(faction==='Adeptus Mechanicus')return mechanicusLoadout(unit,models)??agentLoadout(unit,models);
@@ -232,6 +235,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(faction==='Chaos Space Marines'&&csmArmyLoadout(squad.unit,squad.models))return validCsmArmyGear(squad.unit,gear,squad.models);
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,squad.models))return validDeathGuardGear(squad.unit,gear,squad.models);
   if(faction==='Tyranids'&&tyranidLoadout(squad.unit,squad.models))return validTyranidGear(squad.unit,gear,squad.models);
   if(faction==='T’au Empire'&&tauLoadout(squad.unit,squad.models))return validTauGear(squad.unit,gear,squad.models);
