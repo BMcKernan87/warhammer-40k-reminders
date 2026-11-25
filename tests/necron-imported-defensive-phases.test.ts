@@ -9,12 +9,12 @@ describe('Necron imported defensive ability windows',()=>{
   const reminders=generate11thReminders(army).filter(r=>r.title.includes('Necrodermis'));
   expect(reminders.map(r=>r.window)).toEqual(['Shooting','Fight']);
  });
- it('applies attached Technomancer Feel No Pain during Shooting and Fight',()=>{
+ it('applies attached Technomancer Feel No Pain whenever wounds would be lost',()=>{
   const army=individualArmy(addSelectionUnit(addSelectionUnit(newSelection('Necrons'),'Technomancer'),'Canoptek Wraiths'));
   const leader=army.instances!.find(x=>x.unit==='Technomancer')!;
   const body=army.instances!.find(x=>x.unit==='Canoptek Wraiths')!;
   const attached=setInstanceAttachment(army,leader.id,body.id);
   const reminders=generate11thReminders(attached).filter(r=>r.title.includes('Rites of Reanimation'));
-  expect(reminders.map(r=>r.window)).toEqual(['Shooting','Fight']);
+  expect(reminders.map(r=>r.window)).toEqual(['Command','Movement','Shooting','Charge','Fight']);
  });
 });

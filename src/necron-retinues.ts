@@ -7,9 +7,10 @@ import {NECRON_SUPPORTS} from './attachments';
 import {necronKeywords} from './necron-wargear';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 
+export const NECRON_RETINUES=new Set(['Cryptothralls','Canoptek Tomb Crawlers']);
 export function retinueCrypteks(army:ArmySelection,bodyId:string):RosterInstance[]{
  const roster=expandRoster(army),body=roster.find(s=>s.id===bodyId);
- if(!body||body.attachedTo||body.retinueTo||body.unit==='Cryptothralls')return [];
+ if(!body||body.attachedTo||body.retinueTo||NECRON_RETINUES.has(body.unit))return [];
  const crypteks=roster.filter(s=>s.attachedTo===bodyId&&necronKeywords.CRYPTEK.has(s.unit)&&validSupportAttachment(army,s));
  // Murdermind's special Destroyer-only formation cannot include non-Destroyer retinue models.
  if(crypteks.some(s=>hasMurdermind(army,s)&&!leaderBodyguards('Necrons',s.unit).includes(body.unit)))return [];
@@ -18,12 +19,12 @@ export function retinueCrypteks(army:ArmySelection,bodyId:string):RosterInstance
 export function eligibleRetinueBodies(army:ArmySelection,id:string):RosterInstance[]{
  if(army.faction!=='Necrons')return [];
  const roster=expandRoster(army);
- if(!roster.some(s=>s.id===id&&s.unit==='Cryptothralls'&&!s.attachedTo))return [];
+ if(!roster.some(s=>s.id===id&&NECRON_RETINUES.has(s.unit)&&!s.attachedTo))return [];
  return roster.filter(b=>retinueCrypteks(army,b.id).length>0&&!roster.some(s=>s.id!==id&&s.retinueTo===b.id));
 }
 export function setRetinue(army:ArmySelection,id:string,bodyId:string|null):ArmySelection{
- if(army.faction!=='Necrons'||!expandRoster(army).some(s=>s.id===id&&s.unit==='Cryptothralls'))throw Error('Select a Cryptothralls unit');
- if(bodyId!==null&&!eligibleRetinueBodies(army,id).some(s=>s.id===bodyId))throw Error('Retinue requires a legally Cryptek-led Bodyguard without another Cryptothralls unit');
+ if(army.faction!=='Necrons'||!expandRoster(army).some(s=>s.id===id&&NECRON_RETINUES.has(s.unit)))throw Error('Select a Cryptothralls or Tomb Crawlers retinue');
+ if(bodyId!==null&&!eligibleRetinueBodies(army,id).some(s=>s.id===bodyId))throw Error('Retinue requires a legally Cryptek-led Bodyguard without another retinue');
  return {...army,instances:expandRoster(army).map(s=>s.id===id?{...s,retinueTo:bodyId??undefined}:s)};
 }
 export function reconcileRetinues(army:ArmySelection):ArmySelection{
@@ -31,7 +32,7 @@ export function reconcileRetinues(army:ArmySelection):ArmySelection{
  const claimed=new Set<string>();
  const instances=army.instances.map(s=>{
   if(!s.retinueTo)return s;
-  if(s.unit==='Cryptothralls'&&!s.attachedTo&&!claimed.has(s.retinueTo)&&retinueCrypteks(army,s.retinueTo).length){claimed.add(s.retinueTo);return s;}
+  if(NECRON_RETINUES.has(s.unit)&&!s.attachedTo&&!claimed.has(s.retinueTo)&&retinueCrypteks(army,s.retinueTo).length){claimed.add(s.retinueTo);return s;}
   return {...s,retinueTo:undefined};
  });
  return {...army,instances};
@@ -56,4 +57,16 @@ export function ghostArkPassengers(army:ArmySelection):RosterInstance[]{
   if(s.unit==='Necron Warriors')return (s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??0)<=10&&members.length<=2&&members.slice(1).every(m=>infantryCharacters.has(m.unit));
   return members.length===1&&infantryCharacters.has(s.unit)&&!NECRON_SUPPORTS.has(s.unit);
  });
+}
+
+// Only a legally joined Leader, Support or retinue shares a formation root.
+// Purchased squads retain separate identity and points.
+export function necronFormationRoots(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)) {
+ const snapshot={...army,instances:[...roster]};
+ const joined=new Map<string,string>();
+ for(const s of roster){
+  if(s.attachedTo&&validSupportAttachment(snapshot,s))joined.set(s.id,s.attachedTo);
+  if(s.retinueTo&&eligibleRetinueBodies(snapshot,s.id).some(b=>b.id===s.retinueTo))joined.set(s.id,s.retinueTo);
+ }
+ return roster.filter(s=>!joined.has(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>joined.get(s.id)===body.id)]}));
 }

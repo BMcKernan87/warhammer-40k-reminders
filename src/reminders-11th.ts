@@ -1,3 +1,4 @@
+import {necronFormationRoots} from './necron-retinues';
 import {expandRoster} from './roster-instances';
 import {canoptekHypercryptReminders} from './necron-canoptek-hypercrypt';
 import {remainingNecronReminders} from './necron-remaining-detachments';
@@ -98,9 +99,16 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const result=CORE_11TH.map(rule=>({...rule}));
  result.push(...matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened'));
  const roster=expandRoster(_army);
+ if(_army.faction==='Necrons'){
+  // Recursive Reanimation triggers whenever protocols activate, not only Command.
+  const recursive=result.filter(r=>r.id.startsWith('11e-necron-skyshroud-recursive'));
+  for(const r of recursive)for(const window of ['Movement','Shooting','Charge','Fight'] as const)result.push({...r,id:r.id+'-'+window,window});
+  const hand=result.find(r=>r.id==='11e-necron-hod-hypermotility');
+  if(hand)result.push({...hand,id:hand.id+'-shooting',window:'Shooting',summary:'Warriors and Immortals formations have Assault on ranged attacks, including after advancing.'});
+ }
  result.push(...canoptekHypercryptReminders(_army,roster),...remainingNecronReminders(_army,roster));
  if(_army.faction==='Necrons'&&_army.detachments2026?.includes('Cryptek Conclave')){
-  for(const body of roster.filter(s=>['Necron Warriors','Immortals'].includes(s.unit)&&roster.some(l=>l.attachedTo===s.id&&necronKeywords.CRYPTEK.has(l.unit)&&necronKeywords.INFANTRY.has(l.unit)))){
+  for(const body of necronFormationRoots(_army,roster).filter(f=>['Necron Warriors','Immortals'].includes(f.body.unit)&&f.members.some(l=>l.id!==f.id&&necronKeywords.CRYPTEK.has(l.unit)&&necronKeywords.INFANTRY.has(l.unit))).map(f=>f.body)){
    for(const window of ['Shooting','Fight'] as const)result.push({id:'11e-necron-conclave-microscarab-'+body.id+'-'+window,title:body.id+' · Microscarab Swarm · 1CP',window,timing:'during',summary:(window==='Shooting'?'Opponent’s turn. ':'')+'Immediately after enemy targets are selected, this formation gains a '+(body.unit==='Immortals'?'4+':'5+')+' invulnerable save for the phase.',source:'https://assets.warhammer-community.com/eng_09-06_warhammer40000_faction_pack_necrons-qodfthk7tt-bzeqy07okc.pdf',origin:'detachment',units:[body.id]});
   }
  }

@@ -14,9 +14,9 @@ describe('imported Necron Leader rules follow attachments and phases',()=>{
   expect(generate11thReminders(base).some(r=>r.title.includes('Harbinger of Destruction'))).toBe(false);
   expect(generate11thReminders(attached).filter(r=>r.title.includes('Harbinger of Destruction')).map(r=>r.window)).toEqual(['Shooting']);
  });
- it('Technomancer Rites follows attached Wraiths into both attack phases',()=>{
+ it('Technomancer Rites follows attached Wraiths into every phase where wounds may be lost',()=>{
   const {attached}=withLeader('Technomancer','Canoptek Wraiths');
-  expect(generate11thReminders(attached).filter(r=>r.title.includes('Rites of Reanimation')).map(r=>r.window)).toEqual(['Shooting','Fight']);
+  expect(generate11thReminders(attached).filter(r=>r.title.includes('Rites of Reanimation')).map(r=>r.window)).toEqual(['Command','Movement','Shooting','Charge','Fight']);
  });
  it('Chronomancer abilities apply to its own unit or actual attached formation',()=>{
   const {base,attached}=withLeader('Chronomancer','Immortals');
