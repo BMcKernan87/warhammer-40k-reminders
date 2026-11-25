@@ -21,6 +21,7 @@ export function RosterPoints({army}:{army:ArmySelection}){
       return <div key={entry.id}>
         <p>{entry.id}: {entry.points===null?'Points not verified':entry.points+' pts'}
           {extras.length>0&&' (includes '+extras.join(', ')+')'}
+          {entry.priceNote&&<span> · {entry.priceNote}</span>}
           {sheet?.profile&&!sheet.modelProfiles&&<span> · {profileText(sheet.profile)}</span>}
           {entry.source&&<a href={entry.source} target="_blank" rel="noopener noreferrer"> · Datasheet source</a>}
         </p>

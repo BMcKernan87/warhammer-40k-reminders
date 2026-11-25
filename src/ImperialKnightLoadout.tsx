@@ -1,4 +1,5 @@
 import React from 'react';
+import {guardFactionUpdate,kasrkinProfileConflict} from './astra-militarum-loadouts';
 import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
 import {gearEnhancementConflict,knightLoadoutFor,knightItemsLabel,setKnightGear,validKnightGear} from './knight-loadouts';
@@ -13,6 +14,7 @@ export function KnightLoadout({army,squad,onChange}:Props) {
   if(!sheet)return null;
   return <>
     {sheet.fixed.length>0&&<p className="fixed-gear">{knightItemsLabel(sheet.fixed)}</p>}
+    {kasrkinProfileConflict(squad)&&<p>The Kasrkin card allows the Sergeant’s power weapon. The September faction update removes its attack profile. <a href={guardFactionUpdate} target="_blank" rel="noreferrer">Faction update, p. 24</a></p>}
     {sheet.slots.length>0&&<div className="loadout-controls">{sheet.slots.map(slot=><label key={slot.name}>{slot.name}
       <select aria-label={slot.name+' for '+squad.id} value={squad.knightGear?.[slot.name]??slot.choices[0].name}
         onChange={event=>{const value=event.target.value;onChange(a=>setKnightGear(a,squad.id,slot.name,value));}}>

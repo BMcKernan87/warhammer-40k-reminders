@@ -1,3 +1,5 @@
+import {GSC_DETACHMENTS} from './gsc-detachments.generated';
+import {currentGscDetachment} from './gsc-detachment-data';
 import {VOTANN_DETACHMENTS} from './votann-detachments.generated';
 import type {Faction} from './catalog';
 import {DAEMON_DETACHMENTS} from './chaos-daemon-detachments.generated';
@@ -201,17 +203,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Skysplinter Assault",disposition:"Reconnaissance",dp:2},
   {name:"Spectacle of Spite",disposition:"Purge the Foe",dp:2},
  ],
- "Genestealer Cults":[
-  {name:"Heroes of the Uprising",disposition:"Purge the Foe",dp:1},
-  {name:"Purestrain Broodswarm",disposition:"Priority Assets",dp:1},
-  {name:"Xenocult Masses",disposition:"Disruption",dp:1},
-  {name:"Biosanctic Broodsurge",disposition:"Take and Hold",dp:2},
-  {name:"Brood Brothers Auxillia",disposition:"Take and Hold",dp:2},
-  {name:"Final Day",disposition:"Purge the Foe",dp:2},
-  {name:"Host of Ascension",disposition:"Take and Hold",dp:3},
-  {name:"Outlander Claw",disposition:"Reconnaissance",dp:2},
-  {name:"Xenocreed Congregation",disposition:"Priority Assets",dp:2},
- ],
+ 'Genestealer Cults':GSC_DETACHMENTS,
  'Leagues of Votann':VOTANN_DETACHMENTS,
  "T’au Empire":[
   {name:"Advanced Acquisition Cadre",disposition:"Reconnaissance",dp:1},
@@ -319,11 +311,12 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const entries=selected.map(name=>available.find(d=>d.name===name));
+ const names=faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
- const conflicts=groups.some(group=>selected.filter(d=>group.includes(d)).length>1);
+ const groups=faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;
- return {supported:true,spent,limit:soloThreeDP?3:limit,valid:selected.length>0&&new Set(selected).size===selected.length&&entries.every(Boolean)&&!conflicts&&(spent<=limit||soloThreeDP),dispositions:[...new Set(entries.filter((d):d is Detachment2026=>!!d).flatMap(d=>[d.disposition,...(d.additionalDispositions??[])]))]};
+ return {supported:true,spent,limit:soloThreeDP?3:limit,valid:selected.length>0&&new Set(names).size===names.length&&entries.every(Boolean)&&!conflicts&&(spent<=limit||soloThreeDP),dispositions:[...new Set(entries.filter((d):d is Detachment2026=>!!d).flatMap(d=>[d.disposition,...(d.additionalDispositions??[])]))]};
 }

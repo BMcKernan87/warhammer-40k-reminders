@@ -1,7 +1,14 @@
+import {gscDetachmentReminders} from './gsc-detachments';
 import {orkDetachmentReminders,orkHasRangedAttack} from './ork-detachments';
 import {orkKeywords} from './ork-data';
 import {votannDatasheetReminders} from './votann-datasheets';
 import {votannStratagemReminders} from './votann-stratagems';
+import {gscCultAmbushReminders} from './gsc-cult-ambush';
+import {gscDatasheetReminders} from './gsc-datasheets';
+import {gscArmyKeywords} from './gsc-muster';
+import {gscHasRangedWeapon} from './gsc-loadouts';
+import {gscAlliedReminders} from './gsc-allied-reminders';
+import {gscEmbarkationReminders} from './gsc-army-transports';
 import {votannArmyReminders} from './votann-army';
 import {shadowLegionHasRangedWeapon, shadowMarineReminders} from './shadow-legion-cards';
 import {alliedTitanAndKnightReminders,applyWarhoundStratagemCost} from './titan-support';
@@ -139,9 +146,10 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const agents=_army.faction==='Imperial Agents';
  const daemons=_army.faction==='Chaos Daemons';
  const custodes=_army.faction==='Adeptus Custodes';
+ const cult=_army.faction==='Genestealer Cults';
  const votann=_army.faction==='Leagues of Votann';
  const orks=_army.faction==='Orks';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann;
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
  result.push(...alliedTitanAndKnightReminders(_army,roster));
@@ -149,6 +157,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
  if(orks)result.push(...orkDetachmentReminders(_army,roster),...orkDatasheetReminders(_army,roster));
  if(votann)result.push(...votannArmyReminders(_army,roster),...votannDatasheetReminders(_army,roster),...votannStratagemReminders(_army,roster),...votannTransportReminders(_army,roster));
+ if(cult)result.push(...gscEmbarkationReminders(_army,roster),...gscCultAmbushReminders(_army,roster),...gscDatasheetReminders(_army,roster),...gscDetachmentReminders(_army,roster),...gscAlliedReminders(_army,roster));
  if(custodes)result.push(...custodesDetachmentReminders(_army,roster),...custodesDatasheetReminders(_army,roster));
  if(formedArmy){
   const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
@@ -159,6 +168,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const promoted=new Set(resolvedWarDogCharacterIds(_army,roster));
   const keywords=(unit:string,id?:string)=>{
    if(isWarhound(unit))return unitKeywords.get(unit)??[];
+   if(cult)return [...gscArmyKeywords(_army,{unit,id:id??''})];
    if(orks)return [...orkKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(votann)return [...votannKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(custodes)return [...custodesKeywords(_army,{unit,id:id??''})];
@@ -170,7 +180,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
+  const hasGun=cult?gscHasRangedWeapon:votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));

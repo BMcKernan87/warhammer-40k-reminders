@@ -53,8 +53,9 @@ export function readPrices(rows,unit,mfm){
   nextCopy=last+1;
   expected[range[1]]=Object.fromEntries(band.costs.map(cost=>[cost.models,cost.points]));
  }
- const orderedGear=items=>items.map(g=>({...g,item:nameKey(g.item)})).sort((a,b)=>a.item.localeCompare(b.item));
- if(nextCopy!==Infinity||!isDeepStrictEqual(expected,pricesByCopy)||!isDeepStrictEqual(orderedGear(gear),orderedGear(mfm.wargear??[])))fail(unit+' has inconsistent CSV/MFM pricing');
+ // The web export and the manual may sort identical equipment prices differently.
+ const canonicalGear=rows=>rows.map(g=>({...g,item:nameKey(g.item)})).sort((a,b)=>a.item.localeCompare(b.item,'en'));
+ if(nextCopy!==Infinity||!isDeepStrictEqual(expected,pricesByCopy)||!isDeepStrictEqual(canonicalGear(gear),canonicalGear(mfm.wargear??[])))fail(unit+' has inconsistent CSV/MFM pricing');
  return {...prices,...(gear.length?{wargearPoints:Object.fromEntries(gear.map(g=>[g.item,g.points]))}:{})};
 }
 export function importKnights(tables,manual,allyManual){
