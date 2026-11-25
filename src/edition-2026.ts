@@ -1,3 +1,4 @@
+import {SORORITAS_DETACHMENTS} from './sororitas-detachments.generated';
 import {currentEcDetachment} from './emperors-children-detachment-data';
 import {EMP_CHILDREN_DETACHMENTS} from './emperors-children-detachments.generated';
 import {TS_DETACHMENTS} from './thousand-sons-detachments.generated';
@@ -76,16 +77,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   additionalDispositions:det.objectives.slice(1) as ForceDisposition[],
  })),
  'Astra Militarum':ASTRA_DETACHMENTS,
- "Adepta Sororitas":[
-  {name:"Chorus of Condemnation",disposition:"Reconnaissance",dp:1},
-  {name:"Sacred Champions",disposition:"Take and Hold",dp:1},
-  {name:"Sanctified Orators",disposition:"Purge the Foe",dp:1},
-  {name:"Army of Faith",disposition:"Take and Hold",dp:2},
-  {name:"Bringers of Flame",disposition:"Purge the Foe",dp:3},
-  {name:"Champions of Faith",disposition:"Disruption",dp:2},
-  {name:"Hallowed Martyrs",disposition:"Priority Assets",dp:3},
-  {name:"Penitent Host",disposition:"Take and Hold",dp:2},
- ],
+
  "Adeptus Mechanicus":[
   {name:"Cohort Acquisitus",disposition:"Reconnaissance",dp:1},
   {name:"Lords of the Forge",disposition:"Priority Assets",dp:1},
@@ -206,6 +198,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Godhammer Assault Force",disposition:"Disruption",dp:2},
   {name:"Vindication Task Force",disposition:"Priority Assets",dp:2},
  ],
+ 'Adepta Sororitas':SORORITAS_DETACHMENTS,
  'Grey Knights':GK_DETACHMENTS,
  Necrons:[
  {name:'Hand of the Dynasty',disposition:'Take and Hold',dp:1},
@@ -259,7 +252,7 @@ export function detachmentBudget(faction:Faction,selected:readonly string[],size
  const names=faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const groups=faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;

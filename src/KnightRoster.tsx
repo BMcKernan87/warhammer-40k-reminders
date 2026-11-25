@@ -1,3 +1,4 @@
+import {sororitasWarlordCandidates,resolvedSororitasWarlord,selectSororitasWarlord} from './sororitas-muster';
 import {greyKnightsWarlordCandidates,resolvedGreyKnightsWarlord,selectGreyKnightsWarlord} from './grey-knights-muster';
 import {deathGuardWarlordCandidates,resolvedDeathGuardWarlord,selectDeathGuardWarlord} from './death-guard-muster';
 import {thousandSonsWarlordCandidates,resolvedThousandSonsWarlord,selectThousandSonsWarlord} from './thousand-sons-muster';
@@ -36,6 +37,7 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
+  const sisters=army.faction==='Adepta Sororitas';
   const grey=army.faction==='Grey Knights';
   const deathGuard=army.faction==='Death Guard';
   const thousand=army.faction==='Thousand Sons';
@@ -44,9 +46,9 @@ export function KnightRoster({army,onChange}:Props) {
   const eaters=army.faction==='World Eaters';
   const cult=army.faction==='Genestealer Cults';
   const votann=army.faction==='Leagues of Votann';
-  const warlords=grey?greyKnightsWarlordCandidates(army):deathGuard?deathGuardWarlordCandidates(army):thousand?thousandSonsWarlordCandidates(army):legion?emperorsChildrenWarlordCandidates(army):guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=grey?resolvedGreyKnightsWarlord(army):deathGuard?resolvedDeathGuardWarlord(army):thousand?resolvedThousandSonsWarlord(army):legion?resolvedEmperorsChildrenWarlord(army):guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=grey?selectGreyKnightsWarlord:deathGuard?selectDeathGuardWarlord:thousand?selectThousandSonsWarlord:legion?selectEmperorsChildrenWarlord:guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=sisters?sororitasWarlordCandidates(army):grey?greyKnightsWarlordCandidates(army):deathGuard?deathGuardWarlordCandidates(army):thousand?thousandSonsWarlordCandidates(army):legion?emperorsChildrenWarlordCandidates(army):guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=sisters?resolvedSororitasWarlord(army):grey?resolvedGreyKnightsWarlord(army):deathGuard?resolvedDeathGuardWarlord(army):thousand?resolvedThousandSonsWarlord(army):legion?resolvedEmperorsChildrenWarlord(army):guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=sisters?selectSororitasWarlord:grey?selectGreyKnightsWarlord:deathGuard?selectDeathGuardWarlord:thousand?selectThousandSonsWarlord:legion?selectEmperorsChildrenWarlord:guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>

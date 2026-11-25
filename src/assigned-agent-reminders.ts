@@ -1,3 +1,5 @@
+import {sororitasReactionShooting} from './sororitas-reactions';
+import {sororitasAgentName,sororitasMusterUnits,sororitasKeywords} from './sororitas-army-data';
 import {astraAgentName,astraMilitarumKeywords,astraMusterUnits} from './astra-muster-data';
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
@@ -31,7 +33,7 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
  const roster=expandRoster(army);
  const traders=roster.filter(s=>s.unit==='Rogue Trader Entourage');
  for(const squad of roster){
-  const unit=guard?astraAgentName(squad.unit):squad.unit;
+  const unit=army.faction==='Adepta Sororitas'?sororitasAgentName(squad.unit):guard?astraAgentName(squad.unit):squad.unit;
   const data=ASSIGNED_AGENT_DATA.find(row=>row.sheet.unit===unit);
   if(!unit||!data)continue;
   const source=data.sheet.source;
@@ -75,9 +77,9 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    if(squad.id===traders[0]?.id){
     const led=traders.flatMap(t=>{const b=knightJoinedBodyguard(army,t);return b?[t.id,b.id]:[];});
     if(led.length)emit('deals','Backroom Deals','Pre-battle','When declaring formations, select one Rogue Trader Entourage that is leading. Its entire formation gains Infiltrators and can deploy more than 8″ horizontally from the enemy deployment zone and all enemies.','either','during',led);
-    const eligible=guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
+    const eligible=army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
     const battleline=roster.filter(s=>{
-     const keys=guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
+     const keys=army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
      return eligible.includes(s.unit)&&keys?.includes('IMPERIUM')&&(keys.includes('BATTLELINE')||(keys.includes('ARMIGER')&&army.detachments2026?.includes('Spearhead-at-arms')));
     });
     if(battleline.length)emit('warrant','Warrant of Trade','Pre-battle','After both armies deploy, redeploy up to D3 friendly Imperium Battleline units. They may enter Strategic Reserves even beyond its normal allowance. Eligible units: '+battleline.map(s=>s.id).join(', ')+'.','either','during',[squad.id,...battleline.map(s=>s.id)]);
@@ -160,7 +162,7 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    if(hasGear('Simulacrum imperialis'))emit('simulacrum','Simulacrum Imperialis','Command','While the bearer survives, improve the Leadership of all models in its unit by 1, including for Battle-shock tests.','either','during',wholeUnit);
   }
   if(unit==='Sanctifiers'){
-   if(membersLed.some(s=>s.unit==='Ministorum Priest'))emit('sermon','Ministorum Sermon','Fight','While a Ministorum Priest is in the unit, add 1 to all its models’ melee Wound rolls.','either','during',wholeUnit);
+   if(membersLed.some(s=>(army.faction==='Adepta Sororitas'?sororitasAgentName(s.unit):guard?astraAgentName(s.unit):s.unit)==='Ministorum Priest'))emit('sermon','Ministorum Sermon','Fight','While a Ministorum Priest is in the unit, add 1 to all its models’ melee Wound rolls.','either','during',wholeUnit);
    emit('medic','Salvationist Medikit','Command','While the Salvationist is on the battlefield, return up to D3 destroyed non-Character models to its unit.','own','during',wholeUnit);
    emit('scout','Scouts 6″','Pre-battle','When declaring formations, attached Inquisitor and Ministorum Priest models also gain Scouts 6″. In pre-battle abilities deploy from reserves wholly within your deployment zone, or if already wholly inside it, scout up to 6″ and finish more than 8″ horizontally from enemy units.','either','during',wholeUnit);
   }
@@ -236,6 +238,13 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    for(const phase of ['Movement','Shooting'] as const){
     emit('deadshot','Deadshot',phase,'When this agent is selected to shoot, enemy units lose Lone Operative for its shooting and Hidden enemies have +15″ detection range.');
     emit('shieldbreaker','Shieldbreaker',phase,useLimit+' when declaring exitus rifle targets, choose a shieldbreaker round. Until phase end, add 1 to that rifle’s Wound rolls and every successful wound is critical.');
+   }
+  }
+  if(army.faction==='Adepta Sororitas'){
+   const reactions=sororitasReactionShooting(army,squad,roster);
+   if(reactions.length){
+    const ids=new Set(['weapons','no-mercy','xenos'].map(key=>'11e-agent-'+squad.id+'-'+key+'-Shooting'));
+    for(const row of result.filter(r=>ids.has(r.id)&&r.turn==='own'))result.push({...row,id:row.id+'-sororitas-reaction',turn:'opponent',summary:'Only when making normal reaction shots through '+reactions.join('; or ')+': '+row.summary});
    }
   }
  }

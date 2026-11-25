@@ -1,3 +1,6 @@
+import {SORORITAS_ARMY_SHEETS,sororitasAgentName} from './sororitas-army-data';
+import {sororitasWeaponCount} from './sororitas-loadouts';
+import {eligibleSororitasUpgrades} from './sororitas-detachment-data';
 import {GREY_KNIGHTS_ARMY_SHEETS} from './grey-knights-data';
 import {greyKnightsWeaponCount} from './grey-knights-loadouts';
 import {eligibleGreyKnightsUpgrades} from './grey-knights-detachment-data';
@@ -64,7 +67,7 @@ export interface Datasheet2026 {
  verified:'sizes'|'sizes-and-points';
 }
 /** Incremental 11th-edition registry: no estimated point costs. */
-export const DATASHEETS_2026:readonly Datasheet2026[]=[...ASTRA_ARMY_SHEETS,...EMPERORS_CHILDREN_ARMY_SHEETS,...THOUSAND_SONS_ARMY_SHEETS,...DEATH_GUARD_ARMY_SHEETS,...GREY_KNIGHTS_ARMY_SHEETS,...IMPORTED_DATASHEETS_2026.filter(s=>s.faction!=='Astra Militarum'&&s.faction!=='Emperor’s Children'&&s.faction!=='Thousand Sons'&&s.faction!=='Death Guard'&&s.faction!=='Grey Knights'),...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS,...DAEMON_SHEETS,...CUSTODES_ARMY_SHEETS,...ORK_SHEETS,...VOTANN_SHEETS,...GSC_SHEETS,...GSC_ALLIED_SHEETS,...WORLD_EATERS_ARMY_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction!=='Adeptus Custodes'&&s.faction!=='Astra Militarum'),...AGENT_FREEBLADE_SHEETS];
+export const DATASHEETS_2026:readonly Datasheet2026[]=[...SORORITAS_ARMY_SHEETS,...ASTRA_ARMY_SHEETS,...EMPERORS_CHILDREN_ARMY_SHEETS,...THOUSAND_SONS_ARMY_SHEETS,...DEATH_GUARD_ARMY_SHEETS,...GREY_KNIGHTS_ARMY_SHEETS,...IMPORTED_DATASHEETS_2026.filter(s=>s.faction!=='Astra Militarum'&&s.faction!=='Emperor’s Children'&&s.faction!=='Thousand Sons'&&s.faction!=='Death Guard'&&s.faction!=='Grey Knights'&&s.faction!=='Adepta Sororitas'),...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS,...NATIVE_AGENT_SHEETS,...CHAOS_KNIGHT_SHEETS,...DAEMON_SHEETS,...CUSTODES_ARMY_SHEETS,...ORK_SHEETS,...VOTANN_SHEETS,...GSC_SHEETS,...GSC_ALLIED_SHEETS,...WORLD_EATERS_ARMY_SHEETS,...WARHOUND_SHEETS.filter(s=>s.faction!=='Adeptus Custodes'&&s.faction!=='Astra Militarum'),...AGENT_FREEBLADE_SHEETS];
 export interface RosterCost2026 {total:number|null;knownPoints:number;unknownUnits:string[];entries:{id:string;unit:string;models:number|null;points:number|null;source?:string;priceNote?:string;basePoints?:number|null;enhancementPoints?:number;bindingPoints?:number;extremisPoints?:number;wargearPoints?:number}[]}
 export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet2026[]=DATASHEETS_2026):RosterCost2026{
  const copies=new Map<string,number>();
@@ -87,6 +90,7 @@ export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet202
   if(chosen&&army.faction==='Imperial Knights')enhancementPoints=eligibleKnightUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Orks')enhancementPoints=eligibleOrkUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Genestealer Cults')enhancementPoints=eligibleGscUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
+  if(chosen&&army.faction==='Adepta Sororitas')enhancementPoints=eligibleSororitasUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
   if(chosen&&army.faction==='Grey Knights')enhancementPoints=eligibleGreyKnightsUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
   if(chosen&&army.faction==='Death Guard')enhancementPoints=eligibleDeathGuardUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
   if(chosen&&army.faction==='Thousand Sons')enhancementPoints=eligibleThousandSonsUpgrades(army,instance.unit,instance.id).find(u=>u.name===chosen)?.points??null;
@@ -96,8 +100,8 @@ export function rosterCost2026(army:ArmySelection,registry:readonly Datasheet202
   if(chosen&&army.faction==='Adeptus Custodes')enhancementPoints=eligibleCustodesUpgrades(army,instance.unit).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Daemons')enhancementPoints=eligibleDaemonUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
   if(chosen&&army.faction==='Chaos Knights')enhancementPoints=eligibleChaosKnightUpgrades(army,instance.unit,instance.id).find(upgrade=>upgrade.name===chosen)?.points??null;
-  const countWargear=army.faction==='Grey Knights'&&sheet?.keywords?.includes('GREY KNIGHTS')?greyKnightsWeaponCount:army.faction==='Death Guard'&&!isDreadblade(instance.unit)?deathGuardWeaponCount:army.faction==='Thousand Sons'&&!isDreadblade(instance.unit)?thousandSonsWeaponCount:army.faction==='Emperor’s Children'&&!isDreadblade(instance.unit)?emperorsChildrenWeaponCount:army.faction==='World Eaters'&&!isWorldEatersDreadblade(instance.unit)?worldEaterWeaponCount:knightWeaponCount;
-  const wargearPoints=army.faction==='Astra Militarum'&&sheet?.keywords?.includes('ASTRA MILITARUM')?astraMilitarumWargearPoints(instance):army.faction==='Genestealer Cults'&&sheet?.keywords?.includes('ASTRA MILITARUM')?broodBrotherWargearPoints(instance):['Grey Knights','Death Guard','Thousand Sons','Emperor’s Children','Astra Militarum','Genestealer Cults','Imperial Agents','Imperial Knights','Chaos Knights','Chaos Daemons','Adeptus Custodes','Orks','World Eaters'].includes(army.faction)?Object.entries(sheet?.wargearPoints??{}).reduce(
+  const countWargear=army.faction==='Adepta Sororitas'&&sheet?.keywords?.includes('ADEPTA SORORITAS')&&!sororitasAgentName(instance.unit)?sororitasWeaponCount:army.faction==='Grey Knights'&&sheet?.keywords?.includes('GREY KNIGHTS')?greyKnightsWeaponCount:army.faction==='Death Guard'&&!isDreadblade(instance.unit)?deathGuardWeaponCount:army.faction==='Thousand Sons'&&!isDreadblade(instance.unit)?thousandSonsWeaponCount:army.faction==='Emperor’s Children'&&!isDreadblade(instance.unit)?emperorsChildrenWeaponCount:army.faction==='World Eaters'&&!isWorldEatersDreadblade(instance.unit)?worldEaterWeaponCount:knightWeaponCount;
+  const wargearPoints=army.faction==='Astra Militarum'&&sheet?.keywords?.includes('ASTRA MILITARUM')?astraMilitarumWargearPoints(instance):army.faction==='Genestealer Cults'&&sheet?.keywords?.includes('ASTRA MILITARUM')?broodBrotherWargearPoints(instance):['Adepta Sororitas','Grey Knights','Death Guard','Thousand Sons','Emperor’s Children','Astra Militarum','Genestealer Cults','Imperial Agents','Imperial Knights','Chaos Knights','Chaos Daemons','Adeptus Custodes','Orks','World Eaters'].includes(army.faction)?Object.entries(sheet?.wargearPoints??{}).reduce(
    (points,[item,cost])=>points+cost*countWargear(instance,item),0):0;
   const bindingPoints=army.faction==='Necrons'&&army.detachments2026?.includes('Pantheon of Woe')?PANTHEON_BINDINGS[instance.unit]?.points??0:0;
   const extremisPoints=agentExtremisPoints(army,instance.unit);

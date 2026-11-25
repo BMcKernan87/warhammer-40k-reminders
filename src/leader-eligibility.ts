@@ -1,3 +1,5 @@
+import {SORORITAS_ARMY_SHEETS} from './sororitas-army-data';
+import {SORORITAS_SHEETS} from './sororitas-data';
 import {GREY_KNIGHTS_ARMY_SHEETS,GREY_KNIGHTS_SHEETS} from './grey-knights-data';
 import {DEATH_GUARD_SHEETS,deathGuardAdditionalLeaderPair} from './death-guard-data';
 import {THOUSAND_SONS_SHEETS,thousandSonsMusterUnits,thousandSonsAdditionalBodyguards} from './thousand-sons-data';
@@ -24,6 +26,7 @@ import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 /** Explicitly modeled Leader -> Bodyguard compatibility. Unlisted Leaders remain unsupported. */
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
+ 'Adepta Sororitas':Object.fromEntries(SORORITAS_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Grey Knights':Object.fromEntries(GREY_KNIGHTS_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Astra Militarum':Object.fromEntries(ASTRA_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Genestealer Cults':Object.fromEntries(gscSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -79,6 +82,10 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
   const available=[...GSC_UNITS,...gscAlliedMusterUnits(army)];
   return available.includes(leader.unit)?base.filter(u=>available.includes(u)):[];
  }
+ if(army.faction==='Adepta Sororitas'&&BATTLELINE_INQUISITORS.has(leader.unit)){
+  const infantry=SORORITAS_SHEETS.filter(s=>['IMPERIUM','INFANTRY','BATTLELINE'].every(tag=>s.keywords?.includes(tag)));
+  return [...new Set([...base,...infantry.map(s=>s.unit)])];
+ }
  if(army.faction==='Grey Knights'&&BATTLELINE_INQUISITORS.has(leader.unit)){
   const infantry=GREY_KNIGHTS_SHEETS.filter(s=>['IMPERIUM','INFANTRY','BATTLELINE'].every(tag=>s.keywords?.includes(tag)));
   return [...new Set([...base,...infantry.map(s=>s.unit)])];
@@ -106,6 +113,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
+ if(faction==='Adepta Sororitas')return SORORITAS_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Grey Knights')return GREY_KNIGHTS_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Astra Militarum')return astraSheets.get(unit)?.attachmentRole??null;
  if(faction==='Imperial Agents')return NATIVE_AGENT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -124,7 +132,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);
