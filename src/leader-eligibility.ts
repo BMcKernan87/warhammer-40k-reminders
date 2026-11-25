@@ -1,3 +1,5 @@
+import {TAU_SHEETS} from './tau-data';
+import {tauAdditionalLeaderPair} from './tau-muster-data';
 import {MECHANICUS_ARMY_SHEETS} from './mechanicus-army-data';
 import {MECHANICUS_SHEETS} from './mechanicus-data';
 import {SORORITAS_ARMY_SHEETS} from './sororitas-army-data';
@@ -28,6 +30,7 @@ import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 /** Explicitly modeled Leader -> Bodyguard compatibility. Unlisted Leaders remain unsupported. */
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
+ 'T’au Empire':Object.fromEntries(TAU_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Adeptus Mechanicus':Object.fromEntries(MECHANICUS_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Adepta Sororitas':Object.fromEntries(SORORITAS_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Grey Knights':Object.fromEntries(GREY_KNIGHTS_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -120,6 +123,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
+ if(faction==='T’au Empire')return TAU_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Adeptus Mechanicus')return MECHANICUS_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Adepta Sororitas')return SORORITAS_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Grey Knights')return GREY_KNIGHTS_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -140,11 +144,12 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);
  if(!members.some(m=>m.id===leader.id)||members.some(m=>!instanceBodyguards(army,m).includes(body.unit)))return undefined;
+ if(army.faction==='T’au Empire'&&members.length===2&&tauAdditionalLeaderPair(body,members[0].unit,members[1].unit))return body;
  if(army.faction==='Death Guard'&&members.length===2&&deathGuardAdditionalLeaderPair(body.unit,members[0].unit,members[1].unit))return body;
  if(usesAstraAttachmentSlots(army,body))return astraAttachmentSlots(body,members)?body:undefined;
  const roles=members.map(m=>rosterAttachmentRole(army.faction,m.unit));

@@ -1,3 +1,4 @@
+import {currentTauDetachment} from './tau-detachment-data';
 import {currentDeathGuardDetachment} from './death-guard-detachment-data';
 import {currentMechanicusDetachment} from './mechanicus-detachment-data';
 import {migrateSavedDetachments} from './saved-detachment-names';
@@ -8,7 +9,8 @@ import {migrateOrkArmy} from './ork-saved-army';
 import {renameSavedUnit} from './saved-unit-name';
 
 export function migrateSavedArmy(value:unknown):unknown{
- const mechanicus=migrateSavedDetachments(value,'Adeptus Mechanicus',currentMechanicusDetachment);
+ const tau=migrateSavedDetachments(value,'T’au Empire',currentTauDetachment);
+ const mechanicus=migrateSavedDetachments(tau,'Adeptus Mechanicus',currentMechanicusDetachment);
  const named=renameSavedUnit(mechanicus,'Adeptus Mechanicus','Tech-Priest Dominus','Tech-priest Dominus');
  const detachments=migrateSavedDetachments(named,'Death Guard',currentDeathGuardDetachment);
  const renamed=renameSavedUnit(detachments,'Thousand Sons','Magnus the Red','Magnus The Red');

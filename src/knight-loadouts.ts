@@ -1,3 +1,4 @@
+import {tauLoadout,resizeTauGear,validTauGear} from './tau-loadouts';
 import {mechanicusLoadout,resizeMechanicusGear,validMechanicusGear} from './mechanicus-loadouts';
 import {sororitasLoadout,resizeSororitasGear,validSororitasGear} from './sororitas-loadouts';
 import {sororitasAgentName} from './sororitas-army-data';
@@ -120,6 +121,7 @@ function accursedCultists(models:number):KnightEquipment {
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,models))return resizeDeathGuardGear(squad,models);
+  if(faction==='T’au Empire'&&tauLoadout(squad.unit,models))return resizeTauGear(squad,models);
   if(faction==='Adeptus Mechanicus'&&mechanicusLoadout(squad.unit,models))return resizeMechanicusGear(squad,models);
   if(faction==='Adepta Sororitas'&&sororitasLoadout(squad.unit,models))return resizeSororitasGear(squad,models);
   if(faction==='Grey Knights'&&greyKnightsLoadout(squad.unit,models))return resizeGreyKnightsGear(squad,models);
@@ -189,6 +191,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   if(faction==='Orks')return orkLoadout(unit,models);
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
+  if(faction==='T’au Empire')return tauLoadout(unit,models);
   if(faction==='Adeptus Mechanicus')return mechanicusLoadout(unit,models)??agentLoadout(unit,models);
   if(faction==='Adepta Sororitas')return sororitasLoadout(unit,models)??agentLoadout(sororitasAgentName(unit)??unit,models);
   if(faction==='Grey Knights')return greyKnightsLoadout(unit,models)??agentLoadout(unit,models);
@@ -227,6 +230,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,squad.models))return validDeathGuardGear(squad.unit,gear,squad.models);
+  if(faction==='T’au Empire'&&tauLoadout(squad.unit,squad.models))return validTauGear(squad.unit,gear,squad.models);
   if(faction==='Adeptus Mechanicus'&&mechanicusLoadout(squad.unit,squad.models))return validMechanicusGear(squad.unit,gear,squad.models);
   if(faction==='Adepta Sororitas'&&sororitasLoadout(squad.unit,squad.models))return validSororitasGear(squad.unit,gear,squad.models);
   if(faction==='Adepta Sororitas'&&sororitasAgentName(squad.unit))return validAgentGear(sororitasAgentName(squad.unit)!,gear,squad.models);

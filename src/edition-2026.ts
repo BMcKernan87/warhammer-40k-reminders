@@ -1,3 +1,5 @@
+import {TAU_DETACHMENTS} from './tau-detachments.generated';
+import {currentTauDetachment} from './tau-detachment-data';
 import {MECHANICUS_DETACHMENTS} from './mechanicus-detachments.generated';
 import {currentMechanicusDetachment} from './mechanicus-detachment-data';
 import {SORORITAS_DETACHMENTS} from './sororitas-detachments.generated';
@@ -143,15 +145,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  ],
  'Genestealer Cults':GSC_DETACHMENTS,
  'Leagues of Votann':VOTANN_DETACHMENTS,
- "T’au Empire":[
-  {name:"Advanced Acquisition Cadre",disposition:"Reconnaissance",dp:1},
-  {name:"Auxillary Cadre",disposition:"Disruption",dp:1},
-  {name:"Experimental Prototype Cadre",disposition:"Priority Assets",dp:1},
-  {name:"Kauyon",disposition:"Priority Assets",dp:2},
-  {name:"Kroot Hunting Pack",disposition:"Take and Hold",dp:2},
-  {name:"Mont'ka",disposition:"Purge the Foe",dp:3},
-  {name:"Retaliation Cadre",disposition:"Purge the Foe",dp:2},
- ],
+ 'T’au Empire':TAU_DETACHMENTS,
  "Dark Angels":[
   {name:"Dark Age Arsenal",disposition:"Priority Assets",dp:1},
   {name:"Darkflight Pursuit",disposition:"Reconnaissance",dp:1},
@@ -240,10 +234,10 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const groups=faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;
