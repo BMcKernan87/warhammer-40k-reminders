@@ -48,13 +48,14 @@ describe('current Necron core Stratagem coverage',()=>{
   expect(cue(a,'heroic-intervention')?.units).toEqual(['Immortals#1','Canoptek Doomstalker#1']);
   expect(cue(a,'rapid-ingress')?.units).not.toContain('Doom Scythe#1');
   expect(cue(a,'overwatch')?.units).not.toContain('Monolith#1');
-  expect(cue(a,'crushing-impact')?.units).toEqual(['Monolith#1','Canoptek Doomstalker#1','Doom Scythe#1']);
+  expect(cue(a,'crushing-impact')?.units).toEqual(['Monolith#1','Canoptek Doomstalker#1']);
  });
  it('omits impossible keyword-based options, without inventing battlefield state',()=>{
   const a=army('Immortals');
   for(const id of ['crushing-impact','epic-challenge','explosives','smokescreen'])expect(cue(a,id)).toBeUndefined();
   expect(cue(army('Monolith'),'overwatch')).toBeUndefined();
   expect(cue(army('Doom Scythe'),'rapid-ingress')).toBeUndefined();
+  expect(cue(army('Doom Scythe'),'crushing-impact')).toBeUndefined();
   expect(cue(a,'rapid-ingress')?.summary).toContain('in Strategic Reserves');
  });
 });
