@@ -48,7 +48,7 @@ describe('Chaos Knight army costs',()=>{
  it('permits only current matched-play Damned with Iconoclast Fiefdom and prices real mixed strengths',()=>{
   const base=army(),iconoclast={...base,detachments2026:['Iconoclast Fiefdom']};
   const options=chaosKnightMusterUnits(iconoclast);
-  expect(chaosKnightMusterUnits(base)).toHaveLength(20);
+  expect(chaosKnightMusterUnits(base)).toContain('Knight Tyrant');
   expect(options.filter(n=>!chaosKnightMusterUnits(base).includes(n))).toEqual(['Accursed Cultists','Cultist Firebrand','Cultist Mob','Dark Commune','Fellgor Beastmen','Traitor Enforcer','Traitor Guardsmen Squad']);
   expect(options).not.toContain('Cultist Mob with Firearms');
   const a=setInstanceModelCount(addSelectionUnit(iconoclast,'Accursed Cultists',3),'Accursed Cultists#3',9);

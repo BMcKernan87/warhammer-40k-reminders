@@ -1,3 +1,5 @@
+import {DAEMON_SHEETS,daemonMusterUnits} from './chaos-daemons-data';
+import {isDaemonicPactUnit} from './daemonic-pact';
 import {CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
 import {IMPERIAL_KNIGHT_SHEETS,knightMusterUnits} from './imperial-knights-data';
 import {ASSIGNED_AGENT_SHEETS,NATIVE_AGENT_SHEETS} from './assigned-agent-data';
@@ -9,6 +11,7 @@ import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
  Necrons:NECRON_LEADERS,
  'Imperial Agents':Object.fromEntries(NATIVE_AGENT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
+ 'Chaos Daemons':Object.fromEntries(DAEMON_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Chaos Knights':Object.fromEntries(CHAOS_KNIGHT_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Imperial Knights':Object.fromEntries(knightSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  Orks:{
@@ -40,7 +43,8 @@ export function hasMurdermind(army:ArmySelection,leader:{id:string;unit:string})
  return army.faction==='Necrons'&&!!army.detachments2026?.includes('Cursed Legion')&&MURDERMIND_BEARERS.includes(leader.unit)&&(army.upgrades2026?.[leader.id]??army.upgrades2026?.[leader.unit])==='Murdermind';
 }
 export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:string}):readonly string[]{
- if(army.faction==='Chaos Knights'&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
+ if(army.faction==='Chaos Daemons'&&!daemonMusterUnits(army).includes(leader.unit))return [];
+ if(army.faction==='Chaos Knights'&&!isDaemonicPactUnit(leader.unit)&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
  if(army.faction==='Imperial Knights'){
   const eligible=knightMusterUnits(army);
@@ -54,12 +58,13 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
  if(faction==='Imperial Agents')return NATIVE_AGENT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Necrons')return necronAttachmentRole(unit);
+ if(faction==='Chaos Daemons')return DAEMON_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Chaos Knights')return CHAOS_KNIGHT_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  return faction==='Imperial Knights'?knightSheets.find(s=>s.unit===unit)?.attachmentRole??null:null;
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Imperial Knights','Chaos Knights','Imperial Agents'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  const members=roster.filter(s=>s.attachedTo===body.id);

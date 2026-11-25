@@ -1,8 +1,10 @@
+import {shadowMarineLoadout,isShadowMarine,validShadowMarineGear,resizeShadowMarineGear} from './shadow-legion-loadouts';
 import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
 import {expandRoster} from './roster-instances';
 
 import {chassis,slot,type KnightEquipment} from './knight-gear-options';
+import {daemonLoadout} from './daemonic-pact-loadouts';
 import {agentLoadout,resizeAgentGear,validAgentGear} from './assigned-agent-loadouts';
 export {countedKnightItems,knightItemsLabel} from './knight-gear-options';
 export type {KnightSlot} from './knight-gear-options';
@@ -100,6 +102,7 @@ function accursedCultists(models:number):KnightEquipment {
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number):Record<string,string>|undefined {
+  if(isShadowMarine(squad.unit))return resizeShadowMarineGear(squad,models);
   if(!squad.knightGear)return undefined;
   if(squad.unit!=='Accursed Cultists'||!squad.knightGear.Composition)return resizeAgentGear(squad.unit,squad.knightGear,models);
   const previous=Number.parseInt(squad.knightGear.Composition,10);
@@ -145,15 +148,17 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 };
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
+  if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
   if(faction==='Imperial Knights'&&Object.hasOwn(IMPERIAL_KNIGHT_LOADOUTS,unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if(faction==='Imperial Knights'||faction==='Imperial Agents')return agentLoadout(unit,models);
-  if(faction!=='Chaos Knights'||!Object.hasOwn(CHAOS_KNIGHT_LOADOUTS,unit))return undefined;
+  if(faction!=='Chaos Knights'&&faction!=='Chaos Daemons')return undefined;
+  if(!Object.hasOwn(CHAOS_KNIGHT_LOADOUTS,unit))return daemonLoadout(unit,models);
   if(models!==undefined&&unit==='Cultist Mob')return Number.isInteger(models)&&models>=10&&models<=20?cultistMob(models):undefined;
   if(models!==undefined&&unit==='Accursed Cultists')return Number.isInteger(models)&&models>=8&&models<=16?accursedCultists(models):undefined;
   return CHAOS_KNIGHT_LOADOUTS[unit];
 }
 function registeredLoadout(unit:string,models?:number) {
-  return knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models);
+  return shadowMarineLoadout(unit,models)??knightLoadoutFor('Imperial Knights',unit,models)??knightLoadoutFor('Chaos Knights',unit,models);
 }
 export function knightEquippedItems(squad:RosterInstance):string[] {
   const sheet=registeredLoadout(squad.unit,squad.models);
@@ -174,9 +179,10 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   const gear=squad.knightGear;
   if(gear===undefined)return true;
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
-  const sheet=faction?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
+  const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
   if(!validAgentGear(squad.unit,gear,squad.models))return false;
+  if(isShadowMarine(squad.unit))return validShadowMarineGear(squad);
   if(squad.unit==='Traitor Guardsmen Squad')return specialistWeapons.every(name=>knightWeaponCount(squad,name)<=1);
   return squad.unit!=='Knight Destrier'||(knightWeaponCount(squad,destrierSword)<=1&&knightWeaponCount(squad,spear)<=1);
 }

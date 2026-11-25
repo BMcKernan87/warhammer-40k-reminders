@@ -1,4 +1,5 @@
 import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
+import {DAEMON_UNITS} from './chaos-daemons-data';
 import {CHAOS_KNIGHT_UNITS} from './chaos-knights-data';
 import {IMPERIAL_KNIGHT_UNITS} from './imperial-knights-data';
 import {reconcileRetinues} from './necron-retinues';
@@ -26,7 +27,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Astra Militarum':{detachments:['Select detachment (unverified)'],units:["Cadian Shock Troops","Leman Russ Battle Tank","Rogal Dorn Battle Tank","Commissar"],enhancements:[]},
  'Black Templars':{detachments:['Select detachment (unverified)'],units:["High Marshal Helbrecht","Primaris Crusader Squad","Sword Brethren"],enhancements:[]},
  'Blood Angels':{detachments:['Select detachment (unverified)'],units:["Commander Dante","Death Company Marines","Sanguinary Guard"],enhancements:[]},
- 'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:["Bloodletters","Plaguebearers","Daemonettes","Pink Horrors"],enhancements:[]},
+ 'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:DAEMON_UNITS,enhancements:[]},
  'Chaos Knights':{detachments:['Select detachment (unverified)'],units:CHAOS_KNIGHT_UNITS,enhancements:[]},
  'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:["Legionaries","Chosen","Chaos Terminator Squad","Abaddon the Despoiler"],enhancements:[]},
  'Dark Angels':{detachments:['Select detachment (unverified)'],units:["Azrael","Deathwing Knights","Inner Circle Companions"],enhancements:[]},

@@ -5,7 +5,7 @@ import {weaponAbilityText} from './weapon-abilities-11th';
 interface WeaponProfile {name:string; phase:'Shooting'|'Fight'; abilities:readonly string[]; mode?:boolean}
 export interface KnightCardStats {
   source:string; save:number|null; rangedSave:boolean; saveBearer?:string; demise:string|null;
-  damage:{threshold:number;oc:number}|null; conversion:number|null; weapons:readonly WeaponProfile[];
+  core?:readonly string[]; damage:{threshold:number;oc:number;slaughterAttacks?:number}|null; conversion:number|null; weapons:readonly WeaponProfile[];
 }
 function keywordTitle(value:string):string{
   return value.split(/( |[-])/).map(word=>/^d\d/i.test(word)?word.toUpperCase():word.charAt(0).toUpperCase()+word.slice(1).toLowerCase()).join('');
@@ -14,6 +14,7 @@ function keywordTitle(value:string):string{
 function profileText(profile:WeaponProfile,stats:KnightCardStats,snap:boolean):string[]{
   return profile.abilities.flatMap(value=>{
     const title=keywordTitle(value);
+    if(title==='Reverberating Summons')return []; // Resolver needs friendly Plaguebearers and the equipped bell.
     if(title==='Conversion')return snap||!stats.conversion?[]:['Conversion (at more than '+stats.conversion+'″, a successful unmodified 4+ to Hit is critical)'];
     const effect=weaponAbilityText(title,snap);
     return effect?[effect]:[];

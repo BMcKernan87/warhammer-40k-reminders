@@ -3,7 +3,8 @@ import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder, ReminderWindow} from './generated-reminders';
 import {PHASES} from './engine';
 import {chaosKnightMusterUnits, CHAOS_KNIGHT_SHEETS} from './chaos-knights-data';
-import {resolvedWarDogCharacterIds} from './chaos-knight-detachments';
+import {daemonMusterUnits} from './chaos-daemons-data';
+import {resolvedWarDogCharacterIds,walkerText} from './chaos-knight-detachments';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {knightWeaponCount} from './knight-loadouts';
 import {equippedWeaponText} from './knight-card-rules';
@@ -72,8 +73,9 @@ const auras:Readonly<Record<string,Aura>>={
 
 const scout='During Resolve Pre-battle Abilities, if wholly in your deployment zone Scout up to 6″ and finish more than 8″ horizontally from enemies. From Strategic Reserves, you may instead enter wholly within your deployment zone.';
 export function chaosKnightDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]):GeneratedReminder[] {
-  if(army.faction!=='Chaos Knights')return [];
-  const allowed=chaosKnightMusterUnits(army);
+  const dreadblades=army.faction==='Chaos Daemons';
+  if(!dreadblades&&army.faction!=='Chaos Knights')return [];
+  const allowed=dreadblades?daemonMusterUnits(army):chaosKnightMusterUnits(army);
   const eligible=roster.filter(s=>allowed.includes(s.unit)&&KNIGHT_CARD_STATS[s.unit]);
   const dogs=eligible.filter(s=>hasKeyword(s,'WAR DOG'));
   const helhunt=army.detachments2026?.includes('Helhunt Lance');
@@ -102,7 +104,9 @@ export function chaosKnightDatasheetReminders(army:ArmySelection,roster:readonly
       const text=equippedWeaponText(squad,stats,phase,when===snap);
       if(text)add(phase==='Fight'?'Melee weapon profiles':'Ranged weapon profiles',when,(when===snap?'When firing Overwatch: ':'')+text);
     }
-    const grant=auras[unit];
+    if(dreadblades&&hasKeyword(squad,'TITANIC'))add('Super-heavy Walker',move,walkerText);
+    // Dreadblades may bring one Titanic Knight or up to three War Dogs, never both.
+    const grant=dreadblades?undefined:auras[unit];
     if(grant){
       const extras=helhunt&&(army.upgrades2026?.[id]??army.upgrades2026?.[unit])==='Throne Tyrannicus'
         ?eligible.filter(s=>s.id!==id&&hasKeyword(s,'CHAOS KNIGHTS')&&(hasKeyword(s,'CHARACTER')||promoted.has(s.id))):[];
@@ -132,6 +136,9 @@ export function chaosKnightDatasheetReminders(army:ArmySelection,roster:readonly
     }
     if(unit==='Cultist Firebrand'&&body)for(const when of everyPhase)add('Fiery Faith',when,'While leading '+formation+', this formation may re-roll Leadership tests.',[formation]);
     if(unit==='Dark Commune'){
+      if(dreadblades&&army.detachments2026?.includes('Shadow Legion')&&knightWeaponCount(squad,'Chaos icon')){
+        for(const when of [shoot,snap,fight])add('Chaos Icon',when,'While the Iconarch and its Chaos icon survive, '+formation+' may re-roll its Leadership test for Dark Pacts.',[formation]);
+      }
       if(body)for(const when of [...defendRanged,fight])add('Faithful Flock',when,'While the Cult Demagogue is alive and this unit leads '+formation+', every model in that formation has a 5+ invulnerable save.',[formation]);
       for(const when of [command,move,shoot,charge,stage('Fight','own')])add('Dark Ritual',when,'Once per battle in your Command phase, if the Cult Demagogue survives, invoke the ritual. Until your turn ends '+formation+' may charge after an Advance and adds 1 to its Hit and Wound rolls.',[formation]);
     }

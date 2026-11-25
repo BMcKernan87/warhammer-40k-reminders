@@ -1,4 +1,5 @@
 import type {Faction} from './catalog';
+import {DAEMON_DETACHMENTS} from './chaos-daemon-detachments.generated';
 export type ForceDisposition='Take and Hold'|'Disruption'|'Purge the Foe'|'Priority Assets'|'Reconnaissance';
 export interface Detachment2026 {name:string;disposition:ForceDisposition;dp:1|2|3;additionalDispositions?:readonly ForceDisposition[]}
 export const EDITION_2026_SOURCE='https://www.warhammer-community.com/en-gb/articles/fchkklcq/new40k-download-new-xenos-faction-packs-today/';
@@ -100,17 +101,10 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Lords of Dread",disposition:"Take and Hold",dp:2},
   {name:"Traitoris Lance",disposition:"Purge the Foe",dp:2},
  ],
- "Chaos Daemons":[
-  {name:"Cavalcade of Chaos",disposition:"Disruption",dp:1},
-  {name:"Lords of the Warp",disposition:"Purge the Foe",dp:1},
-  {name:"Warptide",disposition:"Reconnaissance",dp:1},
-  {name:"Blood Legion",disposition:"Purge the Foe",dp:2},
-  {name:"Daemonic Incursion",disposition:"Disruption",dp:3},
-  {name:"Legion of Excess",disposition:"Priority Assets",dp:2},
-  {name:"Plague Legion",disposition:"Take and Hold",dp:2},
-  {name:"Scintillating Legion",disposition:"Priority Assets",dp:2},
-  {name:"Shadow Legion",disposition:"Purge the Foe",dp:2},
- ],
+ "Chaos Daemons":DAEMON_DETACHMENTS.map(det=>({
+  name:det.name,dp:det.dp as 1|2|3,disposition:det.objectives[0] as ForceDisposition,
+  additionalDispositions:det.objectives.slice(1) as ForceDisposition[],
+ })),
  "Astra Militarum":[
   {name:"Abhuman Auxiliaries",disposition:"Take and Hold",dp:1},
   {name:"Bridgehead Strike",disposition:"Priority Assets",dp:1},
