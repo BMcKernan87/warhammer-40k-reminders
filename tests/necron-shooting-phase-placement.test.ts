@@ -3,10 +3,10 @@ import {newSelection,addSelectionUnit} from '../src/catalog';
 import {generate11thReminders} from '../src/reminders-11th';
 const reminders=(unit:string)=>generate11thReminders(addSelectionUnit(newSelection('Necrons'),unit));
 describe('Necron phase reminder placement',()=>{
- it('lists Doomsday Ark stationary shooting bonus only in Shooting',()=>{
+ it('places the stationary decision in Movement and the shooting consequence in Shooting',()=>{
   const found=reminders('Doomsday Ark').filter(r=>r.title.includes('Overwhelming Obliteration'));
-  expect(found.map(r=>r.window)).toEqual(['Shooting']);
-  expect(found[0].summary.toLowerCase()).toContain('stationary');
+  expect(found.map(r=>r.window)).toEqual(['Movement','Shooting']);
+  expect(found[1].summary.toLowerCase()).toContain('stationary');
  });
  it('keeps genuine Movement shooting reactions',()=>{
   expect(reminders('Deathmarks').some(r=>r.window==='Movement'&&r.title.includes('Hyperspace Hunters'))).toBe(true);

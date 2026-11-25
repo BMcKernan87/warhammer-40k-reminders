@@ -2,7 +2,7 @@ import type {RosterInstance} from './roster-instances';
 import {NECRON_LOADOUTS,currentEquipmentName} from './necron-wargear';
 import type {TriggerRule} from './necron-battlefield-rules';
 
-interface WeaponCue {weapon:string; abilities:string; primary?:string; optional?:string}
+interface WeaponCue {weapon:string; abilities:string; primary?:string; optional?:string; note?:string}
 interface WeaponPhases {shoot?:WeaponCue[]; fight?:WeaponCue[]}
 // Weapon profiles with printed keywords. Battle-selected Vault powers and the expendable tachyon arrow have separate reminders.
 const profiles:Record<string,WeaponPhases>={
@@ -44,7 +44,7 @@ const profiles:Record<string,WeaponPhases>={
   },
   "C’tan Shard of the Nightbringer": {
     fight: [
-      {weapon:"Scythe of the Nightbringer – strike", abilities:"Devastating Wounds"},
+      {weapon:"Scythe of the Nightbringer – strike", abilities:"Devastating Wounds",note:"Choose strike or sweep, not both"},
     ],
   },
   "C’tan Shard of the Void Dragon": {
@@ -53,23 +53,23 @@ const profiles:Record<string,WeaponPhases>={
       {weapon:"Voltaic storm", abilities:"Blast, Sustained Hits 2"},
     ],
     fight: [
-      {weapon:"Spear of the Void Dragon – strike", abilities:"Anti-Vehicle 2+"},
+      {weapon:"Spear of the Void Dragon – strike", abilities:"Anti-Vehicle 2+",note:"Choose strike or sweep, not both"},
       {weapon:"Canoptek tail blades", abilities:"Extra Attacks"},
     ],
   },
   "The Silent King": {
     shoot: [
-      {weapon:"Sceptre of Eternal Glory", abilities:"Devastating Wounds"},
-      {weapon:"Staff of Stars", abilities:"Indirect Fire"},
+      {weapon:"Sceptre of Eternal Glory", abilities:"Devastating Wounds",note:"Szarekh only; cannot fire if destroyed"},
+      {weapon:"Staff of Stars", abilities:"Indirect Fire",note:"Szarekh only; cannot fire if destroyed"},
     ],
     fight: [
-      {weapon:"Weapons of the Final Triarch", abilities:"Lethal Hits"},
+      {weapon:"Weapons of the Final Triarch", abilities:"Lethal Hits",note:"Szarekh only"},
     ],
   },
   "Geomancer": {
     shoot: [
-      {weapon:"Tremorglaive – reverberating beam", abilities:"Melta 2"},
-      {weapon:"Tremorglaive – shock wave pulse", abilities:"Ignores Cover, Torrent"},
+      {weapon:"Tremorglaive – reverberating beam", abilities:"Melta 2", note:"Choose one Tremorglaive ranged profile per firing model"},
+      {weapon:"Tremorglaive – shock wave pulse", abilities:"Ignores Cover, Torrent", note:"Choose one Tremorglaive ranged profile per firing model"},
     ],
   },
   "Hexmark Destroyer": {
@@ -256,8 +256,8 @@ const profiles:Record<string,WeaponPhases>={
   },
   "Triarch Stalker": {
     shoot: [
-      {weapon:"Heat ray – dispersed", abilities:"Ignores Cover, Torrent", primary:"Heat ray"},
-      {weapon:"Heat ray – focused", abilities:"Melta 4", primary:"Heat ray"},
+      {weapon:"Heat ray – dispersed", abilities:"Ignores Cover, Torrent", primary:"Heat ray", note:"Choose one Heat ray profile"},
+      {weapon:"Heat ray – focused", abilities:"Melta 4", primary:"Heat ray", note:"Choose one Heat ray profile"},
       {weapon:"Particle shredder", abilities:"Blast, Devastating Wounds", primary:"Particle shredder"},
       {weapon:"Heavy gauss cannon array", abilities:"Lethal Hits", primary:"Heavy gauss cannon array"},
     ],
@@ -281,7 +281,13 @@ export const weaponRules:TriggerRule[]=Object.entries(profiles).flatMap(([unit,p
       id:'weapons-'+unit+'-'+phase,title:phase==='shoot'?'Ranged weapon abilities':'Melee weapon abilities',units:[unit],
       signal:phase==='shoot'?['shoot','overwatch'] as const:'fight',
       gear:(squad:RosterInstance)=>equipped(squad,options).length>0,
-      text:({bearer})=>equipped(bearer,options).map(p=>p.weapon+' — '+p.abilities).join('. ')+'.',
+      text:({bearer})=>equipped(bearer,options).map(p=>{
+        let count:number|undefined;
+        if(p.optional)count=bearer.wargear?.[p.optional];
+        else if(p.primary&&bearer.weaponCounts)count=bearer.weaponCounts[p.primary];
+        else if(p.primary&&bearer.unit==='Canoptek Macrocytes')count=(bearer.models??5)-(bearer.wargear?.['Atomiser beam and nanoscarab projector']??0)-(bearer.wargear?.['Accelerator mandible']??0);
+        return p.weapon+' — '+p.abilities+(count!==undefined?' ('+count+' originally equipped model'+(count===1?'':'s')+'; apply to surviving bearers)':'')+(p.note?'. '+p.note:'');
+      }).join('. ')+'.',
     }];
   })
 );

@@ -60,7 +60,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
   }
   const warlord=resolvedWarlord(army);
   if(warlord)emit('hypercrypt-crypts','Reanimation Crypts · 1CP','Command','Your Command phase: target your Necron Warlord; each friendly Necron unit in Reserves activates Reanimation Protocols.','during',[warlord.id]);
-  if(nonmonsters.length)emit('hypercrypt-precision','Cosmic Precision · 1CP','Movement','Your turn: a non-Monster unit arriving via an ingress move may set up anywhere more than 6″ horizontally from enemies. No charge this turn; large-model setup rules still apply.','during',nonmonsters);
+  if(nonmonsters.length)emit('hypercrypt-precision','Cosmic Precision · 1CP','Movement','Your turn: a non-Monster unit arriving via Deep Strike or Hyperphasing may set up anywhere more than 6″ horizontally from enemies. No charge this turn; large-model setup rules still apply.','during',nonmonsters);
   if(monolith&&infantry.length)emit('hypercrypt-corridor','Dimensional Corridor · 2CP','Charge','Your turn: a unit arriving through Eternity Gate this turn may charge if its Monolith began the turn on the battlefield.','during',infantry);
   if(titanic.length)emit('hypercrypt-damping','Entropic Damping · 1CP','Shooting','Opponent’s turn: after target selection, if a targeted Titanic model is within 18″ of the attacker, that attacking unit’s weapons gain Hazardous for this phase.','during',titanic);
   for(const s of roster.filter(s=>HYPERCRYPT_BEARERS.some(u=>u===s.unit))){

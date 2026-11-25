@@ -110,7 +110,7 @@ export function currentEquipmentName(unit: string, choice: string): string {
 
 export const necronKeywords = {
   'INFANTRY': new Set<string>(["Chronomancer", "Cryptothralls", "Deathmarks", "Flayed Ones", "Geomancer", "Hexmark Destroyer", "Illuminor Szeras", "Immortals", "Imotekh the Stormlord", "Lychguard", "Necron Warriors", "Nekrosor Ammentar", "Ophydian Destroyers", "Orikan the Diviner", "Overlord", "Overlord with translocation shroud", "Plasmancer", "Psychomancer", "Royal Warden", "Skorpekh Destroyers", "Skorpekh Lord", "Technomancer", "Trazyn the Infinite", "Triarch Praetorians"]),
-  'VEHICLE': new Set<string>(["Annihilation Barge", "Canoptek Doomstalker", "Canoptek Reanimator", "Canoptek Spyders", "Catacomb Command Barge", "Convergence Of Dominion", "Doom Scythe", "Doomsday Ark", "Ghost Ark", "Monolith", "Night Scythe", "Obelisk", "Seraptek Heavy Construct", "Tesseract Vault", "Triarch Stalker"]),
+  'VEHICLE': new Set<string>(["Annihilation Barge", "Canoptek Doomstalker", "Canoptek Reanimator", "Canoptek Spyders", "Catacomb Command Barge", "Convergence Of Dominion", "Doom Scythe", "Doomsday Ark", "Ghost Ark", "Monolith", "Night Scythe", "Obelisk", "Seraptek Heavy Construct", "Tesseract Vault", "Triarch Stalker", "The Silent King"]),
   'MONSTER': new Set<string>(["C’tan Shard of the Deceiver", "C’tan Shard of the Nightbringer", "C’tan Shard of the Void Dragon", "Transcendent C’tan"]),
   'TITANIC': new Set<string>(["Monolith", "Obelisk", "Seraptek Heavy Construct", "Tesseract Vault"]),
   'DESTROYER CULT': new Set<string>(["Hexmark Destroyer", "Lokhust Destroyers", "Lokhust Heavy Destroyers", "Lokhust Lord", "Nekrosor Ammentar", "Ophydian Destroyers", "Skorpekh Destroyers", "Skorpekh Lord"]),
