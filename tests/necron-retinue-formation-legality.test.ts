@@ -20,7 +20,7 @@ describe('11e Cryptek Retinue',()=>{
   expect(formationBodyguardStrength(b,body)).toBe((expandRoster(a).find(s=>s.id===body)!.models??10)+2);
   expect(rosterCost2026(b).total).toBe(rosterCost2026(a).total);
   expect(generate11thReminders(b).find(r=>r.title.includes('Cryptek Retinue'))?.window).toBe('Pre-battle');
-  expect(generate11thReminders(b).filter(r=>r.title.includes('Bound Creation')).map(r=>r.units)).toEqual(Array.from({length:5},()=>[thralls,body,tech]));
+  expect(generate11thReminders(b).filter(r=>r.title.includes('Bound Creation')).map(r=>r.units)).toEqual(Array.from({length:5},()=>[tech]));
   expect(generate11thReminders(a).some(r=>r.title.includes('Bound Creation'))).toBe(false);
  });
  it('rejects duplicate retinues, invalid Bodyguards, and non-Cryptek attachments',()=>{
@@ -88,7 +88,8 @@ describe('source-reconciled wargear reminders',()=>{
   expect(()=>setInstanceWargear(a,t,'Shadowloom',2)).toThrow();
   a=setInstanceWargear(a,t,'Shadowloom',1);
   const r=generate11thReminders(a);
-  expect(r.filter(x=>x.title.includes('Shieldvanes')).map(x=>x.window)).toEqual(['Movement','Shooting','Fight']);
+  expect(r.filter(x=>x.title.includes('Shieldvanes')&&x.summary.includes('3+ Save')).map(x=>x.window)).toEqual(['Shooting','Fight','Movement']);
+  expect(r.filter(x=>x.title.includes('Shieldvanes')&&x.summary.includes('Move 8″')).map(x=>x.window)).toEqual(['Movement']);
   expect(r.find(x=>x.title.includes('Shadowloom'))?.summary).toContain('every model');
   expect(r.find(x=>x.title.includes('Nebuloscope'))?.summary).toContain('surviving');
   expect(validateSelection(a)).toBe(true);

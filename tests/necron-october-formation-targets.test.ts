@@ -41,6 +41,7 @@ describe('datasheet rules target the formation that has the keyword',()=>{
       expect(rules.length).toBeGreaterThan(0);
       expect(rules.every(r=>r.units?.join()==='led'&&r.summary.includes('led')&&!r.summary.includes('unled'))).toBe(true);
     }
+    expect(cues(a,'Eternity Gate').find(r=>r.window==='Charge')).toMatchObject({turn:'own',summary:expect.stringContaining('cannot make a Charge move')});
     const ingress=cues(a,'Eternity Gate').find(r=>r.window==='Movement')!;
     expect(ingress.summary).toMatch(/wholly within 6″.*without needing a battlefield edge/);
     expect(cues(a,'Eternity Gate · shooting')[0].summary).toContain('may shoot');

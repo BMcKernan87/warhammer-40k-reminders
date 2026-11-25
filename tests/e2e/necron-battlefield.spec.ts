@@ -32,6 +32,32 @@ test('a Scout army can use any phase immediately and print every phase after che
  await expect(sheet.getByRole('heading',{name:'End of opponent turn'})).toBeVisible();
  await expect(sheet.getByRole('heading',{name:'Pre-battle'})).toHaveCount(0);
  await page.emulateMedia({media:'print'});
- await expect(page.locator('.print-sheet h3')).toHaveCount(8);
+ await expect(page.locator('.print-sheet h3')).toHaveCount(9);
  await expect(page.locator('.print-sheet strong').filter({hasText:/Scout/i}).first()).toBeVisible();
+});
+
+test('an older Triarch checkmark follows that choice to the start of the battle round',async({page})=>{
+ await page.goto('./');
+ await add(page,'The Silent King');
+ await page.evaluate(()=>{
+  const key='w40k-reminders-profiles-v1';
+  const store=JSON.parse(localStorage.getItem(key)!);
+  const profile=store.profiles.find((p:{id:string})=>p.id===store.activeId);
+  profile.completed.push('sheet:'+JSON.stringify(['Command','11e-necron-silent-king-triarch',['The Silent King#1']]));
+  localStorage.setItem(key,JSON.stringify(store));
+ });
+ await page.reload();
+ await page.getByRole('button',{name:'Play reminders'}).click();
+ const sheet=page.getByRole('heading',{name:'Phase reminders'}).locator('..');
+ await sheet.getByLabel('Show phase').selectOption('Start of battle round');
+ await sheet.getByLabel('Show completed reminders').check();
+ const triarch=sheet.getByRole('checkbox',{name:/Triarch Abilities/});
+ await expect(triarch).toBeChecked();
+ await triarch.uncheck();
+ await page.reload();
+ await page.getByRole('button',{name:'Play reminders'}).click();
+ await sheet.getByLabel('Show phase').selectOption('Start of battle round');
+ await expect(triarch).not.toBeChecked();
+ await sheet.getByLabel('Show phase').selectOption('Command');
+ await expect(triarch).toHaveCount(0);
 });

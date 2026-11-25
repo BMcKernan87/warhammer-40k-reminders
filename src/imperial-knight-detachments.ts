@@ -83,9 +83,10 @@ export function knightDetachmentReminders(army:ArmySelection,roster:readonly Ros
  const has=(name:string)=>selected.has(norm(name));
  const groups=knightGroups(roster);
  const {native,titanic,armiger,bondsman,allies,priests,dominus,bonded}=groups;
- function add(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],summary:string,targets:readonly RosterInstance[],origin:GeneratedReminder['origin']='detachment'){
+ function add(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],summary:string,targets:readonly RosterInstance[],origin:GeneratedReminder['origin']='detachment',previousWindow?:ReminderWindow){
   if(!targets.length)return;
-  const row={id:'11e-knight-'+key+'-'+window,title,window,turn,timing,summary,source,origin,units:targets.map(t=>t.id)};
+  const units=targets.map(t=>t.id);
+  const row={id:'11e-knight-'+key+'-'+(previousWindow??window),title,window,turn,timing,summary,source,origin,units,...(previousWindow?{previousSheetEntry:{window:previousWindow,units}}:{})};
   rows.push(row);
  }
  const armyCue=(key:string,title:string,window:ReminderWindow,turn:Turn,timing:GeneratedReminder['timing'],text:string,targets=native)=>add(key,title,window,turn,timing,text,targets,'army');
@@ -110,7 +111,7 @@ export function knightDetachmentReminders(army:ArmySelection,roster:readonly Ros
   for(const phase of phases)add('legend-fnp','Knights of Legend · Feel No Pain',phase,'either','during','Imperial Knights models have Feel No Pain 6+ whenever they would lose a wound.',native);
  }
  if(has('Gate Warden Lance')){
-  add('foundations','Dauntless Defenders · foundations','Pre-battle','either','end','At the start of round one choose two objectives and put a 40mm foundation marker in each. A unit is on your defensive line if a line joining any points on the two markers crosses any part of a model’s base or baseless hull.',native);
+  add('foundations','Dauntless Defenders · foundations','Start of battle round','either','start','At the start of round one choose two objectives and put a 40mm foundation marker in each. A unit is on your defensive line if a line joining any points on the two markers crosses any part of a model’s base or baseless hull.',native,'detachment','Pre-battle');
   for(const phase of attacks)add('horde','Against the Horde',phase,phase==='Shooting'?'own':'either','during','When a Knight on your defensive line attacks a visible enemy, it may ignore Hit modifiers and its weapons gain Sustained Hits 1.',native);
  }
  if(has('Spearhead-at-arms')){
