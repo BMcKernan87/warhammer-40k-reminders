@@ -1,4 +1,5 @@
-import {expect,test,type Page,type TestInfo} from '@playwright/test';
+import {expect,test,type Page} from '@playwright/test';
+import {verifyPrint} from './printed-phases';
 
 const rubric='Rubric Marines',scarabs='Scarab Occult Terminators',terminator='Sorcerer In Terminator Armour',disc='Exalted Sorcerer on Disc of Tzeentch';
 const rhino='Chaos Rhino',raider='Chaos Land Raider',keeper='Lord of Change',psychic='Cabal of Sorcerers · Psychic tests';
@@ -24,15 +25,6 @@ function card(page:Page,title:string){
  return panel.locator('.check').filter({has:page.getByText(title,{exact:true})});
 }
 function printCard(page:Page,title:string){return page.getByRole('region',{name:'Printable army reminders'}).getByText(title,{exact:true}).locator('..');}
-async function verifyPrint(page:Page,info:TestInfo){
- const headings=await page.getByRole('region',{name:'Printable army reminders'}).locator('h3').allTextContents();
- expect(headings).toHaveLength(11);
- const pdf=await page.pdf({path:info.outputPath('reminders.pdf'),format:'A4',outline:true,tagged:true});
- expect(pdf.subarray(0,5).toString()).toBe('%PDF-');
- // Chromium's tagged output exposes genuine PDF outline entries for each printed phase.
- const bookmarks=Array.from(pdf.toString('latin1').matchAll(/\/Title\s+\(([^)]*)\)/g),m=>m[1]);
- for(const phase of headings)expect(bookmarks).toContain(phase);
-}
 
 test('mobile 1,000-point Grand Coven saves physical Rubric gear and prints rituals and weighted passenger lists to a full PDF',async({page},info)=>{
  test.setTimeout(90_000);

@@ -11,7 +11,7 @@ const budget=(a:ArmySelection)=>BATTLE_SIZES_2026[a.battleSize2026??'Strike Forc
 const copyLimit=(army:ArmySelection,tags:ReadonlySet<string>)=>budget(army).unitLimit*(tags.has('BATTLELINE')||tags.has('DEDICATED TRANSPORT')?2:1);
 
 interface LegionMuster {
- faction:'Emperor’s Children'|'Thousand Sons';
+ faction:'Emperor’s Children'|'Thousand Sons'|'Death Guard';
  primarch:string;
  groupName:string;
  detachment:string;

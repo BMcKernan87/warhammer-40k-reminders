@@ -2,7 +2,7 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {loadExport} from './import-wahapedia-11e.mjs';
 
-export async function importFactionProfiles({label,faction,sourceId,count,constant,script,verifyWeapon,publisherSaves={},battlefieldWeapons={},battlefieldConstant,missingCore={}},[csv,relational,destination]){
+export async function importFactionProfiles({label,faction,sourceId,count,constant,script,verifyWeapon,publisherSaves={},unitNames={},battlefieldWeapons={},battlefieldConstant,missingCore={}},[csv,relational,destination]){
 if(!destination)throw Error('Usage: node '+script+' CSV_DIR FACTION_40KDC_DIR OUTPUT_TS');
 const {tables}=await loadExport({directory:csv});
 const read=name=>JSON.parse(readFileSync(join(relational,name+'.json'),'utf8'));
@@ -13,7 +13,7 @@ const source=tables.Source.find(s=>s.id===sourceId&&s.name===label&&s.edition===
 if(!source)throw Error('Expected the native 11th edition '+label+' source');
 const native=tables.Datasheets.filter(s=>s.faction_id===faction&&s.source_id===source.id),cards={},replacements={};
 for(const sheet of native){
- const matches=units.filter(u=>key(u.name)===key(sheet.name)&&!u.is_legend&&u.game_version.edition==='11th'&&u.external_refs.some(r=>r.namespace==='mfm'));
+ const matches=units.filter(u=>key(u.name)===key(unitNames[sheet.name]??sheet.name)&&!u.is_legend&&u.game_version.edition==='11th'&&u.external_refs.some(r=>r.namespace==='mfm'));
  if(matches.length!==1)throw Error('No current matched-play identity for '+sheet.name);
  const unit=matches[0],profiles=tables.Datasheets_models.filter(r=>r.datasheet_id===sheet.id);
  const saves=[...new Set(profiles.map(p=>p.inv_sv))];

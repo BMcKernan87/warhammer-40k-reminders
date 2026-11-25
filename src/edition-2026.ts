@@ -1,6 +1,8 @@
 import {currentEcDetachment} from './emperors-children-detachment-data';
 import {EMP_CHILDREN_DETACHMENTS} from './emperors-children-detachments.generated';
 import {TS_DETACHMENTS} from './thousand-sons-detachments.generated';
+import {currentDeathGuardDetachment} from './death-guard-detachment-data';
+import {DG_DETACHMENTS} from './death-guard-detachments.generated';
 import {ASTRA_DETACHMENTS} from './astra-detachments.generated';
 import {GSC_DETACHMENTS} from './gsc-detachments.generated';
 import {currentGscDetachment} from './gsc-detachment-data';
@@ -57,17 +59,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  ],
  'World Eaters':WORLD_EATERS_DETACHMENTS,
  'Emperor’s Children':EMP_CHILDREN_DETACHMENTS,
- "Death Guard":[
-  {name:"Paragons of Putrescence",disposition:"Priority Assets",dp:1},
-  {name:"Contagion Engines",disposition:"Purge the Foe",dp:1},
-  {name:"Flyblown Host",disposition:"Reconnaissance",dp:1},
-  {name:"Champions of Contagion",disposition:"Take and Hold",dp:2},
-  {name:"Death Lord's Chosen",disposition:"Priority Assets",dp:2},
-  {name:"Mortarion's Hammer",disposition:"Purge the Foe",dp:2},
-  {name:"Shamblerot Vectorium",disposition:"Disruption",dp:2},
-  {name:"Tallyband Summoners",disposition:"Disruption",dp:2},
-  {name:"Virulent Vectorium",disposition:"Take and Hold",dp:3},
- ],
+ 'Death Guard':DG_DETACHMENTS,
  'Thousand Sons':TS_DETACHMENTS,
  "Chaos Knights":[
   {name:"Bastions of Tyranny",disposition:"Priority Assets",dp:1},
@@ -274,7 +266,7 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
  const groups=faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
