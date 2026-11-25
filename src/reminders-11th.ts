@@ -1,7 +1,14 @@
 import {applyStratagemWindow} from './stratagem-windows';
 import {targetedNecronEnhancements} from './necron-targeted-enhancements';
 import {necronDeploymentReminders} from './necron-deployment';
-import {necronCoreStratagemReminders} from './necron-core-stratagems';
+import {formationShootingReminders} from './formation-shooting';
+import {formationDeploymentReminders} from './formation-deployment';
+import {coreStratagemReminders} from './core-stratagems-11th';
+import {DATASHEETS_2026} from './datasheets-2026';
+import {knightJoinedBodyguard} from './leader-eligibility';
+import {knightDetachmentReminders} from './imperial-knight-detachments';
+import {assignedAgentHasRanged,assignedAgentReminders} from './knight-assigned-agents';
+import {imperialKnightDatasheetReminders,knightHasRangedWeapon} from './imperial-knight-datasheets';
 import {ghostArkPassengers,necronFormationRoots} from './necron-retinues';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 import {expandRoster} from './roster-instances';
@@ -103,12 +110,27 @@ export function eligibleScoutReminders(army:ArmySelection):GeneratedReminder[]{
 }
 
 export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
- const result=CORE_11TH.filter(rule=>_army.faction!=='Necrons'||rule.id!=='11e-movement-reserves').map(rule=>({...rule}));
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights';
+ const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
- if(_army.faction==='Necrons'){
-  const ow=result.findIndex(r=>r.id==='11e-core-overwatch');
-  if(ow>=0)result.splice(ow,1);
-  result.push(...necronCoreStratagemReminders(_army,roster),...necronDeploymentReminders(_army,roster));
+ if(formedArmy){
+  const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
+  // Formation eligibility includes keywords printed for an individual model.
+  // Model-specific effects still need the named bearer to survive.
+  const unitKeywords=new Map([...sheets].map(([unit,sheet])=>[unit,
+    [...new Set([...(sheet.keywords??[]),...Object.values(sheet.modelKeywords??{}).flat()])]]));
+  const keywords=(unit:string)=>unitKeywords.get(unit)??[];
+  const modelRestrictions=(unit:string,keyword:string)=>sheets.get(unit)?.keywords?.includes(keyword)?[]:
+    Object.entries(sheets.get(unit)?.modelKeywords??{}).filter(([,values])=>values.includes(keyword)).map(([name])=>name);
+  if(_army.faction==='Necrons'){
+   const formations=necronFormationRoots(_army,roster);
+   result.push(...formationDeploymentReminders(_army,formations,keywords),...formationShootingReminders(formations,keywords,hasNecronRangedWeapon),...coreStratagemReminders(formations,keywords,hasNecronRangedWeapon,modelRestrictions),...necronDeploymentReminders(_army,roster));
+  }else{
+   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
+   const formations=roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
+   const hasGun=(s:(typeof roster)[number])=>knightHasRangedWeapon(s)||assignedAgentHasRanged(s.unit);
+   result.push(...formationDeploymentReminders(_army,formations,keywords),...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions),...knightDetachmentReminders(_army,roster),...imperialKnightDatasheetReminders(_army,roster),...assignedAgentReminders(_army));
+  }
  }
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
@@ -220,7 +242,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   result.push({id:'11e-orks-riled-save-fight',title:'Waaagh! · Riled-up protection',window:'Fight',timing:'during',summary:'While riled up, friendly ORKS units with Waaagh! have a 5+ invulnerable save.',source,origin:'army'});
   if((_army.units.Meganobz||0)>0||_army.instances?.some(s=>s.unit==='Meganobz'))result.push({id:'11e-orks-meganobz-krumpin',title:'Meganobz · Krumpin’ Time',window:'Fight',timing:'during',summary:'While this Meganobz unit is riled up, add 1 to its Hit rolls in the Fight phase.',source,origin:'unit',units:['Meganobz']});
  }
- return _army.faction==='Necrons'?result.map(applyStratagemWindow):result;
+ return result.map(rule=>_army.faction==='Necrons'||rule.id.startsWith('11e-core-')?applyStratagemWindow(rule):rule);
 }
 export function grouped11thReminders(army:ArmySelection):{window:ReminderWindow;reminders:GeneratedReminder[]}[]{
  const all=generate11thReminders(army);
