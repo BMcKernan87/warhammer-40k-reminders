@@ -142,7 +142,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const formations=necronFormationRoots(_army,roster);
   const nonHeavy=formations.filter(f=>!f.members.some(s=>necronKeywords.MONSTER.has(s.unit)||necronKeywords.VEHICLE.has(s.unit))).map(f=>f.id);
   const destroyers=formations.filter(f=>f.members.some(s=>necronKeywords['DESTROYER CULT'].has(s.unit)||['Murdermind','Destroyer Ankh'].includes(_army.upgrades2026?.[s.id]??_army.upgrades2026?.[s.unit]??''))).map(f=>f.id);
-  const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>result.push({id:'11e-necron-cursed-'+id,title,window,timing,summary,source,origin:'detachment',units:id.startsWith('cold-')?formations.map(f=>f.id):id.startsWith('image-')||id.startsWith('driven-')?destroyers:nonHeavy});
+  const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>result.push({id:'11e-necron-cursed-'+id,title,window,timing,summary,source,origin:'detachment',units:id.startsWith('cold-')?formations.filter(f=>f.members.some(s=>!necronKeywords.MONSTER.has(s.unit)&&!necronKeywords.TITANIC.has(s.unit))).map(f=>f.id):id.startsWith('image-')||id.startsWith('driven-')?destroyers:nonHeavy});
   for(const window of ['Shooting','Fight'] as const){
    const turn=window==='Shooting'?'Your Shooting phase. ':'Either Fight phase. ';
    if(destroyers.length){
@@ -166,9 +166,9 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   if(monsters.length){
    for(const window of ['Command','Movement','Shooting','Charge','Fight'] as const){
     emit('cosmic-'+window.toLowerCase(),'Cosmic Distortion · Distortion Fields',window,'At phase start, each Monster may suffer 3 mortal wounds to extend its 6″ aura to 9″ for this phase. Enemies within the aura unravel; attacks targeting them improve AP by 1.','start',monsters.map(s=>s.id));
-    emit('cascade-'+window.toLowerCase(),'Disharmonisation Cascade · 1CP',window,'Either turn: immediately after a friendly Monster model is destroyed, before Deadly Demise, use this on that model; this phase its Deadly Demise triggers on 3+ rather than 6.');
+    emit('cascade-'+window.toLowerCase(),'Disharmonisation Cascade · 1CP',window,'Either turn: immediately after a friendly Monster model is destroyed, before Deadly Demise, use this on that model; this phase its Deadly Demise triggers on 3+ rather than 6.','during',monsters.map(s=>s.id));
    }
-   emit('erosion','Molecular Erosion · 1CP','Command','Either Command phase: select a Monster and a visible unravelling enemy. Enemy takes Battle-shock at −1; if failed, suffer D3+1 mortal wounds. Once per battle round.');
+   emit('erosion','Molecular Erosion · 1CP','Command','Either Command phase: select a Monster and a visible unravelling enemy. Enemy takes Battle-shock at −1; if failed, suffer D3+1 mortal wounds. Once per battle round.','during',monsters.map(s=>s.id));
    emit('melding','Phase Melding · 1CP','Movement','Opponent’s turn: when an unravelling enemy selects Fall Back, target an engaged friendly Necron unit. All enemy models take Desperate Escape tests; subtract 1 if battle-shocked.');
    if(others.length)for(const window of ['Shooting','Fight'] as const)emit('mass-'+window.toLowerCase(),'Mass Transmogrification · 1CP',window,(window==='Shooting'?'Your Shooting phase. ':'Either Fight phase. ')+'After a friendly Monster destroys an enemy that was unravelling at phase start, activate Reanimation for a non-Monster Necron unit within 6″ of that Monster. Once per turn.');
    for(const m of monsters){
@@ -176,7 +176,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
     if(m.unit==='C’tan Shard of the Deceiver')for(const window of ['Command','Movement','Shooting','Charge','Fight'] as const)bound('singularity-'+window.toLowerCase(),'Singularity Matrix',window,'When the opponent targets their unit within 12″ of the living bearer with a Stratagem, increase that use’s CP cost by 1.');
     if(m.unit==='C’tan Shard of the Nightbringer')bound('goad','Quantum Goad','Charge','May charge after Advancing.');
     if(m.unit==='C’tan Shard of the Void Dragon')bound('damper','Animus Damper','Shooting','Once per turn at the start of opponent’s Shooting phase, select a visible enemy Vehicle. It takes a Leadership test; its attacks suffer −1 Hit this phase, and −1 Wound if it fails.','start');
-    if(m.unit==='Transcendent C’tan')bound('tether','Reletavistic Tether','Movement','Your turn: when making an ingress or advance move with Transdimensional Displacement, may end more than 6″ horizontally from enemies instead of more than 8″; if within 8″, cannot charge this turn. October 2026 rules: https://wahapedia.ru/wh40k11ed/factions/necrons/');
+    if(m.unit==='Transcendent C’tan')bound('tether','Reletavistic Tether','Movement','Your turn: when making an ingress or advance move with Transdimensional Displacement, may end more than 6″ horizontally from enemies instead of more than 8″; if within 8″, cannot charge this turn.');
    }
   }
   if(others.length)for(const window of ['Shooting','Fight'] as const)emit('entropy-'+window.toLowerCase(),'Entrophasic Aura Targeting · 1CP',window,(window==='Shooting'?'Your Shooting phase. ':'Either Fight phase. ')+'Choose a non-Monster unit not yet selected to shoot or fight. Re-roll Hit rolls of 1 this phase, and Wound rolls of 1 against unravelling targets.');
