@@ -1,3 +1,5 @@
+import {DRUKHARI_SHEETS} from './drukhari-data';
+import {drukhariMusterUnits} from './drukhari-muster-data';
 import {CSM_ARMY_SHEETS,csmMusterUnits} from './csm-army-data';
 import {csmAdditionalBodyguards,csmMarksCompatible} from './csm-muster-data';
 import {TYRANID_SHEETS} from './tyranid-data';
@@ -32,6 +34,7 @@ import type {ArmySelection} from './catalog';
 import {NECRON_LEADERS,necronAttachmentRole} from './attachments';
 /** Explicitly modeled Leader -> Bodyguard compatibility. Unlisted Leaders remain unsupported. */
 export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<string,readonly string[]>>>={
+ Drukhari:Object.fromEntries(DRUKHARI_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Chaos Space Marines':Object.fromEntries(CSM_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  Necrons:NECRON_LEADERS,
  'T’au Empire':Object.fromEntries(TAU_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
@@ -114,6 +117,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
   const allowed=worldEatersMusterUnits(army);
   return [...new Set([...base,...worldEatersAdditionalBodyguards(army,leader)])].filter(unit=>allowed.includes(unit));
  }
+ if(army.faction==='Drukhari'){const allowed=drukhariMusterUnits(army);return allowed.includes(leader.unit)?base.filter(unit=>allowed.includes(unit)):[];}
  if(army.faction==='Chaos Space Marines'){const allowed=csmMusterUnits(army);return [...new Set([...base,...csmAdditionalBodyguards(army,leader)])].filter(unit=>allowed.includes(unit));}
  if(army.faction==='Orks')return [...new Set([...base,...orkAdditionalBodyguards(army,leader)])];
  if(army.faction==='Imperial Knights'){
@@ -126,6 +130,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
+ if(faction==='Drukhari')return DRUKHARI_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Chaos Space Marines')return CSM_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Tyranids')return TYRANID_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='T’au Empire')return TAU_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -149,7 +154,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 }
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
- if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  if(!csmMarksCompatible(army,leader,body))return undefined;

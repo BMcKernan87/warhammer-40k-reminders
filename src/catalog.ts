@@ -1,3 +1,4 @@
+import {DRUKHARI_UNITS} from './drukhari-data';
 import {CSM_ARMY_UNITS} from './csm-army-data';
 import {TYRANID_UNITS} from './tyranid-data';
 import {TAU_UNITS} from './tau-data';
@@ -49,7 +50,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:CSM_ARMY_UNITS,enhancements:[]},
  'Dark Angels':{detachments:['Select detachment (unverified)'],units:["Azrael","Deathwing Knights","Inner Circle Companions"],enhancements:[]},
  'Death Guard':{detachments:['Select detachment (unverified)'],units:DEATH_GUARD_UNITS,enhancements:[]},
- 'Drukhari':{detachments:['Select detachment (unverified)'],units:["Kabalite Warriors","Wyches","Incubi","Archon"],enhancements:[]},
+ 'Drukhari':{detachments:['Select detachment (unverified)'],units:DRUKHARI_UNITS,enhancements:[]},
  'Emperor’s Children':{detachments:['Select detachment (unverified)'],units:EMPERORS_CHILDREN_UNITS,enhancements:[]},
  'Genestealer Cults':{detachments:['Select detachment (unverified)'],units:[...GSC_UNITS,...GSC_ALLIED_SHEETS.map(s=>s.unit)],enhancements:[]},
  'Grey Knights':{detachments:['Select detachment (unverified)'],units:GREY_KNIGHTS_UNITS,enhancements:[]},
