@@ -85,9 +85,11 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
     if(selected.includes('Enmitic exterminator'))cues.push('Enmitic exterminator: re-roll Wound rolls of 1 against other targets');
     text=cues.join('. ')+'.';
   }
+  if(rule.id==='timesplinter-mantle')text='This formation has Stealth (Benefit of Cover against ranged attacks if every model has Stealth); incoming melee attacks suffer −1 to Hit.';
   if(rule.id==='szeras')text='Improve the Battleline unit’s outgoing AP by 1 or worsen incoming AP by 1. The aura starts at 3″.';
   if(rule.id==='atomic')text='Increase the range of Mechanical Augmentation by 3″ for the rest of the battle, up to 12″.';
   if(rule.id==='orb')text+=' Only one unit can resurrect in a turn.';
+  if(rule.id==='vault')text+=' Available powers: Antimatter Meteor (Blast, Devastating Wounds, Indirect Fire); Cosmic Fire (Ignores Cover, Devastating Wounds, Torrent); Time’s Arrow (Anti-Character 4+, Devastating Wounds, Precision). These keywords apply only to the chosen weapons.';
   if(rule.id==='command-king')return 'Start of the battle round, before either turn: choose one Triarch ability until next round. See its conditional phase reminders.';
   if(rule.gear&&['gloom','fabricator','plasmacyte','amulet','orb'].includes(rule.id))text+=' Apply only while the relevant equipped bearer survives or the applicable use remains available.';
   return [side+limit+intro,text].filter(Boolean).join(' ').trim();
@@ -97,6 +99,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
   const roster=expandRoster(army);
   const output:GeneratedReminder[]=[];
   const ids=new Set<string>();
+  const formations=necronFormationRoots(army,roster);
   for(const squad of roster){
     const body=roster.find(s=>s.id===squad.attachedTo&&validSupportAttachment(army,squad));
     for(const rule of BATTLEFIELD_RULES){
@@ -104,6 +107,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(rule.id==='guardian'&&!roster.some(leader=>leader.attachedTo===squad.id&&validSupportAttachment(army,leader)&&['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       if(rule.id==='warden'&&!body)continue;
+      if(rule.id==='murder'&&!roster.some(other=>other.id!==squad.id&&necronKeywords['DESTROYER CULT'].has(other.unit)))continue;
       if(rule.id==='spyder-swarm'&&!roster.some(other=>other.unit==='Canoptek Scarab Swarms'))continue;
       if(rule.id==='ghost-repair'&&!roster.some(other=>other.unit==='Necron Warriors'))continue;
       if(rule.id==='szeras'&&!roster.some(other=>other.unit==='Necron Warriors'||other.unit==='Immortals'))continue;
@@ -122,7 +126,7 @@ export function necronDatasheetReminders2026(army:ArmySelection):GeneratedRemind
         output.push({id,title:squad.id+' · '+rule.title+((rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?' → '+body.id:''),
           window,timing:rule.signal==='phaseEnd'?'end':rule.signal==='phaseStart'?'start':'during',
           summary:referenceText(rule,squad,roster),source:necronSource(squad.unit),origin:'unit',
-          units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?[squad.id,body.id]:[squad.id]});
+          units:(rule.scope==='leading'||rule.id==='chronometron'||rule.id==='timesplinter-mantle'||rule.id==='warden')&&body?[squad.id,body.id,...(formations.find(f=>f.id===body.id)?.members.filter(m=>m.retinueTo===body.id).map(m=>m.id)??[])]:[squad.id]});
       }
     }
   }
