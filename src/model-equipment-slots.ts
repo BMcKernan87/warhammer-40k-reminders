@@ -9,6 +9,7 @@ interface GuardRole {
 }
 interface GuardLimit {
   role?:string;
+  excluding?:ItemList;
   thresholds:readonly {models:number;choices:number;per_choice?:number}[];
   choices:readonly ItemList[];
 }
@@ -54,7 +55,7 @@ export function validModelEquipment(resolved:ResolvedKit|undefined,gear:Gear):bo
  const bearers=resolved.models.map(b=>({role:b.role,items:equippedItems(b,gear)}));
  return resolved.limits.every(limit=>{
   const current=limit.thresholds.filter(b=>b.models<=bearers.length).at(-1);
-  const owners=bearers.filter(b=>!limit.role||b.role===limit.role);
+  const owners=bearers.filter(b=>(!limit.role||b.role===limit.role)&&!limit.excluding?.some(i=>b.items.includes(i)));
   const optionCounts=limit.choices.map(choice=>owners.filter(b=>contains(b.items,choice)).length);
   return optionCounts.every(n=>n<=(current?.per_choice??current?.choices??0))&&
    optionCounts.reduce((sum,n)=>sum+n,0)<=(current?.choices??0);

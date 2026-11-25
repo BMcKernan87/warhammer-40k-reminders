@@ -1,6 +1,6 @@
 import {alliedUnitLimit} from './titan-support-data';
 import type {ArmySelection} from './catalog';
-import {NATIVE_AGENT_SHEETS} from './assigned-agent-data';
+import {NATIVE_AGENT_SHEETS,assignedAgentHost} from './assigned-agent-data';
 import {agentTransports} from './agent-transports';
 import {rosterCost2026} from './datasheets-2026';
 import {BATTLE_SIZES_2026} from './edition-2026';
@@ -49,7 +49,7 @@ export function agentMusterFindings(army:ArmySelection):RosterFinding[]{
     const cap=BATTLE_SIZES_2026[army.battleSize2026??'Strike Force'].points;
     if(rosterCost2026(army).knownPoints>cap)findings.push({severity:'error',code:'points-limit',message:'The roster exceeds the '+cap+'-point allowance.'});
   }
-  if(['Astra Militarum','Imperial Agents','Imperial Knights','Adeptus Custodes'].includes(army.faction)){
+  if(army.faction==='Imperial Agents'||assignedAgentHost(army.faction)){
     const {required,dedicatedSatisfied}=agentTransports(army);
     if(!dedicatedSatisfied)findings.push({severity:'error',code:'agent-transport-passengers',message:'The roster needs enough distinct eligible passengers to start every Dedicated Transport occupied: '+required.join(', ')+'.'});
   }

@@ -1,3 +1,4 @@
+import {eligibleGreyKnightsUpgrades} from './grey-knights-detachment-data';
 import {eligibleDeathGuardUpgrades} from './death-guard-detachment-data';
 import {eligibleThousandSonsUpgrades} from './thousand-sons-detachment-data';
 import {eligibleEmperorsChildrenUpgrades} from './emperors-children-detachment-data';
@@ -135,6 +136,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Grey Knights')return eligibleGreyKnightsUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Grey Knights',source:'https://wahapedia.ru/wh40k11ed/factions/grey-knights/'}));
  if(army.faction==='Death Guard')return eligibleDeathGuardUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Death Guard',source:'https://wahapedia.ru/wh40k11ed/factions/death-guard/'}));
  if(army.faction==='Thousand Sons')return eligibleThousandSonsUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Thousand Sons',source:'https://wahapedia.ru/wh40k11ed/factions/thousand-sons/'}));
  if(army.faction==='Emperor’s Children')return eligibleEmperorsChildrenUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Emperor’s Children',source:'https://wahapedia.ru/wh40k11ed/factions/emperor-s-children/'}));

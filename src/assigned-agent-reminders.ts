@@ -4,7 +4,7 @@ import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {IMPERIAL_KNIGHT_SHEETS,knightMusterUnits} from './imperial-knights-data';
 import {knightWeaponCount,knightLoadoutFor} from './knight-loadouts';
 import {rosterCost2026} from './datasheets-2026';
-import {ASSIGNED_AGENT_SHEETS} from './assigned-agent-data';
+import {ASSIGNED_AGENT_SHEETS,assignedAgentHost} from './assigned-agent-data';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {expandRoster} from './roster-instances';
 import {weaponAbilityText} from './weapon-abilities-11th';
@@ -22,7 +22,7 @@ function weaponEffect(raw:string,snap:boolean){
 }
 
 export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
- if(!['Imperial Knights','Imperial Agents','Adeptus Custodes','Astra Militarum'].includes(army.faction))return [];
+ if(army.faction!=='Imperial Agents'&&!assignedAgentHost(army.faction))return [];
  const result:GeneratedReminder[]=[];
  const native=army.faction==='Imperial Agents';
  const guard=army.faction==='Astra Militarum';

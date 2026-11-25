@@ -1,6 +1,6 @@
-import {importLegionMuster} from './import-legion-muster.mjs';
+import {importFactionMuster} from './import-faction-muster.mjs';
 
-await importLegionMuster({
+await importFactionMuster({
  name:'Death Guard',slug:'death-guard',factionId:'DG',sourceId:'000000014',daemons:'Plague Legions',total:36,daemonCount:6,
  manualNames:{'myphitic blight-haulers':'Myphitic Blight-hauler'},
  pack:'eng_30-09_wh40k_faction_pack_death_guard-bp5c8lcjq6-i4ew7urwyk.pdf',prefix:'DEATH_GUARD',

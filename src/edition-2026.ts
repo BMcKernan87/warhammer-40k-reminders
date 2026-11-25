@@ -206,17 +206,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Godhammer Assault Force",disposition:"Disruption",dp:2},
   {name:"Vindication Task Force",disposition:"Priority Assets",dp:2},
  ],
- "Grey Knights":[
-  {name:"Argent Assault",disposition:"Purge the Foe",dp:1},
-  {name:"Fires of Purgation",disposition:"Disruption",dp:1},
-  {name:"Immaterial Interdiction",disposition:"Priority Assets",dp:1},
-  {name:"Augurium Task Force",disposition:"Reconnaissance",dp:2},
-  {name:"Banishers",disposition:"Disruption",dp:2},
-  {name:"Brotherhood Strike",disposition:"Purge the Foe",dp:2},
-  {name:"Hallowed Conclave",disposition:"Take and Hold",dp:2},
-  {name:"Sanctic Spearhead",disposition:"Priority Assets",dp:2},
-  {name:"Warpbane Task Force",disposition:"Purge the Foe",dp:3},
- ],
+ 'Grey Knights':GK_DETACHMENTS,
  Necrons:[
  {name:'Hand of the Dynasty',disposition:'Take and Hold',dp:1},
  {name:'Skysword Spearhead',disposition:'Reconnaissance',dp:1},
@@ -275,3 +265,4 @@ export function detachmentBudget(faction:Faction,selected:readonly string[],size
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;
  return {supported:true,spent,limit:soloThreeDP?3:limit,valid:selected.length>0&&new Set(names).size===names.length&&entries.every(Boolean)&&!conflicts&&(spent<=limit||soloThreeDP),dispositions:[...new Set(entries.filter((d):d is Detachment2026=>!!d).flatMap(d=>[d.disposition,...(d.additionalDispositions??[])]))]};
 }
+import {GK_DETACHMENTS} from './grey-knights-detachments.generated';

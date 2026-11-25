@@ -2,7 +2,7 @@ import type {RosterInstance} from './roster-instances';
 import {knightWeaponCount} from './knight-loadouts';
 import {weaponAbilityText} from './weapon-abilities-11th';
 
-interface WeaponProfile {name:string; phase:'Shooting'|'Fight'; abilities:readonly string[]; mode?:boolean}
+interface WeaponProfile {name:string; phase:'Shooting'|'Fight'; abilities:readonly string[]; mode?:boolean; strength?:number; ap?:number}
 export interface KnightCardStats {
   source:string; save:number|null; rangedSave:boolean; saveBearer?:string; demise:string|null;
   core?:readonly string[]; damage:{threshold:number;oc:number;slaughterAttacks?:number}|null; conversion:number|null; conversionRequiresHit?:boolean; weapons:readonly WeaponProfile[];
@@ -28,6 +28,7 @@ export function equippedWeaponText(s:RosterInstance,stats:KnightCardStats,phase:
     const count=weaponCount(s,profile.name);
     if(!count)continue;
     const abilities=profileText(profile,stats,snap);
+    if(profile.strength!==undefined)abilities.unshift('S'+profile.strength+(profile.ap===undefined?'':', AP '+profile.ap));
     if(!abilities.length&&!profile.mode)continue;
     descriptions.push(count+' × '+profile.name+(profile.mode?' (choose one profile per weapon)':'')+(abilities.length?' — '+abilities.join(', '):'')+'.');
   }

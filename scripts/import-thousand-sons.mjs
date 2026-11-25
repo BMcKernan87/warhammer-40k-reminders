@@ -1,6 +1,6 @@
-import {importLegionMuster} from './import-legion-muster.mjs';
+import {importFactionMuster} from './import-faction-muster.mjs';
 
-await importLegionMuster({
+await importFactionMuster({
  name:'Thousand Sons',slug:'thousand-sons',factionId:'TS',sourceId:'000000027',
  daemons:'Scintillating Legions',total:34,daemonCount:6,pack:'eng_30-09_wh40k_faction_pack_thousand_sons-4lioijwxdj-otjrinzt8c.pdf',
  battleOnlyModels:{'Pink Horrors':['Blue Horrors','Brimstone Horrors'],'Blue Horrors':['Brimstone Horrors']},prefix:'THOUSAND_SONS',
