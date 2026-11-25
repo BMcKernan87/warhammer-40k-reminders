@@ -1,29 +1,9 @@
 import {ASTRA_MILITARUM_KITS} from './astra-militarum-loadouts.generated';
-import {equippedItems,slot,type KnightEquipment,type KnightSlot} from './knight-gear-options';
+import {equippedItems,slot,type KnightEquipment} from './knight-gear-options';
 import type {RosterInstance} from './roster-instances';
 
-type ItemList=readonly string[];
-type Gear=Readonly<Record<string,string>>;
-interface GuardRole {
-  role:string;
-  fixed:ItemList;
-  slots:readonly {label:string;choices:readonly ItemList[]}[];
-}
-interface GuardLimit {
-  role?:string;
-  thresholds:readonly {models:number;choices:number;per_choice?:number}[];
-  choices:readonly ItemList[];
-}
-export interface GuardKit{
-  unit:string;
-  roles:readonly GuardRole[];
-  tiers:Readonly<Record<number,Readonly<Record<string,number>>>>;
-  limits:readonly GuardLimit[];
-  ranged:ItemList;
-  costs:Readonly<Record<string,number>>;
-}
-interface Bearer{role:string;fixed:ItemList;slots:KnightSlot[]}
-interface ResolvedKit{equipment:KnightEquipment;models:Bearer[];limits:readonly GuardLimit[]}
+export type {ModelEquipmentTable as GuardKit} from './model-equipment-slots';
+import {resolveModelEquipment,resizeModelEquipment,validModelEquipment,type Gear,type ResolvedKit} from './model-equipment-slots';
 const kits=new Map(ASTRA_MILITARUM_KITS.map(r=>[r.unit,r]));
 const cache=new Map<string,ResolvedKit>();
 const norm=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -52,53 +32,18 @@ function resolve(unit:string,models?:number):ResolvedKit|undefined {
  if(unit==='Cadian Recon Squad'){
   const result=reconKit();cache.set(key,result);return result;
  }
- const bearers:Bearer[]=[];
- for(const role of kit.roles){
-  const count=tier[role.role],max=Math.max(...Object.values(kit.tiers).map(t=>t[role.role]));
-  for(let n=1;n<=count;n++){
-   const label=role.role.replace(/#(\d+)$/,' $1')+(max>1?' '+n:'');
-   const prefix=size===1&&max===1?'':label+' · ';
-   const slots=role.slots.map(s=>slot(prefix+s.label,...s.choices));
-   bearers.push({role:role.role,fixed:role.fixed,slots});
-  }
- }
- const result={equipment:{fixed:bearers.flatMap(b=>b.fixed),slots:bearers.flatMap(b=>b.slots)},models:bearers,limits:kit.limits};
+ const result=resolveModelEquipment(kit,size)!;
  cache.set(key,result);
  return result;
 }
 export function broodBrotherLoadout(unit:string,models?:number):KnightEquipment|undefined{
  return resolve(unit,models)?.equipment;
 }
-function contains(items:ItemList,wanted:ItemList):boolean{
- const remaining=[...items];
- for(const item of wanted){
-  const index=remaining.indexOf(item);
-  if(index<0)return false;
-  remaining.splice(index,1);
- }
- return true;
-}
-export function validBroodBrotherGear(unit:string,gear:Gear,models?:number):boolean {
- const resolved=resolve(unit,models);
- if(!resolved?.limits.length)return true;
- const bearers=resolved.models.map(b=>({role:b.role,items:equippedItems(b,gear)}));
- return resolved.limits.every(limit=>{
-  const current=limit.thresholds.filter(b=>b.models<=bearers.length).at(-1);
-  const owners=bearers.filter(b=>!limit.role||b.role===limit.role);
-  const optionCounts=limit.choices.map(choice=>owners.filter(b=>contains(b.items,choice)).length);
-  return optionCounts.every(n=>n<=(current?.per_choice??current?.choices??0))&&
-   optionCounts.reduce((sum,n)=>sum+n,0)<=(current?.choices??0);
- });
+export function validBroodBrotherGear(unit:string,gear:Gear,models?:number):boolean{
+ return validModelEquipment(resolve(unit,models),gear);
 }
 export function resizeBroodBrotherGear(unit:string,gear:Gear,models:number):Record<string,string>|undefined{
- const kit=resolve(unit,models);
- if(!kit)return;
- const result:Record<string,string>={};
- for(const s of kit.equipment.slots){
-  const value=gear[s.name];
-  if(s.choices.some(c=>c.name===value)&&validBroodBrotherGear(unit,{...result,[s.name]:value},models))result[s.name]=value;
- }
- return result;
+ return resizeModelEquipment(resolve(unit,models),gear);
 }
 export function broodBrotherModelLoadouts(squad:RosterInstance):{model:string;items:readonly string[]}[]{
  const resolved=resolve(squad.unit,squad.models);

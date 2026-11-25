@@ -1,4 +1,11 @@
+import {worldEatersDetachmentReminders} from './world-eaters-detachments';
+import {worldEatersIntrinsicReminders} from './world-eaters-intrinsic';
+import {worldEaterProfileReminders} from './world-eater-core';
 import {gscDetachmentReminders} from './gsc-detachments';
+import {worldEatersBlessingReminders} from './world-eaters-blessings';
+import {worldEatersKeywords,worldEatersMusterUnits,isWorldEatersDreadblade} from './world-eaters-data';
+import {worldEaterHasRangedWeapon} from './world-eater-loadouts';
+import {worldEatersTransportReminders} from './world-eaters-muster';
 import {orkDetachmentReminders,orkHasRangedAttack} from './ork-detachments';
 import {orkKeywords} from './ork-data';
 import {votannDatasheetReminders} from './votann-datasheets';
@@ -149,15 +156,18 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const cult=_army.faction==='Genestealer Cults';
  const votann=_army.faction==='Leagues of Votann';
  const orks=_army.faction==='Orks';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult;
+ const worldEaters=_army.faction==='World Eaters';
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult||worldEaters;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
- const roster=expandRoster(_army);
+ const eligibleWorldEaters=worldEaters?new Set(worldEatersMusterUnits(_army)):undefined;
+ const roster=expandRoster(_army).filter(s=>!eligibleWorldEaters||eligibleWorldEaters.has(s.unit));
  result.push(...alliedTitanAndKnightReminders(_army,roster));
  if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
  if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
  if(orks)result.push(...orkDetachmentReminders(_army,roster),...orkDatasheetReminders(_army,roster));
  if(votann)result.push(...votannArmyReminders(_army,roster),...votannDatasheetReminders(_army,roster),...votannStratagemReminders(_army,roster),...votannTransportReminders(_army,roster));
  if(cult)result.push(...gscEmbarkationReminders(_army,roster),...gscCultAmbushReminders(_army,roster),...gscDatasheetReminders(_army,roster),...gscDetachmentReminders(_army,roster),...gscAlliedReminders(_army,roster));
+ if(worldEaters)result.push(...worldEatersBlessingReminders(_army,roster),...worldEatersDetachmentReminders(_army,roster),...worldEatersIntrinsicReminders(_army,roster),...worldEaterProfileReminders(_army,roster),...worldEatersTransportReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
  if(custodes)result.push(...custodesDetachmentReminders(_army,roster),...custodesDatasheetReminders(_army,roster));
  if(formedArmy){
   const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
@@ -169,6 +179,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const keywords=(unit:string,id?:string)=>{
    if(isWarhound(unit))return unitKeywords.get(unit)??[];
    if(cult)return [...gscArmyKeywords(_army,{unit,id:id??''})];
+   if(worldEaters)return [...worldEatersKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(orks)return [...orkKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(votann)return [...votannKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(custodes)return [...custodesKeywords(_army,{unit,id:id??''})];
@@ -180,7 +191,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=cult?gscHasRangedWeapon:votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
+  const hasGun=cult?gscHasRangedWeapon:worldEaters?(s:RosterInstance)=>isWarhound(s.unit)||(isWorldEatersDreadblade(s.unit)?chaosKnightHasRangedWeapon(s):worldEaterHasRangedWeapon(s)):votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));

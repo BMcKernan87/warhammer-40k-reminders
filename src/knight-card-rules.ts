@@ -21,11 +21,11 @@ function profileText(profile:WeaponProfile,stats:KnightCardStats,snap:boolean):s
   });
 }
 
-export function equippedWeaponText(s:RosterInstance,stats:KnightCardStats,phase:'Fight'|'Shooting',snap:boolean):string {
+export function equippedWeaponText(s:RosterInstance,stats:KnightCardStats,phase:'Fight'|'Shooting',snap:boolean,weaponCount=knightWeaponCount):string {
   const descriptions:string[]=[];
   for(const profile of stats.weapons){
     if(profile.phase!==phase)continue;
-    const count=knightWeaponCount(s,profile.name);
+    const count=weaponCount(s,profile.name);
     if(!count)continue;
     const abilities=profileText(profile,stats,snap);
     if(!abilities.length&&!profile.mode)continue;

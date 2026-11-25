@@ -1,0 +1,102 @@
+// @vitest-environment node
+import {expect,it} from 'vitest';
+import {addSelectionUnit,newSelection,validateSelection,type ArmySelection} from '../src/catalog';
+import {rosterCost2026} from '../src/datasheets-2026';
+import {knightJoinedBodyguard} from '../src/leader-eligibility';
+import {individualArmy,setInstanceAttachment,setInstanceModelCount} from '../src/roster-instances';
+import {rosterFindings} from '../src/roster-findings';
+import {selectUpgrade2026} from '../src/upgrades-2026';
+import {worldEatersCargoFormations,worldEatersTransportReminders,worldEatersUnitLimit,worldEatersWarlordCandidates,selectWorldEatersWarlord} from '../src/world-eaters-muster';
+import {worldEatersKeywords} from '../src/world-eaters-data';
+const build=(units:string[],detachment='Berzerker Warband',size:ArmySelection['battleSize2026']='Incursion')=>{
+ let a:ArmySelection=individualArmy({...newSelection('World Eaters'),battleSize2026:size,detachments2026:[detachment]});
+ for(const u of units)a=addSelectionUnit(a,u);
+ return a;
+};
+const id=(unit:string)=>unit+'#1';
+const find=(a:ArmySelection,unit:string)=>a.instances!.find(s=>s.unit===unit)!;
+const errors=(a:ArmySelection)=>rosterFindings(a).filter(r=>r.severity==='error');
+it('fits unjoined Infantry and correctly counts or excludes each heavy or mounted member of the whole selected formation',()=>{
+ const a=build(['Chaos Rhino','Chaos Land Raider','Khorne Berzerkers','Khârn The Betrayer','Chaos Terminators','Eightbound','Lord Invocatus','Jakhals']);
+ const kharn=setInstanceAttachment(a,id('Khârn The Betrayer'),id('Khorne Berzerkers'));
+ const formed=setInstanceAttachment(kharn,id('Lord Invocatus'),id('Eightbound'));
+ const rhino=find(formed,'Chaos Rhino'),land=find(formed,'Chaos Land Raider');
+ const can=(army:ArmySelection,carrier:typeof rhino)=>worldEatersCargoFormations(army,carrier).map(g=>[g.body.id,g.spaces]);
+ expect(can(formed,rhino)).toContainEqual([id('Khorne Berzerkers'),11]);
+ expect(can(formed,rhino)).not.toContainEqual([id('Chaos Terminators'),10]);
+ expect(can(formed,land)).toContainEqual([id('Chaos Terminators'),10]);
+ expect(can(formed,land).some(([unit])=>unit===id('Eightbound'))).toBe(false);
+ const foot=setInstanceAttachment(formed,id('Lord Invocatus'),null);
+ expect(can(foot,land)).toContainEqual([id('Eightbound'),6]);
+ expect(can(foot,rhino).some(([unit])=>unit===id('Eightbound'))).toBe(false);
+ const large=setInstanceModelCount(foot,id('Chaos Terminators'),8);
+ expect(can(large,land).some(([unit])=>unit===id('Chaos Terminators'))).toBe(false);
+ const rows=worldEatersTransportReminders(formed);
+ expect(rows.find(r=>r.id==='11e-world-eaters-transport-'+rhino.id)?.summary).toMatch(/must start.*12 World Eaters Infantry.*Khorne Berzerkers#1 \(11 spaces\)/);
+ expect(rows.find(r=>r.id==='11e-world-eaters-disembark-'+land.id)?.units).not.toContain(id('Eightbound'));
+});
+it('requires distinct legal formations to fill all Rhinos, including after resizing or boarding a mounted Lord',()=>{
+ let a=build(['Chaos Rhino','Chaos Rhino','Khorne Berzerkers','Jakhals','Lord on Juggernaut']);
+ a=setInstanceAttachment(a,id('Lord on Juggernaut'),null);
+ expect(errors(a).find(e=>e.code==='dedicated-transport-passengers')).toBeUndefined();
+ expect(errors(setInstanceModelCount(a,id('Jakhals'),20)).find(e=>e.code==='dedicated-transport-passengers')).toBeDefined();
+ expect(errors(setInstanceAttachment(a,id('Lord on Juggernaut'),id('Khorne Berzerkers'))).find(e=>e.code==='dedicated-transport-passengers')).toBeDefined();
+});
+it('changes the Disciple Lord’s Warlord, bodyguard and faction-point eligibility when the enhancement is chosen',()=>{
+ let a=build(['Lord on Juggernaut','Khârn The Betrayer','Bloodcrushers','Bloodthirster','Bloodletters'],'Khorne Daemonkin');
+ const lord=find(a,'Lord on Juggernaut');
+ expect(worldEatersWarlordCandidates(a).map(s=>s.id)).toContain(lord.id);
+ expect(()=>setInstanceAttachment(a,lord.id,id('Bloodcrushers'))).toThrow();
+ a=selectUpgrade2026(a,lord.id,'Disciple of Khorne');
+ a=setInstanceAttachment(a,lord.id,id('Bloodcrushers'));
+ expect(knightJoinedBodyguard(a,find(a,'Lord on Juggernaut'))?.unit).toBe('Bloodcrushers');
+ expect(worldEatersWarlordCandidates(a).map(s=>s.id)).toEqual([id('Khârn The Betrayer')]);
+ expect(()=>selectWorldEatersWarlord(a,lord.id)).toThrow();
+ expect(errors(a).find(r=>r.code==='blood-legions-allowance')?.message).toContain('615 points');
+ expect(errors({...a,warlordId:lord.id}).some(r=>r.code==='world-eaters-warlord-ineligible')).toBe(true);
+ expect(rosterCost2026(a).entries.find(e=>e.id===lord.id)?.points).toBe(110);
+});
+it('applies the selected bearer’s Butcher Lord links, Brazen Engines Daemon keyword, and Cult of Blood Battleline limit',()=>{
+ let a=build(['Master of Executions','Goremongers','Jakhals'],'Cult of Blood');
+ const leader=find(a,'Master of Executions');
+ expect(()=>setInstanceAttachment(a,leader.id,id('Jakhals'))).toThrow();
+ a=selectUpgrade2026(a,leader.id,'Butcher Lord');
+ expect(setInstanceAttachment(a,leader.id,id('Jakhals')).instances?.find(s=>s.id===leader.id)?.attachedTo).toBe(id('Jakhals'));
+ expect(worldEatersUnitLimit(a,'Goremongers')).toBe(4);
+ expect(worldEatersUnitLimit({...a,detachments2026:['Berzerker Warband']},'Goremongers')).toBe(2);
+ const b=build(['Chaos Rhino','Jakhals','Master of Executions'],'Brazen Engines');
+ expect(worldEatersKeywords(b,find(b,'Chaos Rhino'))).not.toContain('DAEMON');
+ expect(worldEatersKeywords(selectUpgrade2026(b,id('Chaos Rhino'),'Murder-Forged Entity'),find(b,'Chaos Rhino'))).toContain('DAEMON');
+});
+it('checks Dreadblade and Blood Legions allowance separately and excludes both allied choices from the Warlord',()=>{
+ const a=build(['Lord on Juggernaut','War Dog Karnivore','War Dog Stalker','War Dog Brigand','Bloodletters'],'Khorne Daemonkin','Strike Force');
+ expect(worldEatersUnitLimit(a,'Knight Desecrator')).toBe(0);
+ expect(worldEatersUnitLimit(a,'War Dog Moirax')).toBe(0);
+ expect(worldEatersWarlordCandidates(a).map(s=>s.unit)).toEqual(['Lord on Juggernaut']);
+ expect(errors(a).some(r=>r.code==='dreadblade-allowance')).toBe(false);
+ const over=addSelectionUnit(a,'Knight Desecrator');
+ expect(errors(over).some(r=>r.code==='dreadblade-allowance')).toBe(true);
+ expect(errors({...a,detachments2026:['Berzerker Warband']}).some(r=>r.code==='world-eaters-ineligible'&&r.unit==='Bloodletters')).toBe(true);
+});
+it('reopens an exact 1,000-point combined-arms roster with its selected leader and complete transport reminder',()=>{
+ let a=build(['Khârn The Betrayer','Khorne Berzerkers','Chaos Rhino','Eightbound','Slaughterbound','Helbrute','Exalted Eightbound','Heldrake']);
+ a=selectWorldEatersWarlord(a,id('Khârn The Betrayer'));
+ a=setInstanceAttachment(a,id('Khârn The Betrayer'),id('Khorne Berzerkers'));
+ a=setInstanceAttachment(a,id('Slaughterbound'),id('Eightbound'));
+ const reopened=JSON.parse(JSON.stringify(a));
+ expect(validateSelection(reopened)).toBe(true);
+ expect(rosterCost2026(reopened).total).toBe(1000);
+ expect(errors(reopened)).toEqual([]);
+ expect(worldEatersTransportReminders(reopened).find(r=>r.window==='Pre-battle')?.units).toEqual([id('Chaos Rhino'),id('Khorne Berzerkers')]);
+});
+it('prices a 2,000-point mixed Daemonkin roster with Angron as Warlord and a legal mounted Disciple bodyguard',()=>{
+ let a=build(['Angron','Lord on Juggernaut','Bloodcrushers','Bloodletters','Khârn The Betrayer','Khorne Berzerkers','Chaos Land Raider','Chaos Rhino','Jakhals','Helbrute','Chaos Terminators','Skarbrand','Maulerfiend'],'Khorne Daemonkin','Strike Force');
+ a=selectUpgrade2026(a,id('Lord on Juggernaut'),'Disciple of Khorne');
+ a=setInstanceAttachment(a,id('Lord on Juggernaut'),id('Bloodcrushers'));
+ a=setInstanceAttachment(a,id('Khârn The Betrayer'),id('Khorne Berzerkers'));
+ expect(worldEatersWarlordCandidates(a).map(s=>s.unit)).toEqual(['Angron']);
+ expect(rosterCost2026(a).total).toBe(2000);
+ expect(errors(a)).toEqual([]);
+ expect(validateSelection(JSON.parse(JSON.stringify(a)))).toBe(true);
+ expect(worldEatersCargoFormations(a,find(a,'Chaos Land Raider')).map(g=>g.body.unit)).toEqual(['Khorne Berzerkers','Jakhals','Chaos Terminators']);
+});

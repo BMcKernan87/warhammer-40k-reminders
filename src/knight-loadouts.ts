@@ -1,3 +1,5 @@
+import {isWorldEatersDreadblade} from './world-eaters-data';
+import {resizeWorldEaterGear,validWorldEaterGear,worldEaterLoadout} from './world-eater-loadouts';
 import {shadowMarineLoadout,isShadowMarine,validShadowMarineGear,resizeShadowMarineGear} from './shadow-legion-loadouts';
 import {alliedWarhound,isFreeblade,isWarhound,freebladeHost,warhoundEquipment} from './titan-support-data';
 import type {ArmySelection} from './catalog';
@@ -108,7 +110,8 @@ function accursedCultists(models:number):KnightEquipment {
 }
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
-export function resizeKnightComposition(squad:RosterInstance,models:number):Record<string,string>|undefined {
+export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
+  if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,models))return resizeWorldEaterGear(squad,models);
   if(isShadowMarine(squad.unit))return resizeShadowMarineGear(squad,models);
   if(!squad.knightGear)return undefined;
   const ork=resizeOrkGear(squad.knightGear,squad.unit,models);
@@ -163,8 +166,9 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 };
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
-  if(faction==='Orks')return orkLoadout(unit,models);
   if(unit===alliedWarhound(faction))return warhoundEquipment;
+  if(faction==='World Eaters')return worldEaterLoadout(unit,models)??(isWorldEatersDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
+  if(faction==='Orks')return orkLoadout(unit,models);
   if(freebladeHost(faction)&&isFreeblade(unit))return IMPERIAL_KNIGHT_LOADOUTS[unit];
   if((faction==='Chaos Daemons'||faction==='Chaos Space Marines')&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
   if(faction==='Genestealer Cults')return gscLoadout(unit,models)??finalDayLoadout(unit,models)??broodBrotherLoadout(unit,models);
@@ -198,6 +202,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(faction==='World Eaters'&&worldEaterLoadout(squad.unit,squad.models))return validWorldEaterGear(squad.unit,gear,squad.models);
   if(!validOrkGear(squad.unit,gear,squad.models))return false;
   if(!validBroodBrotherGear(squad.unit,gear,squad.models))return false;
   if(!validGscGear(squad.unit,gear,squad.models))return false;
