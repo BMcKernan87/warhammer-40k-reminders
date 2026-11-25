@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
+    outputs:
+      artifact: ${{ steps.revision.outputs.artifact }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,9 +23,13 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - name: Record deployed revision
-        run: printf '{"sha":"%s"}\n' "$GITHUB_SHA" > dist/revision.json
+        id: revision
+        run: |
+          printf '{"sha":"%s"}\n' "$GITHUB_SHA" > dist/revision.json
+          echo "artifact=github-pages-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: ${{ steps.revision.outputs.artifact }}
           path: dist
   deploy:
     environment:
@@ -34,6 +40,8 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact }}
 
   verify:
     needs: deploy
