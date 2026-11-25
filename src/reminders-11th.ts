@@ -1,3 +1,5 @@
+import {orkDetachmentReminders,orkHasRangedAttack} from './ork-detachments';
+import {orkKeywords} from './ork-data';
 import {shadowLegionHasRangedWeapon, shadowMarineReminders} from './shadow-legion-cards';
 import {alliedTitanAndKnightReminders,applyWarhoundStratagemCost} from './titan-support';
 import {isWarhound} from './titan-support-data';
@@ -14,6 +16,8 @@ import {custodesDatasheetReminders} from './custodes-datasheets';
 import {custodesHasRangedWeapon} from './custodes-loadouts';
 import {custodesKeywords} from './adeptus-custodes-data';
 import {custodesFormationReminders} from './custodes-formations';
+import {orkDatasheetReminders} from './ork-datasheets';
+import {orkTransportReminders} from './ork-transports';
 import {custodesDetachmentReminders} from './custodes-detachments';
 import {chaosKnightDetachmentReminders,resolvedWarDogCharacterIds} from './chaos-knight-detachments';
 import {daemonDatasheetReminders,daemonHasRangedWeapon} from './daemon-datasheets';
@@ -128,12 +132,14 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const agents=_army.faction==='Imperial Agents';
  const daemons=_army.faction==='Chaos Daemons';
  const custodes=_army.faction==='Adeptus Custodes';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes;
+ const orks=_army.faction==='Orks';
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
  const roster=expandRoster(_army);
  result.push(...alliedTitanAndKnightReminders(_army,roster));
  if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
  if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
+ if(orks)result.push(...orkDetachmentReminders(_army,roster),...orkDatasheetReminders(_army,roster));
  if(custodes)result.push(...custodesDetachmentReminders(_army,roster),...custodesDatasheetReminders(_army,roster));
  if(formedArmy){
   const sheets=new Map(DATASHEETS_2026.filter(s=>s.faction===_army.faction).map(s=>[s.unit,s]));
@@ -144,6 +150,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const promoted=new Set(resolvedWarDogCharacterIds(_army,roster));
   const keywords=(unit:string,id?:string)=>{
    if(isWarhound(unit))return unitKeywords.get(unit)??[];
+   if(orks)return [...orkKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(custodes)return [...custodesKeywords(_army,{unit,id:id??''})];
    const tags=unitKeywords.get(unit)??[];
    return id&&promoted.has(id)?[...tags,'CHARACTER']:tags;
@@ -153,7 +160,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
+  const hasGun=orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));
@@ -165,6 +172,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   else if(_army.faction==='Necrons')result.push(...necronDeploymentReminders(_army,roster));
  }
  if(_army.faction==='Adeptus Custodes')result.push(...custodesFormationReminders(_army,roster));
+ if(_army.faction==='Orks')result.push(...orkTransportReminders(_army,roster));
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
   const formations=necronFormationRoots(_army,roster);
@@ -267,14 +275,6 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  }
  result.push(...eligibleScoutReminders(_army));
  result.push(...necronDatasheetReminders2026(_army));
- if(_army.faction==='Orks'&&(Object.values(_army.units).some(n=>n>0)||(_army.instances?.length??0)>0)){
-  const source='https://www.warhammer-community.com/en-gb/articles/ckwgwgyx/new-codex-orks-army-rules-to-get-you-riled-up/';
-  result.push({id:'11e-orks-war-cry',title:'Waaagh! · War Cry (once per battle)',window:'Command',timing:'start',summary:'At the start of your Command phase, you may use War Cry once per battle. Friendly ORKS units with Waaagh! become riled up until the end of the next turn.',source,origin:'army'});
-  result.push({id:'11e-orks-advance',title:'Waaagh! · Re-roll advances',window:'Movement',timing:'during',summary:'Friendly ORKS units with Waaagh! can re-roll Advance rolls. While riled up, their ranged attacks have Assault and advancing does not prevent them declaring a charge.',source,origin:'army'});
-  result.push({id:'11e-orks-riled-save',title:'Waaagh! · Riled-up protection',window:'Shooting',timing:'during',summary:'While riled up, friendly ORKS units with Waaagh! have a 5+ invulnerable save.',source,origin:'army'});
-  result.push({id:'11e-orks-riled-save-fight',title:'Waaagh! · Riled-up protection',window:'Fight',timing:'during',summary:'While riled up, friendly ORKS units with Waaagh! have a 5+ invulnerable save.',source,origin:'army'});
-  if((_army.units.Meganobz||0)>0||_army.instances?.some(s=>s.unit==='Meganobz'))result.push({id:'11e-orks-meganobz-krumpin',title:'Meganobz · Krumpin’ Time',window:'Fight',timing:'during',summary:'While this Meganobz unit is riled up, add 1 to its Hit rolls in the Fight phase.',source,origin:'unit',units:['Meganobz']});
- }
  const warhounds=new Set(roster.filter(s=>isWarhound(s.unit)).map(s=>s.id));
  return result.map(rule=>applyWarhoundStratagemCost(_army.faction==='Necrons'||rule.id.startsWith('11e-core-')?applyStratagemWindow(rule):rule,warhounds));
 }
