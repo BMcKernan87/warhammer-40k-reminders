@@ -1,3 +1,11 @@
+import {emperorsChildrenTransportReminders} from './emperors-children-transports';
+import {ecProfileReminders} from './ec-datasheet-core';
+import {emperorsChildrenIntrinsicReminders} from './emperors-children-intrinsic';
+import {emperorsChildrenDetachmentReminders} from './emperors-children-detachments';
+import {emperorsChildrenArmyReminders} from './emperors-children-army';
+import {emperorsChildrenKeywords,emperorsChildrenMusterUnits} from './emperors-children-data';
+import {emperorsChildrenHasRangedWeapon} from './emperors-children-loadouts';
+import {isDreadblade} from './dreadblade-allies';
 import {worldEatersDetachmentReminders} from './world-eaters-detachments';
 import {worldEatersIntrinsicReminders} from './world-eaters-intrinsic';
 import {worldEaterProfileReminders} from './world-eater-core';
@@ -165,10 +173,11 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const orks=_army.faction==='Orks';
  const worldEaters=_army.faction==='World Eaters';
  const guard=_army.faction==='Astra Militarum';
- const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult||worldEaters||guard;
+ const emperorsChildren=_army.faction==='Emperor’s Children';
+ const formedArmy=_army.faction==='Necrons'||_army.faction==='Imperial Knights'||chaos||agents||daemons||custodes||orks||votann||cult||worldEaters||emperorsChildren||guard;
  const result=CORE_11TH.filter(rule=>!formedArmy||!['11e-movement-reserves','11e-core-overwatch'].includes(rule.id)).map(rule=>({...rule}));
- const eligible=worldEaters?new Set(worldEatersMusterUnits(_army)):guard?new Set(astraMusterUnits(_army)):undefined;
- const roster=expandRoster(_army).filter(s=>!eligible||eligible.has(s.unit));
+ const selectedUnits=worldEaters?new Set(worldEatersMusterUnits(_army)):emperorsChildren?new Set(emperorsChildrenMusterUnits(_army)):guard?new Set(astraMusterUnits(_army)):undefined;
+ const roster=expandRoster(_army).filter(s=>!selectedUnits||selectedUnits.has(s.unit));
  result.push(...alliedTitanAndKnightReminders(_army,roster));
  if(chaos||daemons)result.push(...daemonDatasheetReminders(_army,roster));
  if(daemons)result.push(...chaosKnightDatasheetReminders(_army,roster),...daemonArmyReminders(_army,roster),...shadowMarineReminders(_army,roster));
@@ -176,6 +185,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  if(votann)result.push(...votannArmyReminders(_army,roster),...votannDatasheetReminders(_army,roster),...votannStratagemReminders(_army,roster),...votannTransportReminders(_army,roster));
  if(guard)result.push(...astraDatasheetReminders(_army,roster),...astraMilitarumDetachmentReminders(_army,roster),...astraOrderReminders(_army,roster),...astraEmbarkationReminders(_army,roster),...assignedAgentReminders(_army));
  if(cult)result.push(...gscEmbarkationReminders(_army,roster),...gscCultAmbushReminders(_army,roster),...gscDatasheetReminders(_army,roster),...gscDetachmentReminders(_army,roster),...gscAlliedReminders(_army,roster));
+ if(emperorsChildren)result.push(...emperorsChildrenDetachmentReminders(_army,roster),...ecProfileReminders(_army,roster),...emperorsChildrenIntrinsicReminders(_army,roster),...emperorsChildrenArmyReminders(_army,roster),...emperorsChildrenTransportReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
  if(worldEaters)result.push(...worldEatersBlessingReminders(_army,roster),...worldEatersDetachmentReminders(_army,roster),...worldEatersIntrinsicReminders(_army,roster),...worldEaterProfileReminders(_army,roster),...worldEatersTransportReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
  if(custodes)result.push(...custodesDetachmentReminders(_army,roster),...custodesDatasheetReminders(_army,roster));
  if(formedArmy){
@@ -189,6 +199,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
    if(isWarhound(unit))return unitKeywords.get(unit)??[];
    if(guard)return [...astraMilitarumKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(cult)return [...gscArmyKeywords(_army,{unit,id:id??''})];
+   if(emperorsChildren)return [...emperorsChildrenKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(worldEaters)return [...worldEatersKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(orks)return [...orkKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
    if(votann)return [...votannKeywords(_army,roster.find(s=>s.id===id)??{unit,id:id??''})];
@@ -201,7 +212,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const bodies=new Map(roster.map(s=>[s.id,knightJoinedBodyguard(_army,s)?.id]));
   const formations=guard?astraFormationGroups(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
-  const hasGun=guard?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):astraAgentName(s.unit)?assignedAgentHasRanged(s,astraAgentName(s.unit)):astraMilitarumHasRangedWeapon(s)):cult?gscHasRangedWeapon:worldEaters?(s:RosterInstance)=>isWarhound(s.unit)||(isWorldEatersDreadblade(s.unit)?chaosKnightHasRangedWeapon(s):worldEaterHasRangedWeapon(s)):votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
+  const hasGun=guard?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):astraAgentName(s.unit)?assignedAgentHasRanged(s,astraAgentName(s.unit)):astraMilitarumHasRangedWeapon(s)):emperorsChildren?(s:RosterInstance)=>isWarhound(s.unit)||(isDreadblade(s.unit)?chaosKnightHasRangedWeapon(s):emperorsChildrenHasRangedWeapon(s)):cult?gscHasRangedWeapon:worldEaters?(s:RosterInstance)=>isWarhound(s.unit)||(isWorldEatersDreadblade(s.unit)?chaosKnightHasRangedWeapon(s):worldEaterHasRangedWeapon(s)):votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
   result.push(...formationDeploymentReminders(_army,formations,keywords),
    ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));

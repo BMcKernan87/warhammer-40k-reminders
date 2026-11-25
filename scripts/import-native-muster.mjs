@@ -17,7 +17,7 @@ export function importNativeMuster(tables,manual,spec){
   const price=prices.get(nativeNameKey(d.name)),source=sources.get(d.source_id);
   const core=source?.edition==='11'&&source.name===name;
   const fw=source?.name===name+' (Forge World)'&&source.edition==='0'&&spec.packAircraftOrModels.includes(d.name);
-  if(!price||(!core&&!fw)||!d.link.startsWith('https://wahapedia.ru/wh40k11ed/factions/'+slug+'/'))throw Error(d.name+' missing 11th edition or matched-play evidence');
+  if(!price||(!core&&!fw)||!d.link.startsWith('https://wahapedia.ru/wh40k11ed/factions/'+(spec.urlSlug??slug)+'/'))throw Error(d.name+' missing 11th edition or matched-play evidence');
   const own=key=>tables[key].filter(s=>s.datasheet_id===d.id);
   const costs=readPrices(own('Datasheets_models_cost'),d.name,price);
   const data=rosterMetadata(tables,d.name,d.id);
