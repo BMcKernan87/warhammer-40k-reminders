@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('mobile builder equipment choices persist across profiles without showing legacy reminders',async({page})=>{
  await page.setViewportSize({width:390,height:844});
- await page.goto('/');
+ await page.goto('./');
  await page.getByLabel('Select unit').selectOption('Immortals');
  await page.getByRole('button',{name:'Add',exact:true}).click();
  await page.getByRole('button',{name:'Play reminders'}).click();
@@ -20,7 +20,7 @@ test('mobile builder equipment choices persist across profiles without showing l
 });
 test('print contains all phases even when current phase is filtered',async({page})=>{
  await page.setViewportSize({width:375,height:812});
- await page.goto('/');
+ await page.goto('./');
  await page.getByRole('button',{name:'Play reminders'}).click();
 
  const phases=page.locator('.print-sheet h3');
