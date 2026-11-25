@@ -39,7 +39,12 @@ export function ReminderSheet({profile, onCompleted}: Props) {
   const armyLabel = [army.faction, ...(army.detachments2026 ?? []).map(name => name === 'Skysword Spearhead' ? 'Skyshroud Spearhead' : name)].join(' · ');
 
   // Recognize checkmarks made by the former turn tracker in the saved turn.
-  const keysFor = (rule: GeneratedReminder) => ['sheet:' + JSON.stringify([rule.window, rule.id, rule.units ?? []]), completionKey(rule.id, battle)];
+  const keysFor = (rule: GeneratedReminder) => {
+    const sheetKey = (window: ReminderWindow, units: string[]) => 'sheet:' + JSON.stringify([window, rule.id, units]);
+    const keys = [sheetKey(rule.window, rule.units ?? []), completionKey(rule.id, battle)];
+    if (rule.previousSheetEntry) keys.push(sheetKey(rule.previousSheetEntry.window, rule.previousSheetEntry.units));
+    return keys;
+  };
   const isChecked = (rule: GeneratedReminder) => keysFor(rule).some(key => checked.has(key));
   function toggle(rule: GeneratedReminder, done: boolean) {
     const keys = keysFor(rule);

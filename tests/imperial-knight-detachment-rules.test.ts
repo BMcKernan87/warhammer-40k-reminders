@@ -62,6 +62,12 @@ describe('Imperial Knights faction and detachment sheets',()=>{
   const b=army('Spearhead-at-arms','Knight Paladin','Armiger Warglaive','Armiger Helverin');
   expect(cues({...b,upgrades2026}).find(r=>r.title.includes(name))?.units).toEqual(['Armiger Warglaive#1','Armiger Helverin#1']);
  });
+ it('sets up Gate Warden foundations after deployment and before either Command phase',()=>{
+  const rows=cues(army('Gate Warden Lance','Knight Paladin'));
+  const foundations=rows.filter(r=>r.title.includes('foundations'));
+  expect(foundations).toHaveLength(1);
+  expect(foundations[0]).toMatchObject({window:'Start of battle round',timing:'start',turn:'either',units:['Knight Paladin#1'],previousSheetEntry:{window:'Pre-battle'}});
+ });
  it('blocks a shared Armigers tag even within budget and preserves all earned dispositions',()=>{
   expect(detachmentBudget('Imperial Knights',['Spearhead-at-arms','Throne-bonded Outriders'],'Strike Force').valid).toBe(false);
   expect(detachmentBudget('Imperial Knights',['Questoris Companions'],'Strike Force').dispositions).toEqual(['Take and Hold','Reconnaissance']);

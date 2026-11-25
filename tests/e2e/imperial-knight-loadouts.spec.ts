@@ -51,7 +51,7 @@ test('a 1,000-point Knight lance keeps its Warlord and prints the right firing a
   await expect(overwatch).toContainText('Opponent’s turn · end');
   await page.emulateMedia({media:'print'});
   const print=page.getByRole('region',{name:'Printable army reminders'});
-  await expect(print.locator('h3')).toHaveCount(8);
+  await expect(print.locator('h3')).toHaveCount(9);
   await expect(print.getByText('Declare Strategic Reserves',{exact:true}).locator('..')).toContainText('500 points');
   await expect(print.getByText('Plunging Fire · Towering models',{exact:true}).locator('..').locator('.rule-subjects')).toHaveText('Roster: Knight Errant#1, Knight Gallant#1');
   await expect(print.getByText('Use Bondsman abilities',{exact:true})).toBeVisible();

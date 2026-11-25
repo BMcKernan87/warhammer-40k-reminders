@@ -24,8 +24,8 @@ test('print contains all phases even when current phase is filtered',async({page
  await page.getByRole('button',{name:'Play reminders'}).click();
 
  const phases=page.locator('.print-sheet h3');
- await expect(phases).toHaveCount(8);
+ await expect(phases).toHaveCount(9);
  await page.emulateMedia({media:'print'});
  await expect(page.locator('.print-sheet')).toBeVisible();
- await expect(page.locator('.print-sheet h3')).toContainText(['Pre-battle','Command','Movement','Shooting','Charge','Fight','End of opponent turn','End of battle round']);
+ await expect(page.locator('.print-sheet h3')).toContainText(['Pre-battle','Start of battle round','Command','Movement','Shooting','Charge','Fight','End of opponent turn','End of battle round']);
 });

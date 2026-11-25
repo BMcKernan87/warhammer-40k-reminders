@@ -13,6 +13,6 @@ describe('Necron phase reminder placement',()=>{
   expect(reminders('Hexmark Destroyer').some(r=>r.window==='Movement'&&r.title.includes('Inescapable Death'))).toBe(true);
  });
  it('keeps ranged cover out of Fight',()=>{
-  expect(reminders('Convergence Of Dominion').filter(r=>r.title.includes('Ancient Cover')).map(r=>r.window)).toEqual(['Shooting']);
+  expect(reminders('Convergence Of Dominion').filter(r=>r.title.includes('Ancient Cover')).map(r=>r.window)).toEqual(['Shooting','Movement']);
  });
 });
