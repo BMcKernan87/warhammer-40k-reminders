@@ -6,6 +6,7 @@ import {individualArmy,setInstanceAttachment,setInstanceModelCount} from '../src
 import {greyKnightsLoadout} from '../src/grey-knights-loadouts';
 import {setKnightGear} from '../src/knight-loadouts';
 import {GREY_KNIGHTS_SHEETS} from '../src/grey-knights-data';
+import {GREY_KNIGHTS_REVISION} from '../src/grey-knights-data.generated';
 
 const id=(name:string)=>name+'#1';
 function army(names:string[]){let a=individualArmy({...newSelection('Grey Knights'),detachments2026:['Brotherhood Strike']});for(const name of names)a=addSelectionUnit(a,name);return a;}
@@ -29,7 +30,7 @@ it('prints every native datasheet ability through the normal generator with the 
   let a=army([unit,other,'Venerable Dreadnought']);
   if(unit==='Brotherhood Librarian')a=join(a,unit,other);
   const result=get(a,title);expect(result.length,unit).toBeGreaterThan(0);expect(result.some(r=>r.units?.includes(id(unit))),unit).toBe(true);
-  expect(result.every(r=>r.source.includes('wh40k11ed'))).toBe(true);
+  expect(result.every(r=>r.source.includes('wh40k11ed')||r.source===GREY_KNIGHTS_REVISION.pack+'#page=10')).toBe(true);
   const all=generate11thReminders(a).filter(r=>r.id.startsWith('11e-gk-card'));
   expect(new Set(all.map(r=>r.id)).size,unit).toBe(all.length);
  }
@@ -54,7 +55,7 @@ it('keeps the Ancient and Narthecium conditional on the actual selected bearer a
  expect(get(a,'Ancient’s Banner')[0].summary).toContain('bearer survives');
  expect(get(a,'Apothecary’s Narthecium')[0]).toMatchObject({window:'Command',turn:'own',summary:expect.stringContaining('destroyed non-Character')});
  expect(get(a,'Attuned Onslaught')[0].summary).toContain('Paladin Squad models');
- expect(get(a,'Sanctuary').map(r=>[r.window,r.turn])).toEqual([['Shooting','opponent'],['Movement','own'],['Fight','either']]);
+ expect(get(a,'Sanctuary').map(r=>[r.window,r.turn])).toEqual([['Shooting','opponent'],['Movement','own'],['Shooting','own'],['Movement','opponent'],['Fight','either']]);
 });
 it('conditions the Techmarine aura on surviving formations, and shares the Grand Master discount across both printed holders',()=>{
  let a=army(['Brotherhood Techmarine','Purgation Squad','Grand Master','Grand Master In Nemesis Dreadknight','Venerable Dreadnought']);
