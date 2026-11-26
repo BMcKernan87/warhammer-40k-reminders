@@ -1,3 +1,8 @@
+import {chapterDetachmentReminders,chapterUpgradeReminders} from './space-marine-chapters-detachments';
+import {chapterSplitReminders,chapterBattleFormations,chapterPartRoster,chapterPartWeapons} from './space-marine-chapters-splits';
+import {chapterIntrinsicReminders} from './space-marine-chapters-intrinsic';
+import {chapterArmyReminders} from './space-marine-chapters-army';
+import {isSpaceMarineFaction} from './space-marines-factions';
 import {spaceMarineDetachmentReminders,spaceMarineUpgradeReminders} from './space-marines-detachments';
 import {spaceMarineIntrinsicReminders} from './space-marines-intrinsic';
 import {spaceMarineDatasheetCoreReminders} from './space-marines-datasheet-core';
@@ -264,7 +269,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  const orks=_army.faction==='Orks';
  const worldEaters=_army.faction==='World Eaters';
  const guard=_army.faction==='Astra Militarum';
- const marines=_army.faction==='Space Marines';
+ const marines=isSpaceMarineFaction(_army.faction);
  const aeldari=_army.faction==='Aeldari';
  const drukhari=_army.faction==='Drukhari';
  const csm=_army.faction==='Chaos Space Marines';
@@ -288,7 +293,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  if(guard)result.push(...astraDatasheetReminders(_army,roster),...astraMilitarumDetachmentReminders(_army,roster),...astraOrderReminders(_army,roster),...astraEmbarkationReminders(_army,roster),...assignedAgentReminders(_army));
  if(cult)result.push(...gscEmbarkationReminders(_army,roster),...gscCultAmbushReminders(_army,roster),...gscDatasheetReminders(_army,roster),...gscDetachmentReminders(_army,roster),...gscAlliedReminders(_army,roster));
  if(emperorsChildren)result.push(...emperorsChildrenDetachmentReminders(_army,roster),...ecProfileReminders(_army,roster),...emperorsChildrenIntrinsicReminders(_army,roster),...emperorsChildrenArmyReminders(_army,roster),...emperorsChildrenTransportReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
- if(marines)result.push(...spaceMarineDetachmentReminders(_army,roster),...spaceMarineUpgradeReminders(_army,roster),...spaceMarineDatasheetCoreReminders(_army,roster),...spaceMarineIntrinsicReminders(_army,roster),...spaceMarineWeaponReminders(_army,roster),...spaceMarineTransportReminders(_army,roster),...spaceMarineArmyReminders(_army,roster),...spaceMarineDoctrineReminders(_army,roster),...assignedAgentReminders(_army));
+ if(marines)result.push(...spaceMarineDetachmentReminders(_army,roster),...chapterDetachmentReminders(_army,roster),...chapterUpgradeReminders(_army,roster),...spaceMarineUpgradeReminders(_army,roster),...spaceMarineDatasheetCoreReminders(_army,roster),...spaceMarineIntrinsicReminders(_army,roster),...chapterIntrinsicReminders(_army,roster),...chapterArmyReminders(_army,roster),...chapterSplitReminders(_army,roster),...spaceMarineWeaponReminders(_army,roster),...spaceMarineTransportReminders(_army,roster),...spaceMarineArmyReminders(_army,roster),...spaceMarineDoctrineReminders(_army,roster),...assignedAgentReminders(_army));
  if(aeldari)result.push(...aeldariDetachmentReminders(_army,roster),...aeldariDatasheetCoreReminders(_army,roster),...aeldariIntrinsicReminders(_army,roster),...aeldariWeaponReminders(_army,roster),...aeldariTransportReminders(_army,roster),...aeldariArmyReminders(_army,roster),...aeldariArtilleryReminders(_army,roster),...aeldariBattleFocusReminders(_army,roster));
  if(drukhari)result.push(...drukhariDetachmentReminders(_army,roster),...drukhariDatasheetCoreReminders(_army,roster),...drukhariIntrinsicReminders(_army,roster),...drukhariWeaponReminders(_army,roster),...drukhariTransportReminders(_army,roster),...drukhariAlliedReminders(_army,roster));
  if(csm)result.push(...csmDetachmentReminders(_army,roster),...csmProfileReminders(_army,roster),...csmIntrinsicReminders(_army,roster),...csmDarkPactsReminders(_army,roster),...csmTransportReminders(_army,roster),...chaosKnightDatasheetReminders(_army,roster));
@@ -337,11 +342,27 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const formations=marines?spaceMarineFormations(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):aeldari?aeldariFormations(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):drukhari?drukhariFormations(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):csm?csmFormations(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):guard?astraFormationGroups(_army,roster).map(g=>({id:g.root.id,body:g.root,members:g.members})):_army.faction==='Necrons'?necronFormationRoots(_army,roster):
     roster.filter(s=>!bodies.get(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>bodies.get(s.id)===body.id)]}));
   const legionRanged=deathGuard?deathGuardHasRangedWeapon:thousandSons?thousandSonsHasRangedWeapon:emperorsChildren?emperorsChildrenHasRangedWeapon:worldEaters?worldEaterHasRangedWeapon:undefined;
-  const hasGun=marines?(s:RosterInstance)=>isNativeSpaceMarine(s.unit)?spaceMarineHasRangedWeapon(s):isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):!!spaceMarineAgentName(s.unit)&&assignedAgentHasRanged(s,spaceMarineAgentName(s.unit))):aeldari?aeldariHasRangedWeapon:drukhari?drukhariHasRangedWeapon:csm?csmArmyHasRangedWeapon:tyranid?tyranidHasRangedWeapon:tau?tauHasRangedWeapon:mechanicus?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):mechanicusAgentName(s.unit)?assignedAgentHasRanged(s):mechanicusHasRangedWeapon(s)):sororitas?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):sororitasAgentName(s.unit)?assignedAgentHasRanged(s,sororitasAgentName(s.unit)):sororitasHasRangedWeapon(s)):greyKnights?(s:RosterInstance)=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||greyKnightsHasRangedWeapon(s):guard?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):astraAgentName(s.unit)?assignedAgentHasRanged(s,astraAgentName(s.unit)):astraMilitarumHasRangedWeapon(s)):
+  const hasGun=marines?(s:RosterInstance)=>isNativeSpaceMarine(s.unit,_army.faction)?spaceMarineHasRangedWeapon(s,_army.faction):isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):!!spaceMarineAgentName(s.unit)&&assignedAgentHasRanged(s,spaceMarineAgentName(s.unit))):aeldari?aeldariHasRangedWeapon:drukhari?drukhariHasRangedWeapon:csm?csmArmyHasRangedWeapon:tyranid?tyranidHasRangedWeapon:tau?tauHasRangedWeapon:mechanicus?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):mechanicusAgentName(s.unit)?assignedAgentHasRanged(s):mechanicusHasRangedWeapon(s)):sororitas?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):sororitasAgentName(s.unit)?assignedAgentHasRanged(s,sororitasAgentName(s.unit)):sororitasHasRangedWeapon(s)):greyKnights?(s:RosterInstance)=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||greyKnightsHasRangedWeapon(s):guard?(s:RosterInstance)=>isWarhound(s.unit)||(isFreeblade(s.unit)?knightHasRangedWeapon(s):astraAgentName(s.unit)?assignedAgentHasRanged(s,astraAgentName(s.unit)):astraMilitarumHasRangedWeapon(s)):
     legionRanged?(s:RosterInstance)=>isWarhound(s.unit)||(isDreadblade(s.unit)?chaosKnightHasRangedWeapon(s):legionRanged(s)):cult?gscHasRangedWeapon:votann?votannHasRangedWeapon:orks?(s:RosterInstance)=>orkHasRangedAttack(_army,s):_army.faction==='Necrons'?hasNecronRangedWeapon:chaos||daemons?(s:RosterInstance)=>isWarhound(s.unit)||chaosKnightHasRangedWeapon(s)||daemonHasRangedWeapon(s)||shadowLegionHasRangedWeapon(s):
     (s:(typeof roster)[number])=>isWarhound(s.unit)||knightHasRangedWeapon(s)||assignedAgentHasRanged(s)||(custodes&&custodesHasRangedWeapon(s));
+  // Core targeting uses each declared battle part's actual physical models,
+  // while original roster costs remain intact for the reserve declaration.
+  const splitKeywords=new Map<string,string[]>(),splitGuns=new Map<string,boolean>();
+  const combatFormations=marines?chapterBattleFormations(_army,roster).map(g=>{
+   if(!g.part)return {id:g.root.id,body:g.root,members:g.members};
+   const part=g.part,partRoster=chapterPartRoster(part,roster);
+   const members=part.members.map(s=>{
+    const actual=part.physical.filter(m=>m.squad.id===s.id),id=s.id+' · Group '+part.key;
+    splitKeywords.set(id,[...new Set(actual.flatMap(m=>[...spaceMarineKeywords(_army,s,m.model,partRoster)]))]);
+    splitGuns.set(id,chapterPartWeapons(_army,{...part,physical:actual},'Shooting').length>0);
+    return {...s,id,models:actual.length,attachedTo:s.id===part.originalRootId?undefined:g.root.id};
+   });
+   return {id:g.root.id,body:g.root,members};
+  }):formations;
+  const combatKeywords=(unit:string,id?:string)=>id&&splitKeywords.has(id)?splitKeywords.get(id)!:keywords(unit,id);
+  const combatHasGun=(s:RosterInstance)=>splitGuns.get(s.id)??hasGun(s);
   result.push(...formationDeploymentReminders(_army,formations,keywords),
-   ...formationShootingReminders(formations,keywords,hasGun),...coreStratagemReminders(formations,keywords,hasGun,modelRestrictions));
+   ...formationShootingReminders(combatFormations,combatKeywords,combatHasGun),...coreStratagemReminders(combatFormations,combatKeywords,combatHasGun,modelRestrictions));
   if(marines||agents||custodes||guard||greyKnights||sororitas||mechanicus||_army.faction==='Imperial Knights')result.push(...agentTransports(_army).cues);
   if(custodes)result.push(...assignedAgentReminders(_army));
   if(agents)result.push(...assignedAgentReminders(_army),...agentDetachmentReminders(_army,roster));

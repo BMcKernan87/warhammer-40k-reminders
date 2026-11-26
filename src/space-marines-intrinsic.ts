@@ -1,7 +1,10 @@
+import {spaceMarineDoctrineText} from './space-marines-doctrines';
+import {spaceMarineCards} from './space-marines-card-data';
+import {isSpaceMarineFaction} from './space-marines-factions';
 import type {ArmySelection} from './catalog';
 import {PHASES} from './engine';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {SM_CARDS} from './space-marines-card-profiles.generated';
+
 import {SM_INTRINSIC_INVENTORY as SM_INTRINSIC} from './space-marines-intrinsic.generated';
 import {spaceMarineModelLoadouts,spaceMarineWeaponCount} from './space-marines-loadouts';
 import {spaceMarineMusterUnits} from './space-marines-muster-data';
@@ -20,7 +23,6 @@ const psychicRoll='Only if this formation is not Battle-shocked and this model h
 const unitHealing=' Resolve one wound at a time: first heal a surviving wounded model; if all surviving models have full wounds, revive a destroyed non-Character model with 1 wound, then continue healing. Never exceed starting wounds or revive a Character through unit healing; follow revival placement rules.';
 const key=(s:string)=>s.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
 const publisher='https://assets.warhammer-community.com/eng_14-10_wh40k_printed_product_updates_space_marines_updates-91hillwcff-wzs8qnozam.pdf';
-const doctrineEffect='Tactical Doctrine allows shooting and charging after Falling Back; Devastator Doctrine grants ranged Assault, permitting those weapons to shoot after Advancing; Assault Doctrine allows charging after Advancing.';
 
 /** The named entries below have explicit implementations in the core, army,
  * muster or transport modules. No unreviewed paragraph becomes a fallback. */
@@ -36,8 +38,8 @@ export const SM_DELEGATED_INTRINSIC:Readonly<Record<string,readonly string[]>>={
 };
 
 export function spaceMarineIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
- if(army.faction!=='Space Marines')return [];
- const legal=new Set(spaceMarineMusterUnits(army)),selected=roster.filter(s=>SM_CARDS[s.unit]&&legal.has(s.unit));
+ if(!isSpaceMarineFaction(army.faction))return [];
+ const legal=new Set(spaceMarineMusterUnits(army)),selected=roster.filter(s=>spaceMarineCards(army.faction)[s.unit]&&legal.has(s.unit));
  const groups=spaceMarineFormations(army,roster).filter(g=>g.members.every(s=>legal.has(s.unit)));
  const original=expandRoster(army),originalGroups=spaceMarineFormations(army,original);
  const has=(s:RosterInstance,tag:string)=>spaceMarineKeywords(army,s,undefined,roster).has(tag);
@@ -48,11 +50,12 @@ export function spaceMarineIntrinsicReminders(army:ArmySelection,roster:readonly
  const canonical=(unit:string,title:string)=>SM_INTRINSIC[unit]?.find(a=>a.name===title||a.name.startsWith(title+' ('))?.name??title;
  for(const squad of selected){
   const {id,unit}=squad,group=groups.find(g=>g.members.some(s=>s.id===id));if(!group)continue;
-  const formation=group.members.map(s=>s.id),physical=spaceMarineModelLoadouts(squad);
-  const fitted=(item:string)=>physical.some(m=>m.items.some(i=>key(i)===key(item)))||spaceMarineWeaponCount(squad,item)>0;
-  const hasGun=group.members.some(s=>SM_CARDS[s.unit]?.weapons.some(w=>w.phase==='Shooting'&&spaceMarineWeaponCount(s,w.name)>0));
+  const doctrineEffect=spaceMarineDoctrineText(army,group.members);
+  const formation=group.members.map(s=>s.id),physical=spaceMarineModelLoadouts(squad,army.faction);
+  const fitted=(item:string)=>physical.some(m=>m.items.some(i=>key(i)===key(item)))||spaceMarineWeaponCount(squad,item,army.faction)>0;
+  const hasGun=group.members.some(s=>spaceMarineCards(army.faction)[s.unit]?.weapons.some(w=>w.phase==='Shooting'&&spaceMarineWeaponCount(s,w.name,army.faction)>0));
   const attacks:Step[]=[fight,...(hasGun?ranged:[])],normalAttacks:Step[]=[fight,...(hasGun?[shoot,enemyShooting]:[])];
-  function add(title:string,steps:readonly Step[],summary:string,recipients=[id],source=SM_CARDS[unit].source){
+  function add(title:string,steps:readonly Step[],summary:string,recipients=[id],source=spaceMarineCards(army.faction)[unit].source){
    if(!recipients.length)return;const name=canonical(unit,title);
    for(const [window,turn,timing] of steps)result.push({id:['11e-space-marines-native',id,name,window,turn,timing].join(':'),title:name,window,turn,timing,summary,units:[...new Set([id,...recipients])],source,origin:'unit'});
   }
@@ -150,7 +153,7 @@ export function spaceMarineIntrinsicReminders(army:ArmySelection,roster:readonly
    case 'Judiciar':effect('Tempormortis',[['Fight','either','start']],'This formation has Fights First and fights in the Fights First step, following normal alternation and eligibility.');break;
    case 'Kaius Konorius':{
     const attached=group.root.id!==id||group.members.length>1;
-    const characters=group.members.filter(s=>s.id!==id&&spaceMarineModelLoadouts(s).some(m=>spaceMarineKeywords(army,s,m.model,roster).has('CHARACTER'))).map(s=>s.id);
+    const characters=group.members.filter(s=>s.id!==id&&spaceMarineModelLoadouts(s,army.faction).some(m=>spaceMarineKeywords(army,s,m.model,roster).has('CHARACTER'))).map(s=>s.id);
     if(attached&&characters.length)add('Veteran Bodyguard',eachPhase,'While this actual Kaius model remains attached, other actual Character models in this formation have Feel No Pain 4+. Kaius himself and non-Character bodyguards do not receive it.'+sourceExpiry,characters);
     add('Calgar’s Champion',attacks,'This actual Kaius model re-rolls Hit rolls of 1 and Wound rolls of 1 for attacks targeting a Character unit. Other models do not gain these re-rolls. Snap-shot Hit rolls cannot be re-rolled; the Wound re-roll still applies.');break;
    }
@@ -175,7 +178,7 @@ export function spaceMarineIntrinsicReminders(army:ArmySelection,roster:readonly
     add('Thunderous Force',[shoot],psychicRoll+'This formation’s ranged attacks have +6″ Range until phase end. Use the modified Range when checking half-range abilities.',formation);break;
    case 'Lieutenant':case 'Lieutenant In Phobos Armour':
     effect('Tactical Precision',normalAttacks,'This formation’s attacks have Lethal Hits against targets with neither Monster nor Vehicle. Snap shooting cannot score Critical Hits.');
-    if(selected.some(s=>s.unit.startsWith('Captain')&&SM_INTRINSIC[s.unit]?.some(a=>a.name==='Strategic Acumen')))add('Demi-company Commander',[command],'Once per turn for this unit, when a friendly Captain uses Strategic Acumen, the same selected doctrine may be active for this Lieutenant’s formation until the start of your next Command phase. No range or attachment to that Captain is required. '+doctrineEffect,formation);break;
+    if(selected.some(s=>s.unit==='Blood Angels Captain'||s.unit.startsWith('Captain')&&SM_INTRINSIC[s.unit]?.some(a=>a.name==='Strategic Acumen')))add('Demi-company Commander',[command],'Once per turn for this unit, when a friendly Captain uses Strategic Acumen, the same selected doctrine may be active for this Lieutenant’s formation until the start of your next Command phase. No range or attachment to that Captain is required. '+doctrineEffect,formation);break;
    case 'Lieutenant with Combi-weapon':
     add('Priority Target Identified',[command],'Once per battle for this unit, choose one visible terrain feature. Until this turn ends, enemy units within that terrain feature have +3″ detection range.',astartesIds);
     add('Evade and Survive',[['Movement','opponent','during']],'Once per phase for this unit, when an enemy ends a move within 8″ of this formation in the opponent’s Movement phase, if this formation is unengaged it may make a Normal move up to D3+3″.',formation);break;
@@ -249,12 +252,13 @@ export function spaceMarineIntrinsicReminders(army:ArmySelection,roster:readonly
  }
  // Only already applied effects survive removal of the original source. Their
  // printed duration (or the core phase default) is never extended to a turn.
- for(const source of original.filter(s=>SM_CARDS[s.unit]&&legal.has(s.unit))){
+ for(const source of original.filter(s=>spaceMarineCards(army.faction)[s.unit]&&legal.has(s.unit))){
   const {unit,id}=source,alive=selected.some(s=>s.id===id),originalGroup=originalGroups.find(g=>g.members.some(s=>s.id===id));
   const own=selected.filter(s=>originalGroup?.members.some(m=>m.id===s.id)).map(s=>s.id);
+  const doctrineEffect=spaceMarineDoctrineText(army,originalGroup?.members??[source]);
   const add=(title:string,steps:readonly Step[],summary:string,recipients=astartesIds)=>{
    if(!recipients.length)return;
-   for(const [window,turn,timing] of steps)result.push({id:['11e-space-marines-lasting',id,title,window,turn,timing].join(':'),title,window,turn,timing,summary:id+': '+summary,units:[...new Set([id,...recipients])],source:SM_CARDS[unit].source,origin:'unit'});
+   for(const [window,turn,timing] of steps)result.push({id:['11e-space-marines-lasting',id,title,window,turn,timing].join(':'),title,window,turn,timing,summary:id+': '+summary,units:[...new Set([id,...recipients])],source:spaceMarineCards(army.faction)[unit].source,origin:'unit'});
   };
   if(SM_INTRINSIC[unit]?.some(a=>a.name==='Strategic Acumen')||['Lieutenant','Lieutenant In Phobos Armour'].includes(unit))add((unit.startsWith('Lieutenant')?'Demi-company Commander':'Strategic Acumen')+' · selected doctrine',[move,shoot,['Charge','own','during'],fight],'Only if this formation already received a selected doctrine, it stays active until the start of your next Command phase. '+doctrineEffect+persistent,own);
   if(['Marneus Calgar','Roboute Guilliman'].includes(unit))add((unit==='Marneus Calgar'?'Master Tactician':'Author of the Codex')+' · chosen recipient',[move,shoot,['Charge','own','during'],fight],'Only the formation already selected by this ability receives its chosen '+(unit==='Roboute Guilliman'?'additional ':'')+'doctrine until the start of your next Command phase. '+doctrineEffect+persistent);
@@ -288,7 +292,7 @@ export function spaceMarineIntrinsicReminders(army:ArmySelection,roster:readonly
   if(unit==='Eliminator Squad')add('Special-issue Optics and Ammunition · selected cover benefit',[shoot],'If this formation already selected the Ignores Cover option this Shooting phase, its ranged attacks retain Ignores Cover until phase end. The alternative detection effect applies to only one selected enemy and expires when this formation has shot.'+persistent,own);
   if(unit==='Chaplain On Bike')add('Catechism of Fire · chosen enemy',[shoot],'This formation’s ranged attacks against the enemy already chosen this Shooting phase retain Devastating Wounds until phase end.'+persistent,own);
   if(unit==='Eradicator Squad with Heavy Bolters')add('Overlapping Destruction · chosen enemy',[shoot],'If the target was already chosen this Shooting phase, actual Heavy Bolters in the original formation have Blast 1 against that target until phase end.'+persistent,own);
-  if(unit==='Victrix Honour Guard'&&spaceMarineModelLoadouts(source).some(m=>m.items.some(i=>key(i)==='bannerofmacragge')))add('Banner of Macragge · active effect',[fight],'If this army’s once-per-battle Banner benefit was already activated this Fight phase, the original formation’s melee attacks retain +1 Attacks and Strength until phase end.'+persistent,own);
+  if(unit==='Victrix Honour Guard'&&spaceMarineModelLoadouts(source,army.faction).some(m=>m.items.some(i=>key(i)==='bannerofmacragge')))add('Banner of Macragge · active effect',[fight],'If this army’s once-per-battle Banner benefit was already activated this Fight phase, the original formation’s melee attacks retain +1 Attacks and Strength until phase end.'+persistent,own);
   if(['Ancient','Ancient In Terminator Armour','Bladeguard Ancient','Company Heroes','Wardens of Ultramar','Victrix Honour Guard'].includes(unit))add('Secured objective · banner',endPhase,'An objective already secured by this formation’s actual banner ability remains secured under the normal objective rules after its source moves away or is destroyed. An unequipped optional banner cannot secure it.');
   if(unit==='Watch Captain Artemis'&&!alive)add('Unstoppable Champion',endPhase,'Once per battle across your army, if this is a phase in which Artemis was destroyed, roll D6 at phase end. On 2+, return him with 3 wounds, unengaged and as close as possible to where he died. Rejoin his original attached formation if possible; preserve its original Starting Strength.',[id]);
  }

@@ -1,3 +1,4 @@
+import {isSpaceMarineFaction} from './space-marines-factions';
 import {spaceMarineSavedEquipment} from './space-marines-saved-equipment';
 import {aeldariJoinedBodyguard} from './aeldari-attachments';
 import {csmMarkChoices,csmMarksCompatible,type CsmMark} from './csm-muster-data';
@@ -29,7 +30,7 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
   if(!saved)return squad;
   const equipment=currentEquipmentName(squad.unit,saved);
   const resolved=equipment===squad.equipment?squad:{...squad,equipment};
-  return army.faction==='Space Marines'?spaceMarineSavedEquipment(resolved):resolved;
+  return isSpaceMarineFaction(army.faction)?spaceMarineSavedEquipment(resolved):resolved;
  });
  const result:RosterInstance[]=[];
  for(const [unit,count] of Object.entries(army.units))for(let i=1;i<=count;i++)result.push({id:unit+'#'+i,unit,models:verifiedUnitSizes2026(army,unit)?.[0]??legalUnitSizes(army.faction,unit)?.[0],equipment:army.equipment?.[unit]??(army.faction==='Orks'?undefined:EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===unit)?.defaultChoice),enhancement:i===1?army.enhancements?.[unit]:undefined});
@@ -38,7 +39,7 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
   const b=result.find(x=>x.unit===bodyguard);
   if(l&&b)l.attachedTo=b.id;
  }
- return army.faction==='Space Marines'?result.map(s=>spaceMarineSavedEquipment(s)):result;
+ return isSpaceMarineFaction(army.faction)?result.map(s=>spaceMarineSavedEquipment(s)):result;
 }
 export function setInstanceWeaponCounts(army:ArmySelection,id:string,weaponCounts:Record<string,number>):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));
@@ -117,7 +118,7 @@ export function setInstanceEquipment(army:ArmySelection,id:string,equipment:stri
  if(!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===target.unit&&o.choices.includes(equipment)))throw Error('Invalid equipment for this squad');
  if(target.unit==='Overlord'&&target.resurrectionOrb&&equipment==='Tachyon arrow and Overlord’s blade')throw Error('Resurrection Orb cannot be equipped alongside tachyon arrow');
  target.equipment=equipment;
- if(army.faction==='Space Marines')Object.assign(target,spaceMarineSavedEquipment(target,true));
+ if(isSpaceMarineFaction(army.faction))Object.assign(target,spaceMarineSavedEquipment(target,true));
  delete target.weaponCounts;
  if(target.modelLoadouts)target.modelLoadouts=modelLoadoutRows(target,target.modelLoadouts.length);
  return {...army,instances};
@@ -253,7 +254,7 @@ export function removeRosterInstance(army:ArmySelection,id:string):ArmySelection
  delete upgrades2026[id];
  if(!units[target.unit])delete upgrades2026[target.unit];
  const removed=reconcileRetinues({...army,units,instances,upgrades2026,retiredSquadNumbers:retiredSquadNumbers(army,[target])});
- const updated=army.faction==='Space Marines'?reconcileInstanceAttachments(removed):removed;
+ const updated=isSpaceMarineFaction(army.faction)?reconcileInstanceAttachments(removed):removed;
  if(!validateRosterInstances(updated))throw Error('Removing squad would invalidate roster');
  return autoAttachUnambiguousInstances(reconcileWarlord(updated));
 }
@@ -265,8 +266,8 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Space Marines','Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction))return army;
- let current=army.faction==='Space Marines'?reconcileInstanceAttachments(army):army;
+ if(!army.instances||!['Blood Angels','Dark Angels','Black Templars','Space Wolves','Space Marines','Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction))return army;
+ let current=isSpaceMarineFaction(army.faction)?reconcileInstanceAttachments(army):army;
  let changed=true;
  while(changed){
   changed=false;
@@ -313,7 +314,7 @@ export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
   const body=instances.find(b=>b.id===leader.attachedTo);
   if(!body||!instanceBodyguards(army,leader).includes(body.unit)||!csmMarksCompatible(army,leader,body))delete leader.attachedTo;
  }
- if(army.faction==='Space Marines'){
+ if(isSpaceMarineFaction(army.faction)){
   for(const body of instances){
    const occupied=new Set<string>();
    for(const member of instances.filter(m=>m.attachedTo===body.id)){

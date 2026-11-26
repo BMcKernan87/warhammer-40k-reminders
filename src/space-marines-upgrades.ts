@@ -1,18 +1,22 @@
+import {CHAPTER_DETACHMENTS} from './space-marine-chapters-detachments.generated';
+import {spaceMarineAvailableDetachments} from './space-marines-detachment-data';
+import {spaceMarineCards} from './space-marines-card-data';
+import {isSpaceMarineFaction} from './space-marines-factions';
 import type {ArmySelection} from './catalog';
 import {expandRoster,type RosterInstance} from './roster-instances';
 import {spaceMarineKeywords} from './space-marines-keywords';
 import {spaceMarineFormations} from './space-marines-formations';
-import {SM_CARDS,spaceMarineModelLoadouts} from './space-marines-loadouts';
+import {spaceMarineModelLoadouts} from './space-marines-loadouts';
 import {SM_DETACHMENTS,SM_UPGRADES} from './space-marines-detachments.generated';
 export {SM_DETACHMENTS,SM_UPGRADES} from './space-marines-detachments.generated';
 
 type Upgrade=typeof SM_UPGRADES[number];
 const normalize=(name:string)=>name.trim().toLowerCase().replace(/[’']/g,'’');
 export function currentSpaceMarineDetachment(name:string):string{
- return SM_DETACHMENTS.find(d=>normalize(d.name)===normalize(name))?.name??name;
+ return [...SM_DETACHMENTS,...CHAPTER_DETACHMENTS].find(d=>normalize(d.name)===normalize(name))?.name??name;
 }
 export function spaceMarineSelectedDetachments(army:ArmySelection):string[]{
- return army.faction==='Space Marines'?[...new Set((army.detachments2026??[]).map(currentSpaceMarineDetachment))]:[];
+ return isSpaceMarineFaction(army.faction)?[...new Set((army.detachments2026??[]).map(currentSpaceMarineDetachment).filter(name=>spaceMarineAvailableDetachments(army.faction).some(d=>d.name===name)))]:[];
 }
 const astartes=(tags:Set<string>)=>tags.has('ADEPTUS ASTARTES');
 function permission(u:Upgrade,tags:Set<string>,unit:string):boolean{
@@ -40,10 +44,10 @@ function permission(u:Upgrade,tags:Set<string>,unit:string):boolean{
  }
 }
 export function eligibleSpaceMarineUpgrades(army:ArmySelection,unit:string,id?:string){
- if(army.faction!=='Space Marines'||!SM_CARDS[unit])return [];
+ if(!isSpaceMarineFaction(army.faction)||!spaceMarineCards(army.faction)[unit])return [];
  const selected=spaceMarineSelectedDetachments(army),roster=expandRoster(army),found=roster.find(s=>s.unit===unit&&(!id||s.id===id));
  if(id&&!found)return [];
- const squad=found??{id:unit,unit},tags=spaceMarineKeywords(army,squad),physical=spaceMarineModelLoadouts(squad);
+ const squad=found??{id:unit,unit},tags=spaceMarineKeywords(army,squad),physical=spaceMarineModelLoadouts(squad,army.faction);
  const form=spaceMarineFormations(army,roster).find(f=>f.members.some(s=>s.id===squad.id));
  const supportKillTeam=selected.includes('Deathwatch Support')&&(form?.members??[squad]).some(s=>spaceMarineKeywords(army,s).has('KILL TEAM'));
  const result=SM_UPGRADES.filter(u=>{
@@ -66,17 +70,17 @@ function formationBearers(army:ArmySelection,squad:RosterInstance,roster:readonl
  return spaceMarineFormations(army,roster).find(f=>f.members.some(m=>m.id===squad.id))?.members??[squad];
 }
 export function spaceMarineHasDeepStrike(army:ArmySelection,squad:RosterInstance,roster:readonly RosterInstance[]=expandRoster(army)):boolean{
- if(army.faction!=='Space Marines')return false;
+ if(!isSpaceMarineFaction(army.faction))return false;
  const bearers=formationBearers(army,squad,roster),current={...army,instances:[...roster]};
- return !!SM_CARDS[squad.unit]?.core?.includes('Deep Strike')||bearers.some(s=>spaceMarineKeywords(army,s,undefined,roster).has('KILL TEAM'))&&bearers.some(s=>spaceMarineHasUpgrade(current,s,'Beacon Angelis'));
+ return !!spaceMarineCards(army.faction)[squad.unit]?.core?.includes('Deep Strike')||bearers.some(s=>spaceMarineKeywords(army,s,undefined,roster).has('KILL TEAM'))&&bearers.some(s=>spaceMarineHasUpgrade(current,s,'Beacon Angelis'));
 }
 export function spaceMarineHasInfiltrators(army:ArmySelection,squad:RosterInstance,roster:readonly RosterInstance[]=expandRoster(army)):boolean{
- if(army.faction!=='Space Marines')return false;
+ if(!isSpaceMarineFaction(army.faction))return false;
  const current={...army,instances:[...roster]};
- return !!SM_CARDS[squad.unit]?.core?.includes('Infiltrators')||formationBearers(army,squad,roster).some(s=>spaceMarineHasUpgrade(current,s,'Blackwing Shroud'));
+ return !!spaceMarineCards(army.faction)[squad.unit]?.core?.includes('Infiltrators')||formationBearers(army,squad,roster).some(s=>spaceMarineHasUpgrade(current,s,'Blackwing Shroud'));
 }
 export function spaceMarineScoutRange(army:ArmySelection,squad:RosterInstance,roster:readonly RosterInstance[]=expandRoster(army)):number{
- if(army.faction!=='Space Marines')return 0;
- const native=Number(SM_CARDS[squad.unit]?.core?.find(c=>/^Scouts\s+\d+/.test(c))?.match(/\d+/)?.[0]??0),current={...army,instances:[...roster]},bearers=formationBearers(army,squad,roster);
+ if(!isSpaceMarineFaction(army.faction))return 0;
+ const native=Number(spaceMarineCards(army.faction)[squad.unit]?.core?.find(c=>/^Scouts\s+\d+/.test(c))?.match(/\d+/)?.[0]??0),current={...army,instances:[...roster]},bearers=formationBearers(army,squad,roster);
  return Math.max(native,bearers.some(s=>spaceMarineHasUpgrade(current,s,'Spearpoint War Leader'))?6:0,bearers.some(s=>spaceMarineHasUpgrade(current,s,'Relentless Advance'))?5:0);
 }

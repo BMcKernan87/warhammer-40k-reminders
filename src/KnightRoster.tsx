@@ -1,3 +1,4 @@
+import {isSpaceMarineFaction} from './space-marines-factions';
 import {spaceMarineWarlordCandidates,resolvedSpaceMarineWarlord,selectSpaceMarineWarlord} from './space-marines-muster';
 import {aeldariWarlordCandidates,resolvedAeldariWarlord,selectAeldariWarlord} from './aeldari-muster';
 import {AELDARI_SUPPORT_ARTILLERY,aeldariArtilleryHosts,setAeldariArtillery} from './aeldari-artillery';
@@ -47,7 +48,7 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
-  const marines=army.faction==='Space Marines';
+  const marines=isSpaceMarineFaction(army.faction);
   const aeldari=army.faction==='Aeldari';
   const drukhari=army.faction==='Drukhari';
   const csm=army.faction==='Chaos Space Marines';

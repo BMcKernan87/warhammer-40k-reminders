@@ -1,4 +1,4 @@
-import {SM_UNITS} from './space-marines-data';
+import {SM_UNITS,spaceMarineArmyUnits} from './space-marines-data';
 import {AELDARI_UNITS} from './aeldari-data';
 import {DRUKHARI_UNITS} from './drukhari-data';
 import {CSM_ARMY_UNITS} from './csm-army-data';
@@ -45,12 +45,12 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:MECHANICUS_ARMY_UNITS,enhancements:[]},
  'Aeldari':{detachments:['Select detachment (unverified)'],units:AELDARI_UNITS,enhancements:[]},
  'Astra Militarum':{detachments:['Select detachment (unverified)'],units:ASTRA_ARMY_UNITS,enhancements:[]},
- 'Black Templars':{detachments:['Select detachment (unverified)'],units:["High Marshal Helbrecht","Primaris Crusader Squad","Sword Brethren"],enhancements:[]},
- 'Blood Angels':{detachments:['Select detachment (unverified)'],units:["Commander Dante","Death Company Marines","Sanguinary Guard"],enhancements:[]},
+ 'Black Templars':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Black Templars'),enhancements:[]},
+ 'Blood Angels':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Blood Angels'),enhancements:[]},
  'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:DAEMON_UNITS,enhancements:[]},
  'Chaos Knights':{detachments:['Select detachment (unverified)'],units:CHAOS_KNIGHT_UNITS,enhancements:[]},
  'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:CSM_ARMY_UNITS,enhancements:[]},
- 'Dark Angels':{detachments:['Select detachment (unverified)'],units:["Azrael","Deathwing Knights","Inner Circle Companions"],enhancements:[]},
+ 'Dark Angels':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Dark Angels'),enhancements:[]},
  'Death Guard':{detachments:['Select detachment (unverified)'],units:DEATH_GUARD_UNITS,enhancements:[]},
  'Drukhari':{detachments:['Select detachment (unverified)'],units:DRUKHARI_UNITS,enhancements:[]},
  'Emperor’s Children':{detachments:['Select detachment (unverified)'],units:EMPERORS_CHILDREN_UNITS,enhancements:[]},
@@ -59,7 +59,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Imperial Agents':{detachments:['Select detachment (unverified)'],units:ASSIGNED_AGENT_UNITS,enhancements:[]},
  'Imperial Knights':{detachments:['Select detachment (unverified)'],units:IMPERIAL_KNIGHT_UNITS,enhancements:[]},
  'Leagues of Votann':{detachments:['Select detachment (unverified)'],units:VOTANN_UNITS,enhancements:[]},
- 'Space Wolves':{detachments:['Select detachment (unverified)'],units:["Thunderwolf Cavalry","Blood Claws","Logan Grimnar"],enhancements:[]},
+ 'Space Wolves':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Space Wolves'),enhancements:[]},
  'T’au Empire':{detachments:['Select detachment (unverified)'],units:TAU_UNITS,enhancements:[]},
  'Thousand Sons':{detachments:['Select detachment (unverified)'],units:THOUSAND_SONS_UNITS,enhancements:[]},
  'World Eaters':{detachments:['Select detachment (unverified)'],units:WORLD_EATERS_UNITS,enhancements:[]},

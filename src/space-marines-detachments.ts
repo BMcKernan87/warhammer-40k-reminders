@@ -1,7 +1,10 @@
+import {chapterBattleFormations,chapterFormationKeywords,chapterPartWeapons,type ChapterSplitPart} from './space-marine-chapters-splits';
+import {spaceMarineCards} from './space-marines-card-data';
+import {isSpaceMarineFaction} from './space-marines-factions';
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {expandRoster,type RosterInstance} from './roster-instances';
-import {SM_CARDS,spaceMarineModelLoadouts,spaceMarineWeaponCount} from './space-marines-loadouts';
+import {spaceMarineModelLoadouts,spaceMarineWeaponCount} from './space-marines-loadouts';
 import {spaceMarineKeywords} from './space-marines-keywords';
 import {spaceMarineFormations} from './space-marines-formations';
 import {spaceMarineCargoFormations} from './space-marines-transports';
@@ -15,7 +18,7 @@ export {currentSpaceMarineDetachment,eligibleSpaceMarineUpgrades} from './space-
 
 type Turn=NonNullable<GeneratedReminder['turn']>;
 type Timing=GeneratedReminder['timing'];
-type Form={root:RosterInstance;members:readonly RosterInstance[];models:number};
+type Form={root:RosterInstance;members:RosterInstance[];models:number;part?:ChapterSplitPart};
 const source='https://wahapedia.ru/wh40k11ed/factions/space-marines/';
 const phases=['Command','Movement','Shooting','Charge','Fight'] as const;
 const incoming=[['Movement','own'],['Shooting','either'],['Fight','either']] as const;
@@ -128,14 +131,14 @@ const effects:Record<typeof SM_STRATAGEMS[number]['id'],string>={
 
 function context(army:ArmySelection,roster:readonly RosterInstance[]){
  const detachments=spaceMarineSelectedDetachments(army),has=(name:string)=>detachments.includes(name),original=expandRoster(army);
- const forms:Form[]=spaceMarineFormations(army,roster),originalForms:Form[]=spaceMarineFormations(army,original);
- const active=forms.flatMap(f=>f.members),current={...army,instances:[...active]};
- const kw=(f:Form,k:string)=>f.members.some(s=>spaceMarineKeywords(army,s,undefined,active).has(k));
- const originalKw=(f:Form,k:string)=>f.members.some(s=>spaceMarineKeywords(army,s,undefined,original).has(k));
+ const forms:Form[]=chapterBattleFormations(army,roster),originalForms:Form[]=chapterBattleFormations(army,original);
+ const active=[...new Map(forms.flatMap(f=>f.members).map(s=>[s.id,s])).values()],current={...army,instances:[...active]};
+ const kw=(f:Form,k:string)=>chapterFormationKeywords(army,f,active).has(k);
+ const originalKw=(f:Form,k:string)=>chapterFormationKeywords(army,f,original).has(k);
  const named=(f:Form,...names:string[])=>f.members.some(s=>names.includes(s.unit));
- const weapons=(f:Form,phase:'Shooting'|'Fight')=>f.members.flatMap(s=>{
-  const native=SM_CARDS[s.unit],profiles=native?.weapons??agentProfiles.get(spaceMarineAgentName(s.unit)??'')??[];
-  return profiles.filter(w=>w.phase===phase&&(native?spaceMarineWeaponCount(s,w.name):knightWeaponCount(s,w.name))>0).map(w=>({name:w.name,abilities:w.abilities}));
+ const weapons=(f:Form,phase:'Shooting'|'Fight')=>f.part?chapterPartWeapons(army,f.part,phase):f.members.flatMap(s=>{
+  const native=spaceMarineCards(army.faction)[s.unit],profiles=native?.weapons??agentProfiles.get(spaceMarineAgentName(s.unit)??'')??[];
+  return profiles.filter(w=>w.phase===phase&&(native?spaceMarineWeaponCount(s,w.name,army.faction):knightWeaponCount(s,w.name))>0).map(w=>({name:w.name,abilities:w.abilities}));
  });
  const ranged=(f:Form)=>weapons(f,'Shooting').length>0,melee=(f:Form)=>weapons(f,'Fight').length>0;
  const weaponAbility=(f:Form,pattern:RegExp)=>weapons(f,'Shooting').some(w=>w.abilities.some(a=>pattern.test(a)));
@@ -148,7 +151,7 @@ function context(army:ArmySelection,roster:readonly RosterInstance[]){
  const cargoCache=new Map<string,ReturnType<typeof spaceMarineCargoFormations>>();
  const cargo=(f:Form)=>{if(!cargoCache.has(f.root.id))cargoCache.set(f.root.id,spaceMarineCargoFormations(army,f.root,active));return cargoCache.get(f.root.id)!;};
  let passengerIds:Set<string>|undefined;
- const canRide=(f:Form)=>{passengerIds??=new Set(transports.flatMap(t=>cargo(t).flatMap(g=>g.members.map(m=>m.id))));return f.members.some(s=>passengerIds!.has(s.id));};
+ const canRide=(f:Form)=>{passengerIds??=new Set(transports.flatMap(t=>cargo(t).map(g=>g.root.id)));return passengerIds!.has(f.root.id);};
  const names=(fs:readonly Form[])=>fs.map(f=>f.root.id).join(', '),rows:GeneratedReminder[]=[];
  const emit=(id:string,title:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,units:readonly RosterInstance[],rule:string)=>{
   if(units.length)rows.push({id:'11e-sm-det-'+id+'-'+window+'-'+turn+'-'+timing,title,window,turn,timing,summary,units:[...new Set(units.map(s=>s.id))],source,sourceRuleId:rule,origin:'detachment'});
@@ -159,7 +162,7 @@ function context(army:ArmySelection,roster:readonly RosterInstance[]){
 }
 
 export function spaceMarineDetachmentReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
- if(army.faction!=='Space Marines')return [];
+ if(!isSpaceMarineFaction(army.faction))return [];
  const c=context(army,roster),{has,original,active,forms,originalForms,kw,originalKw,named,weapons,ranged,melee,weaponAbility,astartes,infantry,vehicles,transports,mounted,swift,phobos,scouts,tacticus,gravis,terminators,dreadnoughts,killTeams,tanks,cargo,canRide,names,rows,emit,card,snap}=c;
  const doctrineExtras=[
   ['Gladius Task Force','Codex Discipline','000008355','one Combat Doctrine'],
@@ -270,7 +273,7 @@ export function spaceMarineDetachmentReminders(army:ArmySelection,roster:readonl
     case '000010760004':case '000011181002':targets=attack(astartes);break;
     case '000010760003':targets=astartes.filter(f=>!kw(f,'MONSTER')&&!kw(f,'VEHICLE'));break;
     case '000011169005':targets=killTeams;break;
-    case '000011181004':targets=originalForms.filter(f=>originalKw(f,'ADEPTUS ASTARTES')&&originalKw(f,'VEHICLE')&&f.members.some(s=>!!SM_CARDS[s.unit]?.demise));break;
+    case '000011181004':targets=originalForms.filter(f=>originalKw(f,'ADEPTUS ASTARTES')&&originalKw(f,'VEHICLE')&&f.members.some(s=>!!spaceMarineCards(army.faction)[s.unit]?.demise));break;
     case '000011181005':targets=dreadnoughts;break;
     case '000011181007':targets=vehicles.filter(ranged);break;
     case '000011185003':targets=infantry.filter(canRide);break;
@@ -316,7 +319,7 @@ export function spaceMarineDetachmentReminders(army:ArmySelection,roster:readonl
 }
 
 export function spaceMarineUpgradeReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
- if(army.faction!=='Space Marines')return [];
+ if(!isSpaceMarineFaction(army.faction))return [];
  const {original,active,current,forms,kw,weapons,ranged,melee,weaponAbility,astartes,infantry,vehicles,transports,cargo,names,rows,emit,card}=context(army,roster);
  // Destruction triggers and effects with a printed duration retain the
  // original selection. Ordinary passive benefits require a living source.
@@ -332,14 +335,17 @@ export function spaceMarineUpgradeReminders(army:ArmySelection,roster:readonly R
  }
  for(const bearer of active){
   const upgrade=selectedSpaceMarineUpgrade(current,bearer);if(!upgrade)continue;
-  const f=forms.find(g=>g.members.some(s=>s.id===bearer.id));if(!f)continue;
-  const prefix='upgrade-'+upgrade.id+'-'+bearer.id,title=upgrade.name+' · '+bearer.id;
+  // A unit Upgrade remains on both units created by a declared split. An
+  // enhancement carried by a model stays with that actual model's part.
+  const sourceForms=forms.filter(g=>g.members.some(s=>s.id===bearer.id)&&(!g.part||upgrade.repeatable||g.part.physical.some(m=>m.squad.id===bearer.id&&upgrade.bearerModels.includes(m.model))));
+  for(const f of sourceForms){
+  const prefix='upgrade-'+upgrade.id+'-'+bearer.id+(f.part?'-part-'+f.part.key:''),title=upgrade.name+' · '+bearer.id+(f.part?' · '+f.root.id:'');
   const row=(suffix:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,targets:readonly Form[]=[f])=>card(prefix+'-'+suffix,title,window,turn,timing,summary,targets,upgrade.id);
   const own=(suffix:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string)=>emit(prefix+'-'+suffix,title,window,turn,timing,summary,[bearer],upgrade.id);
   const model=upgrade.bearerModels.length?'the actual '+upgrade.bearerModels.join(' / ')+' enhancement bearer':'the actual enhancement bearer';
   const weaponKey=(name:string)=>name.split(/\s+[-–—]\s+/)[0].normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const ownItems=spaceMarineModelLoadouts(bearer).filter(m=>!upgrade.bearerModels.length||upgrade.bearerModels.includes(m.model)).flatMap(m=>m.items).map(weaponKey);
-  const ownNonPsychicRanged=()=>(SM_CARDS[bearer.unit]?.weapons??[]).some(w=>w.phase==='Shooting'&&ownItems.includes(weaponKey(w.name))&&!w.abilities.some(a=>/^psychic\b/i.test(a)));
+  const ownItems=spaceMarineModelLoadouts(bearer,army.faction).filter(m=>!upgrade.bearerModels.length||upgrade.bearerModels.includes(m.model)).flatMap(m=>m.items).map(weaponKey);
+  const ownNonPsychicRanged=()=>(spaceMarineCards(army.faction)[bearer.unit]?.weapons??[]).some(w=>w.phase==='Shooting'&&ownItems.includes(weaponKey(w.name))&&!w.abilities.some(a=>/^psychic\b/i.test(a)));
   const attacks=(summary:string,snapSummary?:string)=>{
    if(ranged(f))row('ranged','Shooting','either','during',summary);
    if(melee(f))row('melee','Fight','either','during',summary);
@@ -483,6 +489,7 @@ export function spaceMarineUpgradeReminders(army:ArmySelection,roster:readonly R
    }
    case '000011228003':
     for(const phase of phases)row('leadership',phase,'either','during','Friendly Astartes formations within 6″ of '+model+' may re-roll Leadership rolls. Measure from the actual Tacticus bearer; the aura ends if that bearer is destroyed. Do not replace a separately named test with a Leadership roll.',astartes);break;
+  }
   }
  }
  return rows;

@@ -1,7 +1,9 @@
+import {isSpaceMarineFaction} from './space-marines-factions';
 import {spaceMarineAgentName} from './space-marines-data';
 import {spaceMarineMusterUnits} from './space-marines-muster-data';
 import {spaceMarineKeywords} from './space-marines-keywords';
 import {spaceMarineCargoFormations} from './space-marines-transports';
+import {chapterSplitPlans} from './space-marine-chapters-splits';
 import {mechanicusMusterUnits} from './mechanicus-army-data';
 import {mechanicusKeywords} from './mechanicus-keywords';
 import {mechanicusReactionShooting} from './mechanicus-reactions';
@@ -38,21 +40,24 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
  const doubled=native&&army.detachments2026?.includes('Veiled Blade Elimination Force');
  const useLimit=doubled?'Twice per battle, at most once per battle round':'Once per battle';
  const roster=expandRoster(army);
+ const parts=isSpaceMarineFaction(army.faction)&&roster.some(s=>s.knightGear?.['Battle formation']==='Split unit')?chapterSplitPlans(army,roster).filter(p=>p.valid).flatMap(p=>p.parts):[];
  const traders=roster.filter(s=>s.unit==='Rogue Trader Entourage');
  for(const squad of roster){
-  const unit=army.faction==='Space Marines'?spaceMarineAgentName(squad.unit):army.faction==='Adepta Sororitas'?sororitasAgentName(squad.unit):guard?astraAgentName(squad.unit):squad.unit;
+  const unit=isSpaceMarineFaction(army.faction)?spaceMarineAgentName(squad.unit):army.faction==='Adepta Sororitas'?sororitasAgentName(squad.unit):guard?astraAgentName(squad.unit):squad.unit;
   const data=ASSIGNED_AGENT_DATA.find(row=>row.sheet.unit===unit);
   if(!unit||!data)continue;
   const source=data.sheet.source;
   const body=knightJoinedBodyguard(army,squad);
-  const formation=body?[body.id,...roster.filter(m=>m.attachedTo===body.id&&knightJoinedBodyguard(army,m)).map(m=>m.id)]:[squad.id];
+  const part=parts.find(p=>p.physical.some(m=>m.squad.id===squad.id));
+  const formation=part?part.members.map(s=>s.id):body?[body.id,...roster.filter(m=>m.attachedTo===body.id&&knightJoinedBodyguard(army,m)).map(m=>m.id)]:[squad.id];
   const core:readonly string[]=data.core;
   const hasGear=(name:string)=>knightWeaponCount(squad,name)>0;
   const configurable=!!knightLoadoutFor(army.faction,squad.unit,squad.models);
   const membersLed=roster.filter(s=>knightJoinedBodyguard(army,s)?.id===squad.id);
   const wholeUnit=body?formation:[squad.id,...membersLed.map(s=>s.id)];
   const emit=(key:string,title:string,window:ReminderWindow,summary:string,turn:GeneratedReminder['turn']='either',timing:GeneratedReminder['timing']='during',units=[squad.id])=>{
-   result.push({id:'11e-agent-'+squad.id+'-'+key+'-'+window,origin:'unit',units,title:squad.id+' · '+title,source,window,turn,timing,summary});
+   const scope=part?(units.includes(part.originalRootId)?' The affected unit is '+part.root.id+' ('+part.models+' actual models); the other declared part does not receive this unit-scoped effect.':' The source model is assigned to '+part.root.id+'.'):'';
+   result.push({id:'11e-agent-'+squad.id+'-'+key+'-'+window,origin:'unit',units,title:squad.id+' · '+title+(part?' · '+part.root.id:''),source,window,turn,timing,summary:summary+scope});
   };
   for(const phase of attacks){
    const snap=phase==='Movement',melee=phase==='Fight';
@@ -84,9 +89,9 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    if(squad.id===traders[0]?.id){
     const led=traders.flatMap(t=>{const b=knightJoinedBodyguard(army,t);return b?[t.id,b.id]:[];});
     if(led.length)emit('deals','Backroom Deals','Pre-battle','When declaring formations, select one Rogue Trader Entourage that is leading. Its entire formation gains Infiltrators and can deploy more than 8″ horizontally from the enemy deployment zone and all enemies.','either','during',led);
-    const eligible=army.faction==='Space Marines'?spaceMarineMusterUnits(army):army.faction==='Adeptus Mechanicus'?mechanicusMusterUnits(army):army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
+    const eligible=isSpaceMarineFaction(army.faction)?spaceMarineMusterUnits(army):army.faction==='Adeptus Mechanicus'?mechanicusMusterUnits(army):army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
     const battleline=roster.filter(s=>{
-     const keys=army.faction==='Space Marines'?[...spaceMarineKeywords(army,s)]:army.faction==='Adeptus Mechanicus'?[...mechanicusKeywords(army,s)]:army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
+     const keys=isSpaceMarineFaction(army.faction)?[...spaceMarineKeywords(army,s)]:army.faction==='Adeptus Mechanicus'?[...mechanicusKeywords(army,s)]:army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
      return eligible.includes(s.unit)&&keys?.includes('IMPERIUM')&&(keys.includes('BATTLELINE')||(keys.includes('ARMIGER')&&army.detachments2026?.includes('Spearhead-at-arms')));
     });
     if(battleline.length)emit('warrant','Warrant of Trade','Pre-battle','After both armies deploy, redeploy up to D3 friendly Imperium Battleline units. They may enter Strategic Reserves even beyond its normal allowance. Eligible units: '+battleline.map(s=>s.id).join(', ')+'.','either','during',[squad.id,...battleline.map(s=>s.id)]);
@@ -121,7 +126,7 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    const targetSheet=ASSIGNED_AGENT_SHEETS.find(s=>s.unit===body.unit);
    const keys=targetSheet?.keywords??[];
    const carriers=roster.filter(s=>{
-    if(army.faction==='Space Marines'&&spaceMarineCargoFormations(army,s,roster).some(g=>g.root.id===body.id))return true;
+    if(isSpaceMarineFaction(army.faction)&&spaceMarineCargoFormations(army,s,roster).some(g=>g.root.id===(part?.root.id??body.id)))return true;
     if(s.unit==='Imperial Rhino')return keys.includes('AGENTS OF THE IMPERIUM')&&keys.includes('INFANTRY')&&!keys.includes('TERMINATOR');
     if(s.unit==='Inquisitorial Chimera')return body.unit==='Inquisitorial Agents';
     if(s.unit==='Sisters of Battle Immolator')return keys.includes('ORDO HERETICUS')&&keys.includes('INFANTRY');

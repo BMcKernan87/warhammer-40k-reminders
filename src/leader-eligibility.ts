@@ -1,4 +1,5 @@
-import {SM_ARMY_SHEETS} from './space-marines-data';
+import {isSpaceMarineFaction,SPACE_MARINE_FACTIONS} from './space-marines-factions';
+import {SM_ARMY_SHEETS,spaceMarineSheets} from './space-marines-data';
 import {spaceMarineAttachmentRole,spaceMarineBodyguards} from './space-marines-attachments';
 import {aeldariJoinedBodyguard} from './aeldari-attachments';
 import {AELDARI_SHEETS} from './aeldari-data';
@@ -63,6 +64,7 @@ export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<st
  Tyranids:Object.fromEntries(TYRANID_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  'Space Marines':Object.fromEntries(SM_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]]))
 };
+for(const faction of SPACE_MARINE_FACTIONS)LEADER_BODYGUARDS[faction]=Object.fromEntries(spaceMarineSheets(faction).filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]]));
 export function leaderBodyguards(faction:ArmySelection['faction'],leader:string):readonly string[]{
  return LEADER_BODYGUARDS[faction]?.[leader]||[];
 }
@@ -77,7 +79,7 @@ export function hasMurdermind(army:ArmySelection,leader:{id:string;unit:string})
  return army.faction==='Necrons'&&!!army.detachments2026?.includes('Cursed Legion')&&MURDERMIND_BEARERS.includes(leader.unit)&&(army.upgrades2026?.[leader.id]??army.upgrades2026?.[leader.unit])==='Murdermind';
 }
 export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:string}):readonly string[]{
- if(army.faction==='Space Marines')return spaceMarineBodyguards(army,leader);
+ if(isSpaceMarineFaction(army.faction))return spaceMarineBodyguards(army,leader);
  if(army.faction==='Chaos Daemons'&&!daemonMusterUnits(army).includes(leader.unit))return [];
  if(army.faction==='Chaos Knights'&&!isDaemonicPactUnit(leader.unit)&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
@@ -132,7 +134,7 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
 export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string,army?:ArmySelection):'leader'|'support'|null {
- if(faction==='Space Marines')return spaceMarineAttachmentRole(unit,army);
+ if(isSpaceMarineFaction(faction))return spaceMarineAttachmentRole(unit,army,faction);
  if(faction==='Aeldari')return AELDARI_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Drukhari')return DRUKHARI_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Chaos Space Marines')return CSM_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -159,7 +161,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
  if(army.faction==='Aeldari')return aeldariJoinedBodyguard(army,leader);
- if(!['Space Marines','Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Blood Angels','Dark Angels','Black Templars','Space Wolves','Space Marines','Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  if(!csmMarksCompatible(army,leader,body))return undefined;
