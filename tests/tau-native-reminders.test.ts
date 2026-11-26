@@ -82,8 +82,8 @@ it('gates guardian, marker and invulnerable effects on their actual fitted equip
  a=equip(a,'Breacher Team','Breacher Fire Warrior Shas’ui ·',['Guardian Drone','Gun drone','Twin pulse carbine']);
  a=equip(a,'Cadre Fireblade','',['Gun drone','Shield Drone','Twin pulse carbine']);
  a=equip(a,'Commander In Coldstar Battlesuit','Additional weapon or system 1',['Shield generator']);
- expect(get(a,'Guardian Drone')).toHaveLength(3);expect(get(a,'Guardian Drone')[0].summary).toContain('Breacher Fire Warrior Shas’ui 1');
- const inv=get(a,'Shield Generator');expect(inv).toHaveLength(4);expect(inv.every(r=>r.units?.includes(id('Commander In Coldstar Battlesuit'))&&!r.units?.includes(id('Breacher Team')))).toBe(true);
+ expect(get(a,'Guardian Drone')).toHaveLength(4);expect(get(a,'Guardian Drone')[0].summary).toContain('Breacher Fire Warrior Shas’ui 1');
+ const inv=get(a,'Shield Generator');expect(inv).toHaveLength(5);expect(inv.every(r=>r.units?.includes(id('Commander In Coldstar Battlesuit'))&&!r.units?.includes(id('Breacher Team')))).toBe(true);
  const volley=get(a,'Volley Fire')[0];expect(volley.summary).toContain('guns granted to their bearers by drones');expect(get(a,'Crack Shot')[0].summary).toContain('Gun Drone');
  const fb=profile(a,'Ranged weapon profiles').find(r=>r.units?.includes(id('Cadre Fireblade'))&&r.window==='Shooting')!;expect(fb.summary).toContain('1 × Twin pulse carbine');
 });

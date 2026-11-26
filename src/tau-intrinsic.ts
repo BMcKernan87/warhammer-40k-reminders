@@ -11,21 +11,39 @@ import {tauGuidedFormations} from './tau-greater-good';
 import {tauReactionShooting} from './tau-reactions';
 import {expandRoster,type RosterInstance} from './roster-instances';
 
-type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing']];
+type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing'],GeneratedReminder['timing']?];
 const shoot:Step=['Shooting','own','during'],fight:Step=['Fight','either','during'],move:Step=['Movement','own','during'];
-const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'],incomingSnap:Step=['Movement','own','end'],returnFire:Step=['Shooting','own','during'];
+const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'],incomingMove:Step=['Movement','own','during','end'],incomingArrival:Step=['Movement','opponent','during'],returnFire:Step=['Shooting','own','during'];
 const eachPhase=PHASES.map((p):Step=>[p,'either','during']),startPhase=PHASES.map((p):Step=>[p,'either','start']);
-const endPhase=PHASES.map((p):Step=>[p,'either','end']),defence=[incoming,incomingSnap,returnFire,fight] as const;
+const endPhase=PHASES.map((p):Step=>[p,'either','end']),rangedDefence=[incoming,incomingMove,returnFire,incomingArrival] as const,defence=[...rangedDefence,fight] as const;
 const cards=new Map(TAU_SHEETS.map(s=>[s.unit,s]));
 const unique=(ids:string[])=>[...new Set(ids)],key=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 const bodyguardPassives=new Set(['Breach and Clear','Advanced Armour','Sunforge','Fireknife','Weapon Support System','Starscythe','Battlesuit Support System','Bounty Hunters']);
 
 export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='T’au Empire')return [];
- const current={...army,instances:[...roster]},legal=new Set(tauMusterUnits(army)),native=roster.filter(s=>cards.has(s.unit)&&legal.has(s.unit));
+ const current={...army,instances:[...roster]},legal=new Set(tauMusterUnits(army)),native=roster.filter(s=>cards.has(s.unit)&&legal.has(s.unit)&&(s.models??1)>0);
  if(!native.length)return [];
  const groups=tauFormations(army,roster).filter(g=>g.members.every(s=>legal.has(s.unit)));
- const originalGroups=tauFormations(army,expandRoster(army));
+ const declared=expandRoster(army),originalGroups=tauFormations(army,declared);
+ function leadingDefence(s:RosterInstance){
+  const original=originalGroups.find(g=>g.root.id!==s.id&&g.members.some(m=>m.id===s.id));
+  if(!original||original.members.some(m=>!legal.has(m.unit)||m.retinueTo||m.keepUnattached||declared.filter(d=>d.id===m.id).length!==1))return;
+  const ids=new Set(original.members.map(m=>m.id)),survivors:RosterInstance[]=[];
+  for(const member of original.members){
+   const current=roster.filter(m=>m.id===member.id);
+   if(current.length>1)return;
+   const live=current[0];
+   if(!live)continue;
+   if(live.unit!==member.unit||live.attachedTo!==member.attachedTo||live.retinueTo!==member.retinueTo||Boolean(live.keepUnattached)!==Boolean(member.keepUnattached))return;
+   if(live.models!==undefined&&live.models<=0)continue;
+   survivors.push(live);
+  }
+  // Core 19.04 retains an original surviving Leader's benefit, not a reused
+  // identity or a model subsequently attached to a different formation.
+  if(!survivors.some(m=>m.id===s.id)||roster.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return;
+  return survivors.map(m=>m.id);
+ }
  const groupOf=(s:RosterInstance)=>groups.find(g=>g.members.some(m=>m.id===s.id));
  const all=groups.flatMap(g=>g.members.map(s=>s.id));
  const ownRanged=(s:RosterInstance)=>tauHasRangedWeapon(s)||!!TAU_CARDS[s.unit]?.core?.some(c=>c.startsWith('Firing Deck '))&&tauCargoFormations(army,s,roster).some(g=>g.members.some(m=>(TAU_CARDS[m.unit]?.weapons??[]).some(w=>w.phase==='Shooting'&&!w.abilities.includes('one shot')&&tauWeaponCount(m,w.name)>0)));
@@ -38,7 +56,9 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
  const guided=tauGuidedFormations(army,roster).flatMap(g=>g.members.map(s=>s.id));
  const result:GeneratedReminder[]=[];
  function emit(id:string,title:string,steps:readonly Step[],summary:string,units:string[],source:string){
-  if(units.length)for(const [window,turn,timing] of steps)result.push({id:['11e-tau-native',id,title,window,turn,timing].join(':'),title,window,turn,timing,summary,units:unique(units),source,origin:'unit'});
+  // Movement defenses apply throughout the phase. Keep their old end-phase
+  // completion keys while giving the newly covered turn its own identity.
+  if(units.length)for(const [window,turn,timing,identityTiming=timing] of steps)result.push({id:['11e-tau-native',id,title,window,turn,identityTiming].join(':'),title,window,turn,timing,summary,units:unique(units),source,origin:'unit'});
  }
  for(const squad of native){
   const {id,unit}=squad,group=groupOf(squad);if(!group)continue;
@@ -64,7 +84,7 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
    return tauModelLoadouts(squad).flatMap(m=>{const n=(ordinal.get(m.model)??0)+1;ordinal.set(m.model,n);return m.items.some(i=>key(i)===key(item))?[m.model+' '+n]:[];}).join(', ');
   };
 
-  if(fitted('Guardian drone'))add('Guardian Drone',[incoming,incomingSnap,returnFire],'While the Guardian Drone bearer survives ('+gearBearer('Guardian drone')+'), subtract 1 from Wound rolls for ranged attacks targeting this formation. If that bearer dies to an attack, retain the benefit until that attacking unit finishes its attacks. The drone is an equipment token, not a separate model.',formation);
+  if(fitted('Guardian drone'))add('Guardian Drone',rangedDefence,'While the Guardian Drone bearer survives ('+gearBearer('Guardian drone')+'), subtract 1 from Wound rolls for ranged attacks targeting this formation. If that bearer dies to an attack, retain the benefit until that attacking unit finishes its attacks. The drone is an equipment token, not a separate model.',group.members.filter(s=>(s.models??1)>0).map(s=>s.id));
   if(fitted('Marker drone'))add('Marker Drone',[move,['Shooting','own','start'],shoot],'While the Marker Drone bearer survives ('+gearBearer('Marker drone')+'), this formation has Markerlight and may act as an Observer even after Advancing. For the Greater Good still requires its own faction ability and Observer selection at the start of your Shooting phase.',formation);
   if(fitted('Shield drone'))add('Shield Drone',[['Pre-battle','either','during']],'Each equipped Shield Drone adds 1 to its bearer’s Wounds characteristic. Apply the bonus only to the actual equipped model ('+gearBearer('Shield drone')+'); drone tokens do not add models, Starting Strength or transport spaces.');
   if(fitted('Shield generator'))add('Shield Generator',defence,'Only the surviving models equipped with Shield Generators have the wargear’s 4+ invulnerable save: '+gearBearer('Shield generator')+'. The save is not shared with other models in the formation.');
@@ -76,8 +96,10 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
   switch(unit){
    case 'Commander In Coldstar Battlesuit':
     led('Coldstar Commander',[move,shoot],'Every model in this formation has Move 12″ and its ranged weapons have Assault. After Advancing, an unengaged formation may use assault shooting with Assault weapons only; if it does, it cannot then start an action that phase.');break;
-   case 'Commander In Enforcer Battlesuit':
-    led('Enforcer Commander',[incoming,incomingSnap,returnFire],'Worsen the Armour Penetration of ranged attacks targeting this formation by 1.');break;
+   case 'Commander In Enforcer Battlesuit':{
+    const recipients=leadingDefence(squad);
+    if(recipients)add('Enforcer Commander',rangedDefence,'Worsen the Armour Penetration of ranged attacks targeting this formation by 1.'+source,recipients);break;
+   }
    case 'Ethereal':
     led('Failure Is Not an Option',eachPhase,'Models in this formation have Feel No Pain 5+.');
     add('Coordinated Leadership',[['Command','own','end']],'Roll one D6; on 4+, gain 1CP, subject to the normal limit on additional CP. This ability may be used even while the Ethereal is embarked in a Transport, as confirmed by the faction FAQ.');
@@ -89,7 +111,7 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
     if(leading)attacks('Way of the Short Blade','Add 1 to Wound rolls for attacks made by this formation against an enemy within 9″.'+source,'Add 1 to Wound rolls for this formation’s snap shots against enemies within 9″.'+source);
     add('Puretide’s Teachings',eachPhase,'Once per battle round, when this formation is targeted with a Stratagem, reduce the cost of that use by 1CP. Farsight must still be a surviving source of this ability.',formation);break;
    case 'Commander Shadowsun':
-    add('Advanced Guardian Drone',[incoming,incomingSnap,returnFire],'Subtract 1 from Wound rolls for ranged attacks targeting Shadowsun herself. Her Advanced Guardian Drone protects its bearer, not nearby friendly units.');
+    add('Advanced Guardian Drone',rangedDefence,'Subtract 1 from Wound rolls for ranged attacks targeting Shadowsun herself. Her Advanced Guardian Drone protects its bearer, not nearby friendly units.');
     add('Agile Combatant',[move,shoot],'Shadowsun remains eligible to shoot in a turn when she Fell Back.');
     add('Command-link Drone',eachPhase,'While a friendly T’au Empire formation is within 6″ of Shadowsun, each time it is targeted with a Stratagem, roll one D6; on 5+, gain 1CP. Shadowsun is within her own aura. Apply the normal limit on additional CP.',all);
     add('Hero of the Empire',[shoot],'Friendly T’au Empire formations within 6″ of Shadowsun re-roll ranged attack Hit rolls of 1. Shadowsun is within her own aura. This does not apply to snap shooting.',gunTargets);
@@ -99,7 +121,7 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
     add('Jammer Array',[['Movement','opponent','during'],['Movement','own','end']],'Enemy units arriving from Reserves cannot be set up within 12″ of Darkstrider himself. Measure from the actual source model, not every model in its bodyguard.');break;
    case 'Strike Team':
     add('Suppression Volley',[shoot],'After this formation shoots in your Shooting phase, select one enemy Infantry unit it hit. Until the start of your next turn, while an original Strike Team model remains on the battlefield, that enemy is suppressed and subtracts 1 from its attack Hit rolls.',formation);
-    add('Suppression Volley · Suppressed enemy attacks',[incoming,returnFire,fight],'An enemy Infantry unit suppressed by this Strike Team subtracts 1 from its attack Hit rolls until the start of your next turn, while an original Strike Team model remains on the battlefield. This does not modify fixed snap-shot Hit rolls.',formation);
+    add('Suppression Volley · Suppressed enemy attacks',[incoming,returnFire,fight,incomingArrival],'An enemy Infantry unit suppressed by this Strike Team subtracts 1 from its attack Hit rolls until the start of your next turn, while an original Strike Team model remains on the battlefield. This includes permitted normal enemy shooting in their Movement phase. This does not modify fixed snap-shot Hit rolls.',formation);
     // Both Fire Warrior cards use the same conditional Shas’ui weapon.
    case 'Breacher Team':
     add('DS8 Support Turret',[move],'If this formation Remains Stationary in your Movement phase, its surviving Shas’ui is equipped with the support turret weapon until the start of your next turn. The turret is a token and is not an additional model; an attached Leader does not become its bearer.',formation);
@@ -122,7 +144,7 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
     }break;
    }
    case 'Ghostkeel Battlesuit':
-    add('Stealth Drones',defence,'Twice per battle, after an attack is allocated to this Ghostkeel, change that attack’s Damage characteristic to 0. Each use expends one Stealth Drone token. These tokens are not separate models; this ability does not prevent wounds that were not caused by an allocated attack.');break;
+    add('Stealth Drones',defence,'Twice per battle, after an attack is allocated to this Ghostkeel, change that attack’s Damage characteristic to 0. Each use expends one Stealth Drone token; the two uses are shared across all phases and turns for this Ghostkeel. These tokens are not separate models; this ability does not prevent wounds that were not caused by an allocated attack.');break;
    case 'Riptide Battlesuit':
     add('Battlesuit Support System',[move,shoot],'This Riptide remains eligible to shoot after Falling Back.');
     ranged('Weapon Support System','This Riptide may ignore any or all Hit roll modifiers for its ranged attacks. It does not ignore Ballistic Skill modifiers.',undefined,[id]);
@@ -167,7 +189,7 @@ export function tauIntrinsicReminders(army:ArmySelection,roster:readonly RosterI
    case 'Tidewall Gunrig':
     add('Fortification',[shoot,snap,incoming],'An enemy unit engaged only with one or more friendly Fortifications can still be targeted with ranged attacks. Subtract 1 from Hit rolls for those attacks unless made with Pistols; this modifier does not alter snap shots. The attacking unit must otherwise be allowed to shoot.',gunTargets);
     add('Fortification · Fall Back',[['Movement','opponent','during']],'An enemy unit engaged only with friendly Fortifications does not take Desperate Escape tests merely for Falling Back while Battle-shocked. Models that move across enemy models still take the applicable tests.');
-    add('Tidewall Cover',[shoot,incoming,snap,incomingSnap],'Any model that is not fully visible to every model in the attacking unit because of this Tidewall has the Benefit of Cover against that ranged attack. This cover depends on actual visibility through the fortification; it is not a blanket aura.');
+    add('Tidewall Cover',[shoot,incoming,['Movement','opponent','during','end'],incomingMove],'Any model that is not fully visible to every model in the attacking unit because of this Tidewall has the Benefit of Cover against that ranged attack. This cover depends on actual visibility through the fortification; it is not a blanket aura.');
     if(unit==='Tidewall Shieldline'&&fitted('Tidewall defence platform'))add('Tidewall Defence Platform',[['Pre-battle','either','during']],'This Shieldline has Wounds 15 and transport capacity 22 with its equipped defence platform. The platform is equipment of the same single model, not a second Shieldline model.');break;
    case 'Ta’unar Supremacy Armour':
     add('Coordinated Strike',[shoot],'While this Ta’unar is Guided, re-roll ranged Hit rolls of 1 against Spotted targets. The current army rule permits several Guided units to attack the same Spotted enemy; it does not create a fixed Observer–Guided pair.');

@@ -16,7 +16,8 @@ type Form={root:RosterInstance;members:readonly RosterInstance[]};
 const source='https://wahapedia.ru/wh40k11ed/factions/tyranids/';
 const pack='https://assets.warhammer-community.com/eng_14-10_wh40k_faction_pack_tyranids-an12izciwp-np2hnkcsje.pdf';
 const phases=['Command','Movement','Shooting','Charge','Fight'] as const;
-const defence=[['Movement','own'],['Shooting','either'],['Fight','either']] as const;
+// The third field retains existing saved completion identities.
+const defence=[['Movement','own','end'],['Movement','opponent','during'],['Shooting','either','during'],['Fight','either','during']] as const;
 const native=new Set(TYRANID_SHEETS.map(s=>s.unit));
 const key=(name:string)=>name.split(/\s+[–—-]\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g,'');
 const regeneration='Regenerate using Feed the Swarm: heal one model by up to D3+1 lost wounds, or return one destroyed Infantry model other than a Character; return up to three models instead for an Endless Multitude unit. A formation normally regenerates only once per phase, and destroyed Characters cannot be restored to Attached units.';
@@ -80,7 +81,8 @@ const effects:Record<typeof TYRANID_STRATAGEMS[number]['id'],string>={
 
 export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Tyranids')return [];
- const current={...army,instances:[...roster]},active=roster.filter(s=>native.has(s.unit));
+ const living=(s:RosterInstance)=>{const count=s.models??TYRANID_SHEETS.find(d=>d.unit===s.unit)?.sizes[0]??0;return Number.isInteger(count)&&count>0;};
+ const current={...army,instances:[...roster]},active=roster.filter(s=>native.has(s.unit)&&living(s));
  const forms:Form[]=tyranidFormations(army,active),detachments=tyranidSelectedDetachments(current);
  const has=(name:string)=>detachments.includes(name);
  const tag=(s:RosterInstance,k:string,model?:string)=>tyranidKeywords(current,s,model).has(k);
@@ -96,18 +98,37 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
  const warriors=tyr.filter(f=>kw(f,'TYRANID WARRIORS')),burrowers=tyr.filter(f=>kw(f,'BURROWER'));
  const ambushers=tyr.filter(f=>named(f,'Deathleaper','Lictor','Neurolictor','Von Ryan’s Leapers'));
  const norns=tyr.filter(f=>named(f,'Norn Emissary','Norn Assimilator'));
- const original=expandRoster(army);
+ const original=expandRoster(army),originalForms=tyranidFormations(army,original);
+ const sameIdentity=(a:RosterInstance,b:RosterInstance)=>a.id===b.id&&a.unit===b.unit&&a.attachedTo===b.attachedTo&&a.retinueTo===b.retinueTo&&Boolean(a.keepUnattached)===Boolean(b.keepUnattached);
+ function originalFormation(f:Form){
+  const o=originalForms.find(g=>!g.root.attachedTo&&!g.root.retinueTo&&f.members.every(s=>g.members.some(m=>sameIdentity(s,m))));
+  if(!o)return;
+  const ids=new Set(o.members.map(s=>s.id));
+  for(const member of o.members){
+   if(!living(member)||member.retinueTo||original.filter(s=>s.id===member.id).length!==1)return;
+   const current=roster.filter(s=>s.id===member.id);
+   if(current.length>1||current.length===1&&!sameIdentity(current[0],member))return;
+  }
+  // Reject undeclared joins even if an invalid extra model made the current
+  // attachment resolver split the surviving original Leader off on its own.
+  const extra=(s:RosterInstance)=>!ids.has(s.id)&&(ids.has(s.attachedTo??'')||ids.has(s.retinueTo??''));
+  if(original.some(extra)||roster.some(extra))return;
+  return o;
+ }
+ // A granted first-round effect stays with the selected original formation,
+ // even after the Endless Multitude bodyguard or the enhancement bearer dies.
+ const camouflageSurvivors=forms.filter(f=>originalFormation(f)?.members.some(s=>tyranidKeywords(army,s).has('ENDLESS MULTITUDE')));
  const synapsePossible=tyranidSynapsePossible(army,active);
  const originalHarvester=original.some(s=>tyranidKeywords(army,s).has('HARVESTER'));
  const tunnelPossible=original.some(s=>tyranidKeywords(army,s).has('BURROWER'));
  const selected=(s:RosterInstance)=>current.upgrades2026?.[s.id]??current.upgrades2026?.[s.unit]??s.enhancement;
  const rows:GeneratedReminder[]=[];
- const emit=(id:string,title:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,units:readonly RosterInstance[],rule?:string,reference=source)=>{
-  if(units.length)rows.push({id:'11e-tyranid-det-'+id+'-'+window+'-'+turn+'-'+timing,title,window,turn,timing,summary,units:[...new Set(units.map(s=>s.id))],source:reference,sourceRuleId:rule,origin:'detachment'});
+ const emit=(id:string,title:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,units:readonly RosterInstance[],rule?:string,reference=source,identityTiming:Timing=timing)=>{
+  if(units.length)rows.push({id:'11e-tyranid-det-'+id+'-'+window+'-'+turn+'-'+identityTiming,title,window,turn,timing,summary,units:[...new Set(units.map(s=>s.id))],source:reference,sourceRuleId:rule,origin:'detachment'});
  };
  const card=(id:string,title:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,fs:readonly Form[],rule?:string,reference=source)=>emit(id,title,window,turn,timing,summary,roots(fs),rule,reference);
  const snap=(id:string,title:string,summary:string,fs:readonly Form[],rule?:string)=>card(id,title,'Movement','opponent','end',summary,fs.filter(f=>ranged(f)&&!kw(f,'TITANIC')),rule);
- const safeDefence=(id:string,title:string,summary:string,fs:readonly Form[],rule?:string)=>{for(const [p,t] of defence)card(id,title,p,t,p==='Movement'?'end':'during',summary,fs,rule);};
+ const safeDefence=(id:string,title:string,summary:string,fs:readonly Form[],rule?:string)=>{for(const [p,t,identityTiming] of defence)emit(id,title,p,t,'during',summary,roots(fs),rule,source,identityTiming);};
  if(has('Invasion Fleet')){
   const adapt='Select one Hyper-adaptation at the start of battle round 1 for the battle: Sustained Hits 1 against Infantry/Swarm, Lethal Hits against Monsters/Vehicles, or Precision on Critical Hits against Character units. Apply it only to TYRANIDS models’ attacks. None of these Critical Hit benefits trigger during snap shooting.';
   card('adapt-choice','Hyper-adaptations','Start of battle round','either','start',adapt,tyr,'000008356');
@@ -133,7 +154,7 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
  }
  if(has('Warrior Bioform Onslaught')){
   const actual=active.filter(s=>tyranidModelLoadouts(s).some(m=>['TYRANID WARRIORS','TYRANID PRIME WITH LASH WHIP','WINGED TYRANID PRIME'].some(k=>tag(s,k,m.model))));
-  for(const [p,t] of defence)emit('leader-beasts','Leader-beasts',p,t,p==='Movement'?'end':'during','Only actual Tyranid Warriors, Tyranid Prime with Lash Whip and Winged Tyranid Prime models have this 5+ invulnerable save. Other models in their attached formation do not inherit it.',actual,'000009736',pack);
+  for(const [p,t,identityTiming] of defence)emit('leader-beasts','Leader-beasts',p,t,'during','Only actual Tyranid Warriors, Tyranid Prime with Lash Whip and Winged Tyranid Prime models have this 5+ invulnerable save. Other models in their attached formation do not inherit it.',actual,'000009736',pack,identityTiming);
  }
  if(has('Subterranean Assault')){
   card('surprise-shoot','Surprise Assault','Shooting','own','during','Only TYRANIDS models re-roll ranged Hit rolls of 1. This does not permit Hit re-rolls in snap shooting.',tyr.filter(rangedHits),'000010146',pack);
@@ -200,14 +221,16 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
   const upgrade=eligibleTyranidUpgrades(current,bearer.unit,bearer.id).find(u=>u.name===selected(bearer));
   if(!upgrade)continue;
   const f=forms.find(g=>g.members.some(s=>s.id===bearer.id));if(!f)continue;
+  const defensive=['Perfectly Adapted','Null Nodules','Naturalised Camouflage','Chameleonic','Synaptic Control','Cryptophotaic Camouflage','Synaptoprescience'].includes(upgrade.name);
+  if(defensive&&(!original.some(s=>sameIdentity(s,bearer))||!originalFormation(f)))continue;
   const title=bearer.id+' · '+upgrade.name;
-  const add=(p:ReminderWindow,t:Turn,body:string,timing:Timing='during',units:readonly RosterInstance[]=[f.root],reference=source)=>emit(upgrade.id+'-'+bearer.id,title,p,t,timing,body,units,upgrade.id,reference);
+  const add=(p:ReminderWindow,t:Turn,body:string,timing:Timing='during',units:readonly RosterInstance[]=[f.root],reference=source,identityTiming:Timing=timing)=>emit(upgrade.id+'-'+bearer.id,title,p,t,timing,body,units,upgrade.id,reference,identityTiming);
   const personal:Form={root:bearer,members:[bearer]};
   const characterRoles=[...new Set(tyranidModelLoadouts(bearer).filter(m=>tag(bearer,'CHARACTER',m.model)).map(m=>m.model))];
   const owner=upgrade.repeatable?'This upgraded unit':'Only the surviving Character bearer'+(characterRoles.length?' ('+characterRoles.join(', ')+')':'');
   const guns=weapons(personal,'Shooting',upgrade.repeatable?undefined:'CHARACTER');
   const blades=weapons(personal,'Fight',upgrade.repeatable?undefined:'CHARACTER');
-  const ownDefence=(body:string,units:readonly RosterInstance[]=[bearer])=>{for(const [p,t] of defence)add(p,t,body,p==='Movement'?'end':'during',units);};
+  const ownDefence=(body:string,units:readonly RosterInstance[]=[bearer])=>{for(const [p,t,identityTiming] of defence)add(p,t,body,'during',units,source,identityTiming);};
   const ownSnap=(body:string,units:readonly RosterInstance[]=[bearer])=>{if(guns.length&&!kw(f,'TITANIC'))add('Movement','opponent','If the bearer uses Fire Overwatch: '+body,'end',units);};
   switch(upgrade.id){
    case '000008348002':case '000010147003':case '000008417005':{
@@ -221,7 +244,8 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
     if(guns.length)add('Shooting','own',body,'during',[bearer]);
     if(blades.length)add('Fight','either',body,'during',[bearer]);
     add('Shooting','opponent',body,'during',[bearer]);
-    add('Movement','own','For a saving throw during enemy snap shooting: '+body,'end',[bearer]);
+    add('Movement','own','For a saving throw during permitted enemy arrival or reaction shooting, including snap shooting: '+body,'during',[bearer],source,'end');
+    add('Movement','opponent','For a saving throw during permitted enemy arrival or reaction shooting: '+body,'during',[bearer]);
     ownSnap(owner+' can spend its once-per-turn re-roll on one Wound or Damage roll; snap shooting cannot re-roll Hit rolls.');
     break;
    }
@@ -238,8 +262,9 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
    case '000008408003':{if(endless.length){
     const body='At the start of battle round 1, select up to three Endless Multitude formations within 9″ of the Character bearer. They have Benefit of Cover against ranged attacks until that battle round ends; this selected effect persists for its duration if the bearer later dies. Eligible formations: '+names(endless)+'.';
     add('Start of battle round','either',body,'start',[bearer,...roots(endless)]);
-    for(const [p,t] of defence.filter(([p])=>p!=='Fight'))add(p,t,'Only if this formation was selected by Naturalised Camouflage at the start of battle round 1, it has Benefit of Cover against ranged attacks for the rest of that round. The effect expires after round 1.',p==='Movement'?'end':'during',roots(endless));
-    }break;
+    }
+    for(const [p,t,identityTiming] of defence.filter(([p])=>p!=='Fight'))add(p,t,'Only if this original formation was selected by Naturalised Camouflage at the start of battle round 1, it has Benefit of Cover against ranged attacks for the rest of that round. The benefit lasts until battle round 1 ends even if the enhancement bearer or the originally selected Endless Multitude models have since been destroyed.','during',roots(camouflageSurvivors),source,identityTiming);
+    break;
    }
    case '000008408004':{
     const body='While the Character bearer survives, its formation’s attacks improve AP by 1 on Critical Wounds. This applies to all models in that actual formation.';
@@ -265,7 +290,7 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
     add('Fight','either',body);
    }break;
    case '000008417002':for(const p of phases)add(p,'either','While the Character bearer is on the battlefield, each enemy unit arriving from Reserves must take a Battle-shock test on a 2+. This also applies to a repositioned enemy when it is set up again, even if its rule does not explicitly place it in Reserves.','during',[bearer]);break;
-   case '000008417003':add('Shooting','either','While the Character bearer survives, its actual formation has Stealth: ranged attacks targeting that formation suffer −1 to Hit. Stealth does not change the fixed Hit requirement of snap shooting.','during',[f.root]);break;
+   case '000008417003':for(const [p,t] of defence.filter(([p])=>p!=='Fight'))add(p,t,'While the Character bearer survives, its actual formation has Stealth and receives the Benefit of Cover against ranged attacks, including normal reaction attacks and snap shooting. Other formations do not receive this benefit. If the bearer dies to an attack, retain the benefit until that attacking unit finishes.','during',[f.root],pack);break;
    case '000008417004':{
     const body=owner+' gains +1 to Hit and +1 to Wound for attacks against the one enemy unit chosen at the start of the battle. Other models in the formation do not gain these bonuses.';
     add('Pre-battle','either','At the start of the battle, choose one enemy unit for Stalker. '+body,'during',[bearer]);
@@ -293,7 +318,7 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
     if(blades.length)add('Fight','either','Only this Trygon Prime improves its melee weapons’ Strength and Weapon Skill by 1. Its Synapse keyword also makes it an actual Synapse source.','during',[bearer],pack);break;
    }
    case '000010936002':add('Movement','opponent','When an enemy ends any move within 8″ of this upgraded Lictor, Neurolictor or Von Ryan’s Leapers formation, it can make a Normal move of up to D3+3″ if otherwise eligible. This is a Normal move, not a surge.','during',[f.root],pack);break;
-   case '000010936003':for(const [p,t] of defence.filter(([p])=>p!=='Fight'))add(p,t,'This upgraded Von Ryan’s Leapers formation has −3″ detection range.',p==='Movement'?'end':'during',[f.root],pack);break;
+   case '000010936003':for(const [p,t,identityTiming] of defence.filter(([p])=>p!=='Fight'))add(p,t,'This upgraded Von Ryan’s Leapers formation has −3″ detection range.','during',[f.root],pack,identityTiming);break;
    case '000010940002':{
     const body='This upgraded Norn Emissary’s ranged attacks have Anti-Character 2+: an unmodified Wound roll of 2+ against a Character unit is a Critical Wound.';
     if(guns.length){add('Shooting','own',body,'during',[f.root],pack);ownSnap(body,[f.root]);}break;
@@ -303,10 +328,9 @@ export function tyranidDetachmentReminders(army:ArmySelection,roster:readonly Ro
  }
  // A selected lasting effect can remain after its source dies. These cues do
  // not assert that the untracked choice/kill happened; they preserve its condition.
- const originalForms=tyranidFormations(army,expandRoster(army));
  for(const former of expandRoster(army).filter(s=>!active.some(a=>a.id===s.id))){
   const upgrade=eligibleTyranidUpgrades(army,former.unit,former.id).find(u=>u.name===(army.upgrades2026?.[former.id]??army.upgrades2026?.[former.unit]??former.enhancement));
-  if(upgrade?.name==='Naturalised Camouflage'&&endless.length)for(const [p,t] of defence.filter(([p])=>p!=='Fight'))emit(upgrade.id+'-lasting-'+former.id,former.id+' · Naturalised Camouflage',p,t,p==='Movement'?'end':'during','If selected by this bearer at the start of battle round 1, these Endless Multitude formations retain Benefit of Cover against ranged attacks until that round ends even though the bearer has been destroyed.',roots(endless),upgrade.id);
+  if(upgrade?.name==='Naturalised Camouflage'&&camouflageSurvivors.length&&originalForms.some(f=>!f.root.attachedTo&&f.members.some(s=>sameIdentity(s,former))))for(const [p,t,identityTiming] of defence.filter(([p])=>p!=='Fight'))emit(upgrade.id+'-lasting-'+former.id,former.id+' · Naturalised Camouflage',p,t,'during','If selected by this bearer at the start of battle round 1, these original formations retain Benefit of Cover against ranged attacks until that round ends even though the bearer has been destroyed. Surviving models in the originally selected formation retain the effect after its Endless Multitude models have been destroyed.',roots(camouflageSurvivors),upgrade.id,source,identityTiming);
   if(upgrade?.name==='Parasitic Biomorphology'&&originalHarvester){
    const original=originalForms.find(f=>f.members.some(m=>m.id===former.id));
    const survivors=original?tyr.filter(f=>f.members.some(m=>original.members.some(o=>o.id===m.id))):[];

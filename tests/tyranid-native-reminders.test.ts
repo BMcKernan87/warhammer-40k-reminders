@@ -248,7 +248,7 @@ it('uses publisher Malign Presence once per turn without a Warlord requirement',
 });
 it('uses current Foul Spores on Monster-containing formations and current Stealth cover',()=>{
  const a=join(army(['Venomthropes','Hive Tyrant','Tyrant Guard','Tyrannofex']),'Hive Tyrant','Tyrant Guard');
- const rows=get(a,'Foul Spores');expect(rows).toHaveLength(3);expect(rows[0].units).toEqual(expect.arrayContaining([id('Hive Tyrant'),id('Tyrant Guard'),id('Tyrannofex')]));
+ const rows=get(a,'Foul Spores');expect(rows).toHaveLength(4);expect(rows[0].units).toEqual(expect.arrayContaining([id('Hive Tyrant'),id('Tyrant Guard'),id('Tyrannofex')]));
  expect(rows[0].summary).toContain('Benefit of Cover');expect(rows[0].source).toContain('an12izciwp-np2hnkcsje.pdf');
  expect(get(a,'Foul Spores',a.instances!.filter(s=>s.unit!=='Venomthropes'))).toEqual([]);
 });

@@ -6,6 +6,7 @@ import {verifyPrint} from './printed-phases';
 
 const sheet=(page:Page)=>page.getByRole('heading',{name:'Phase reminders',exact:true}).locator('..');
 const card=(page:Page,title:string,turn:string)=>sheet(page).locator('.check').filter({has:page.getByRole('checkbox',{name:title+' · '+turn+' · during',exact:true})});
+const nativeCard=(page:Page,title:string,turn:string,unit:string)=>card(page,title,turn).filter({has:page.locator('.rule-subjects').filter({hasText:'Roster: '+unit})});
 
 test('mobile Tau reopens old defense checkmarks while separating new arrival-fire reminders',async({page},info)=>{
  test.setTimeout(90_000);
@@ -19,7 +20,8 @@ test('mobile Tau reopens old defense checkmarks while separating new arrival-fir
  const title='Ghostkeel Battlesuit#1 · Stealth';
  // This is the exact pre-change stored identity. Only its display timing changes.
  const oldKey='sheet:'+JSON.stringify(['Movement','11e-tau-profile:Ghostkeel Battlesuit#1:Stealth:Movement:own:end',['Ghostkeel Battlesuit#1']]);
- profile.completed=[oldKey];
+ const oldDroneKey='sheet:'+JSON.stringify(['Movement','11e-tau-native:Commander Shadowsun#1:Advanced Guardian Drone:Movement:own:end',['Commander Shadowsun#1']]);
+ profile.completed=[oldKey,oldDroneKey];
  await page.addInitScript(store=>{
   const key='w40k-reminders-profiles-v1';
   if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(store));
@@ -30,13 +32,19 @@ test('mobile Tau reopens old defense checkmarks while separating new arrival-fir
  await page.getByRole('button',{name:'Play reminders',exact:true}).click();
  await sheet(page).getByLabel('Show phase').selectOption('Movement');
  await expect(card(page,title,'Your turn')).toHaveCount(0);
+ await expect(nativeCard(page,'Advanced Guardian Drone','Your turn','Commander Shadowsun#1')).toHaveCount(0);
+ await expect(nativeCard(page,'Advanced Guardian Drone','Opponent’s turn','Commander Shadowsun#1').getByRole('checkbox')).not.toBeChecked();
  await expect(card(page,title,'Opponent’s turn').getByRole('checkbox')).not.toBeChecked();
  await expect(card(page,'Ghostkeel Battlesuit#2 · Stealth','Your turn').getByRole('checkbox')).not.toBeChecked();
  await sheet(page).getByLabel('Show completed reminders').check();
  await expect(card(page,title,'Your turn').getByRole('checkbox')).toBeChecked();
+ await expect(nativeCard(page,'Advanced Guardian Drone','Your turn','Commander Shadowsun#1').getByRole('checkbox')).toBeChecked();
  for(const turn of ['Your turn','Opponent’s turn']){
   await expect(card(page,'Commander Shadowsun#1 · Invulnerable save',turn)).toContainText('5+ invulnerable save');
   await expect(card(page,'Ghostkeel Battlesuit#1 · Lone Operative',turn)).toContainText('Indirect Fire');
+  await expect(nativeCard(page,'Advanced Guardian Drone',turn,'Commander Shadowsun#1')).toContainText('Shadowsun herself');
+  await expect(nativeCard(page,'Stealth Drones',turn,'Ghostkeel Battlesuit#1')).toContainText('Twice per battle');
+  await expect(nativeCard(page,'Stealth Drones',turn,'Ghostkeel Battlesuit#2')).toContainText('not separate models');
  }
  await card(page,title,'Opponent’s turn').getByRole('checkbox').click();
  await page.reload();
@@ -51,6 +59,7 @@ test('mobile Tau reopens old defense checkmarks while separating new arrival-fir
  await expect(card(page,title,'Opponent’s turn').getByRole('checkbox')).toBeChecked();
  const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('w40k-reminders-profiles-v1')!).profiles[0]);
  expect(saved.completed).not.toContain(oldKey);
+ expect(saved.completed).toContain(oldDroneKey);
  expect(saved.army.instances.map((s:{id:string})=>s.id)).toEqual(['Commander Shadowsun#1','Ghostkeel Battlesuit#1','Ghostkeel Battlesuit#2']);
  await page.screenshot({path:info.outputPath('phase-reminders.png'),fullPage:true});
  await page.emulateMedia({media:'print'});
@@ -58,6 +67,8 @@ test('mobile Tau reopens old defense checkmarks while separating new arrival-fir
  await expect(printed.getByText(title,{exact:true})).toHaveCount(4);
  await expect(printed.getByText('Ghostkeel Battlesuit#2 · Stealth',{exact:true})).toHaveCount(4);
  await expect(printed.getByText('Commander Shadowsun#1 · Invulnerable save',{exact:true})).toHaveCount(5);
+ await expect(printed.getByText('Advanced Guardian Drone',{exact:true})).toHaveCount(4);
+ await expect(printed.getByText('Stealth Drones',{exact:true})).toHaveCount(10);
  await verifyPrint(page,info);
  expect(errors).toEqual([]);
 });
