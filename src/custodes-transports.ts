@@ -13,25 +13,34 @@ export function custodesPassengerCount(members:readonly RosterInstance[]):number
  return members.reduce((total,s)=>total+(s.models??sheets.get(s.unit)?.sizes[0]??1),0);
 }
 
-export function custodesPassengerFormations(army:ArmySelection,carrier:string,roster:readonly RosterInstance[]=expandRoster(army)):RosterInstance[][] {
- if(army.faction!=='Adeptus Custodes'||!CUSTODES_CARRIERS.some(name=>name===carrier))return [];
+export function custodesCargoFormations(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):RosterInstance[][] {
+ if(army.faction!=='Adeptus Custodes')return [];
  const all=roster.filter(s=>!s.attachedTo&&!s.retinueTo&&sheets.get(s.unit)?.attachmentRole!=='support');
  const joined=new Map(roster.filter(s=>s.attachedTo).map(s=>[s.id,knightJoinedBodyguard(army,s)?.id]));
  return all.flatMap(root=>{
   const escorts=roster.filter(s=>s.attachedTo===root.id);
-  if(escorts.some(s=>joined.get(s.id)!==root.id))return [];
-  const group=[root,...escorts];
-  // The October codex grants the Orion a Dreadnought berth, including a Telemon.
-  // The Coronus excludes Jump Pack models, while the Orion's infantry berth does not.
-  const fits=group.every(s=>{
-   const keywords=custodesKeywords(army,s);
-   if(s!==root&&BATTLELINE_INQUISITORS.has(s.unit))return true;
-   if(carrier===ORION&&keywords.has('DREADNOUGHT'))return group.length===1;
-   const faction=carrier===SISTERS_RHINO?'ANATHEMA PSYKANA':'ADEPTUS CUSTODES';
-   return keywords.has(faction)&&keywords.has('INFANTRY')&&(carrier!==CORONUS||!keywords.has('JUMP PACK'));
-  });
-  return fits&&custodesPassengerCount(group)<=(carrier===CORONUS?8:12)?[group]:[];
+  if(escorts.some(s=>s.retinueTo||joined.get(s.id)!==root.id))return [];
+  return [[root,...escorts]];
  });
+}
+
+export function custodesPassengerFormationFits(army:ArmySelection,carrier:string,group:readonly RosterInstance[]):boolean {
+ if(army.faction!=='Adeptus Custodes'||!CUSTODES_CARRIERS.some(name=>name===carrier)||!group.length)return false;
+ // The October codex grants the Orion a Dreadnought berth, including a Telemon.
+ // The Coronus excludes Jump Pack models, while the Orion's infantry berth does not.
+ const fits=group.every((s,index)=>{
+  const keywords=custodesKeywords(army,s),models=s.models??sheets.get(s.unit)?.sizes[0]??1;
+  if(!Number.isInteger(models)||models<1)return false;
+  if(index>0&&BATTLELINE_INQUISITORS.has(s.unit))return true;
+  if(carrier===ORION&&keywords.has('DREADNOUGHT'))return group.length===1;
+  const faction=carrier===SISTERS_RHINO?'ANATHEMA PSYKANA':'ADEPTUS CUSTODES';
+  return keywords.has(faction)&&keywords.has('INFANTRY')&&(carrier!==CORONUS||!keywords.has('JUMP PACK'));
+ });
+ return fits&&custodesPassengerCount(group)<=(carrier===CORONUS?8:12);
+}
+
+export function custodesPassengerFormations(army:ArmySelection,carrier:string,roster:readonly RosterInstance[]=expandRoster(army)):RosterInstance[][] {
+ return custodesCargoFormations(army,roster).filter(group=>custodesPassengerFormationFits(army,carrier,group));
 }
 
 export function eligibleCustodesPassengers(army:ArmySelection,transport:RosterInstance,roster?:readonly RosterInstance[]):RosterInstance[] {

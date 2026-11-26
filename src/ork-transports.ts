@@ -4,16 +4,28 @@ import {BATTLE_SIZES_2026} from './edition-2026';
 import type {GeneratedReminder} from './generated-reminders';
 import {ORK_REVISION} from './ork-data.generated';
 import {ORK_SHEETS} from './ork-data';
-import {orkCargoGroups,orkMandatoryReservePoints,orkTransportCapacity} from './ork-muster';
+import {orkCargoFormations,orkCargoGroups,orkCargoSpaces,orkMandatoryReservePoints,orkTransportCapacity} from './ork-muster';
 import {expandRoster,type RosterInstance} from './roster-instances';
-import {transportMovementReminders} from './transport-movement';
+import {survivingTransportPassengers,transportMovementReminders} from './transport-movement';
 
 export {eligibleOrkPassengers} from './ork-muster';
 const sheets=new Map(ORK_SHEETS.map(s=>[s.unit,s]));
 export function orkTransportReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Orks')return [];
  const carriers=roster.filter(s=>orkTransportCapacity(s)>0);
- if(!carriers.length)return [];
+ const original=expandRoster(army),originalCarriers=original.filter(s=>orkTransportCapacity(s)>0&&!roster.some(now=>now.id===s.id&&now.unit!==s.unit));
+ // Validate the original whole formation before casualties. A smaller surviving
+ // formation can have embarked later, including after losing its Bodyguard.
+ const current=new Map(roster.map(s=>[s.id,s]));
+ const priorCargo=orkCargoFormations(army,original).filter(group=>{
+  const survivors=group.flatMap(s=>current.has(s.id)?[current.get(s.id)!]:[]);
+  return originalCarriers.some(carrier=>[group,survivors].some(members=>{
+   const spaces=orkCargoSpaces(army,carrier,members);
+   return spaces!==undefined&&spaces<=orkTransportCapacity(carrier);
+  }));
+ });
+ const chargePassengers=survivingTransportPassengers(priorCargo,roster);
+ if(!carriers.length)return transportMovementReminders('11e-ork-',[],[],chargePassengers);
  const rows:GeneratedReminder[]=[];
  const roots=new Set<string>(),occupied:string[]=[];
  const cost=rosterCost2026(army);
@@ -40,5 +52,5 @@ export function orkTransportReminders(army:ArmySelection,roster:readonly RosterI
   const source=carrier.unit==='Gargantuan Squiggoth'?ORK_REVISION.forgeWorldPack+'#page=23':sheets.get(carrier.unit)!.source;
   rows.push({id:'11e-ork-cargo-'+carrier.id,title:carrier.id+' · starting passengers',window:'Pre-battle',timing:'start',turn:'either',summary:notes.join(' '),units:[carrier.id,...groups.map(g=>g.root.id)],source,origin:'unit'});
  }
- return [...rows,...transportMovementReminders('11e-ork-',[...roots],occupied)];
+ return [...rows,...transportMovementReminders('11e-ork-',[...roots],occupied,chargePassengers)];
 }

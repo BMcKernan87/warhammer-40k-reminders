@@ -1,6 +1,6 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {NECRON_RETINUES,necronFormationRoots,formationBodyguardStrength,ghostArkPassengers} from './necron-retinues';
+import {NECRON_RETINUES,necronFormationRoots,formationBodyguardStrength,ghostArkPassengers,necronTransportFormations} from './necron-retinues';
 import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
 import {weaponSummary} from './necron-weapon-cues';
@@ -139,7 +139,9 @@ function isDestroyerModel(army:ArmySelection,s:RosterInstance):boolean{
 function datasheetTargets(ruleId:string,bearer:RosterInstance,formations:Formation[],army:ArmySelection):string[]|undefined{
   const withMember=(test:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(test)).map(f=>f.id);
   switch(ruleId){
-    case 'invasion': case 'monolith': case 'nodes':
+    case 'invasion':
+      return necronTransportFormations(army,formations.flatMap(f=>f.members)).filter(f=>f.members.some(s=>necronKeywords.INFANTRY.has(s.unit))).map(f=>f.id);
+    case 'monolith': case 'nodes':
       return withMember(s=>necronKeywords.INFANTRY.has(s.unit));
     case 'ghost-repair':
       return withMember(s=>s.unit==='Necron Warriors');
@@ -362,7 +364,9 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
   if(s.unit==='C’tan Shard of the Deceiver'||s.unit==='Flayed Ones')for(const window of rangedWindows)emit('stealth','Stealth',window,'When every surviving model in the unit has Stealth, ranged attacks against it grant the Benefit of Cover, unless ignored. This also applies to permitted Movement-phase attacks, including Fire Overwatch.');
   if(s.unit==='Flayed Ones')emit('infiltrators','Infiltrators','Pre-battle','During deployment, if all models have this ability, deploy more than 8″ horizontally from the enemy deployment zone and every enemy unit.','start');
   if(s.unit==='Night Scythe'){
-   emit('quantum-invader','Quantum Invader','Movement','This model may arrive during the Reinforcements step of your first, second or third Movement phase regardless of mission rules.');
+   // The current card retains "Reinforcements step" wording. Core 09.02/20.04
+   // resolves reserve arrivals as ingress moves in the Move Units step.
+   emit('quantum-invader','Quantum Invader','Movement','In the Move Units step of your first, second or third Movement phase, this model may make an ingress move regardless of mission rules.','during',[s.id],'own');
    emit('hover','Hover','Movement','When taking to the skies, do not subtract 2″ from the maximum distance.');
   }
   if(s.unit==='Monolith'){

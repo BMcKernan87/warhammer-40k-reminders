@@ -1,13 +1,13 @@
 import {custodesKeywords} from './adeptus-custodes-data';
 import type {ArmySelection} from './catalog';
-import {CUSTODES_CARRIERS,custodesPassengerCount,custodesPassengerFormations,SISTERS_RHINO} from './custodes-transports';
+import {CUSTODES_CARRIERS,custodesCargoFormations,custodesPassengerCount,custodesPassengerFormationFits,custodesPassengerFormations,SISTERS_RHINO} from './custodes-transports';
 import {rosterCost2026} from './datasheets-2026';
 import {BATTLE_SIZES_2026} from './edition-2026';
 import type {GeneratedReminder} from './generated-reminders';
 import {knightWeaponCount} from './knight-loadouts';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import {expandRoster,type RosterInstance} from './roster-instances';
-import {transportMovementReminders} from './transport-movement';
+import {survivingTransportPassengers,transportMovementReminders} from './transport-movement';
 
 const core='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
 const ORION='Orion Assault Dropship';
@@ -67,7 +67,13 @@ export function custodesFormationReminders(army:ArmySelection,roster:readonly Ro
   rows.push({id:'11e-custodes-passengers-'+carrier.id,title:carrier.id+' · starting passengers',window:'Pre-battle',turn:'either',timing:'start',
    summary:notes.join(' '),units:[carrier.id,...groups.map(([root])=>root.id)],source:'https://wahapedia.ru/wh40k11ed/factions/adeptus-custodes/'+carrier.unit.replaceAll(' ','-'),origin:'unit'});
  }
- rows.push(...transportMovementReminders('11e-custodes-',[...passengers],usableCarriers));
+ const original=expandRoster(army),originalCarriers=original.filter(s=>CUSTODES_CARRIERS.some(name=>name===s.unit)&&!roster.some(now=>now.id===s.id&&now.unit!==s.unit));
+ const current=new Map(roster.map(s=>[s.id,s]));
+ const priorCargo=custodesCargoFormations(army,original).filter(group=>{
+  const survivors=group.flatMap(s=>current.has(s.id)?[current.get(s.id)!]:[]);
+  return originalCarriers.some(carrier=>custodesPassengerFormationFits(army,carrier.unit,group)||custodesPassengerFormationFits(army,carrier.unit,survivors));
+ });
+ rows.push(...transportMovementReminders('11e-custodes-',[...passengers],usableCarriers,survivingTransportPassengers(priorCargo,roster)));
  const joined=roster.flatMap(s=>{
   const body=knightJoinedBodyguard(army,s);
   return body?[{member:s,body}]:[];

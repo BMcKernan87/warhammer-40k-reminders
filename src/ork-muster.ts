@@ -37,30 +37,40 @@ export function orkTransportCapacity(transport:RosterInstance):number {
  return transportCapacity[transport.unit]??0;
 }
 export interface OrkCargoGroup {root:RosterInstance;members:RosterInstance[];spaces:number}
-export function orkCargoGroups(army:ArmySelection,transport:RosterInstance,roster:readonly RosterInstance[]=expandRoster(army)):OrkCargoGroup[] {
- if(army.faction!=='Orks'||!roster.some(s=>s.id===transport.id&&s.unit===transport.unit))return [];
- const capacity=orkTransportCapacity(transport);
- if(!capacity)return [];
- const rig=transport.unit==='Kill Rig'||transport.unit==='Hunta Rig';
- const excludesGhaz=['Trukk','Morkanaut','Gorkanaut','Big’ed Bossbunka'].includes(transport.unit);
+export function orkCargoFormations(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):RosterInstance[][] {
+ if(army.faction!=='Orks')return [];
  const attached=new Map(roster.filter(s=>s.attachedTo).map(s=>[s.id,knightJoinedBodyguard(army,s)?.id]));
  return roster.flatMap(root=>{
-  if(root.id===transport.id||root.attachedTo||root.retinueTo||sheets.get(root.unit)?.attachmentRole==='support')return [];
+  if(root.attachedTo||root.retinueTo||sheets.get(root.unit)?.attachmentRole==='support')return [];
   const attachedUnits=roster.filter(s=>s.attachedTo===root.id);
-  if(attachedUnits.some(s=>attached.get(s.id)!==root.id))return [];
-  const members=[root,...attachedUnits];
-  let spaces=0;
-  for(const squad of members){
-   const tags=orkKeywords(army,squad);
-   if(!tags.has('ORKS')||!tags.has('INFANTRY')||rig&&!tags.has('BEAST SNAGGA'))return [];
-   if(excludesGhaz&&squad.unit==='Ghazghkull Thraka'||transport.unit==='Trukk'&&tags.has('JUMP PACK'))return [];
-   const models=squad.models??sheets.get(squad.unit)?.sizes[0]??1;
-   // Downtrodden applies to Gretchin models. A Runtherd or Zodgrod still takes one space.
-   if(squad.unit==='Gretchin')spaces+=Math.ceil(models/2);
-   else if(squad.unit==='Ghazghkull Thraka')spaces+=models*(transport.unit==='Gargantuan Squiggoth'?18:4);
-   else spaces+=models*(tags.has('MEGA ARMOUR')||tags.has('JUMP PACK')?2:1);
-  }
-  return spaces<=capacity?[{root,members,spaces}]:[];
+  if(attachedUnits.some(s=>s.retinueTo||attached.get(s.id)!==root.id))return [];
+  return [[root,...attachedUnits]];
+ });
+}
+export function orkCargoSpaces(army:ArmySelection,transport:RosterInstance,members:readonly RosterInstance[]):number|undefined {
+ if(army.faction!=='Orks'||!members.length||!orkTransportCapacity(transport))return;
+ const rig=transport.unit==='Kill Rig'||transport.unit==='Hunta Rig';
+ const excludesGhaz=['Trukk','Morkanaut','Gorkanaut','Big’ed Bossbunka'].includes(transport.unit);
+ let spaces=0;
+ for(const squad of members){
+  const tags=orkKeywords(army,squad);
+  if(!tags.has('ORKS')||!tags.has('INFANTRY')||rig&&!tags.has('BEAST SNAGGA'))return;
+  if(excludesGhaz&&squad.unit==='Ghazghkull Thraka'||transport.unit==='Trukk'&&tags.has('JUMP PACK'))return;
+  const models=squad.models??sheets.get(squad.unit)?.sizes[0]??1;
+  if(!Number.isInteger(models)||models<1)return;
+  // Downtrodden applies to Gretchin models. A Runtherd or Zodgrod still takes one space.
+  if(squad.unit==='Gretchin')spaces+=Math.ceil(models/2);
+  else if(squad.unit==='Ghazghkull Thraka')spaces+=models*(transport.unit==='Gargantuan Squiggoth'?18:4);
+  else spaces+=models*(tags.has('MEGA ARMOUR')||tags.has('JUMP PACK')?2:1);
+ }
+ return spaces;
+}
+export function orkCargoGroups(army:ArmySelection,transport:RosterInstance,roster:readonly RosterInstance[]=expandRoster(army)):OrkCargoGroup[] {
+ if(!roster.some(s=>s.id===transport.id&&s.unit===transport.unit))return [];
+ const capacity=orkTransportCapacity(transport);
+ return orkCargoFormations(army,roster).flatMap(members=>{
+  const root=members[0],spaces=orkCargoSpaces(army,transport,members);
+  return root.id!==transport.id&&spaces!==undefined&&spaces<=capacity?[{root,members,spaces}]:[];
  });
 }
 export function eligibleOrkPassengers(army:ArmySelection,transport:RosterInstance,roster?:readonly RosterInstance[]):RosterInstance[]{
