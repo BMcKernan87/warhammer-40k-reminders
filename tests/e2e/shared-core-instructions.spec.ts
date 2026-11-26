@@ -7,6 +7,7 @@ async function add(page:Page,unit:string){
 }
 const sheet=(page:Page)=>page.getByRole('heading',{name:'Phase reminders',exact:true}).locator('..');
 const card=(page:Page,title:string)=>sheet(page).locator('.check').filter({has:page.getByText(title,{exact:true})});
+const turnCard=(page:Page,title:string,turn:string)=>card(page,title).filter({has:page.getByRole('checkbox',{name:title+' · '+turn+' · during',exact:true})});
 const convergence='Convergence Of Dominion#1';
 const starsteles=[1,2,3].map(n=>convergence+' · Starstele '+n);
 
@@ -25,7 +26,7 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
    await expect(page.getByText('Warlord: Psychomancer#1',{exact:true})).toBeVisible();
   }else{
    await page.getByRole('checkbox',{name:/Recon Element/}).check();
-   for(const unit of ['Cadian Command Squad','Cadian Shock Troops','Ogryn Bodyguard','Commissar'])await add(page,unit);
+   for(const unit of ['Cadian Command Squad','Cadian Shock Troops','Ogryn Bodyguard','Commissar','Tech-Priest Enginseer','Rogal Dorn Battle Tank'])await add(page,unit);
    await page.getByLabel('Attach squad Cadian Command Squad#1',{exact:true}).selectOption('Cadian Shock Troops#1');
    await page.getByLabel('Command Squad for Ogryn Bodyguard#1',{exact:true}).selectOption('Cadian Command Squad#1');
    await expect(page.getByLabel('11th upgrade for squad Ogryn Bodyguard#1',{exact:true})).toHaveCount(0);
@@ -41,6 +42,21 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
    await expect(page.getByLabel('11th upgrade for squad Cadian Command Squad#1',{exact:true})).toHaveValue('Tripwires');
   }
   await page.getByRole('button',{name:'Play reminders',exact:true}).click();
+  if(faction==='Astra Militarum'){
+   for(const phase of ['Movement','Shooting']){
+    await sheet(page).getByLabel('Show phase').selectOption(phase);
+    for(const turn of ['Your turn','Opponent’s turn']){
+     await expect(turnCard(page,'Enginseer',turn)).toContainText('unattached and within 3″');
+     await expect(turnCard(page,'Omnissiah’s Blessing',turn)).toContainText('until the start of your next Command phase');
+     await expect(turnCard(page,'Omnissiah’s Blessing',turn)).toContainText('Only the selected physical model benefits');
+     await expect(turnCard(page,'Rogal Dorn Battle Tank · Ablative Plating',turn)).toContainText('one use is shared across every phase');
+    }
+   }
+   await sheet(page).getByLabel('Show phase').selectOption('Movement');
+   await turnCard(page,'Omnissiah’s Blessing','Your turn').getByRole('checkbox').click();
+   await expect(turnCard(page,'Omnissiah’s Blessing','Your turn')).toHaveCount(0);
+   await expect(turnCard(page,'Omnissiah’s Blessing','Opponent’s turn').getByRole('checkbox')).not.toBeChecked();
+  }
   if(faction==='Necrons'){
    await sheet(page).getByLabel('Show phase').selectOption('Pre-battle');
    await expect(card(page,convergence+' · Starsteles')).toContainText('Starting Strength 1');
@@ -82,6 +98,12 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
   await sheet(page).getByLabel('Show phase').selectOption('Fight');
   await sheet(page).getByLabel('Show completed reminders').check();
   await expect(card(page,'Fight step · activation order').getByRole('checkbox')).toBeChecked();
+  if(faction==='Astra Militarum'){
+   await sheet(page).getByLabel('Show phase').selectOption('Movement');
+   await expect(turnCard(page,'Omnissiah’s Blessing','Your turn').getByRole('checkbox')).toBeChecked();
+   await expect(turnCard(page,'Omnissiah’s Blessing','Opponent’s turn').getByRole('checkbox')).not.toBeChecked();
+   await sheet(page).getByLabel('Show phase').selectOption('Fight');
+  }
   if(faction==='Necrons')await expect(card(page,'Dominance Protocols · objective control').getByRole('checkbox')).not.toBeChecked();
   await page.screenshot({path:info.outputPath('fight-reminders.png'),fullPage:true});
   // A filtered and checked digital sheet must still print the complete action and Fight rules.
@@ -89,6 +111,11 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
   const printed=page.getByRole('region',{name:'Printable army reminders'});
   await expect(printed.getByText('Actions · eligibility',{exact:true})).toHaveCount(1);
   await expect(printed.getByText('Fight step · activation order',{exact:true})).toHaveCount(1);
+  if(faction==='Astra Militarum'){
+   await expect(printed.getByText('Enginseer',{exact:true})).toHaveCount(4);
+   await expect(printed.getByText('Omnissiah’s Blessing',{exact:true})).toHaveCount(6);
+   await expect(printed.getByText('Rogal Dorn Battle Tank · Ablative Plating',{exact:true})).toHaveCount(5);
+  }
   if(faction==='Necrons'){
    await expect(printed.getByText('Dominance Protocols · objective control',{exact:true})).toHaveCount(7);
    await expect(printed.getByText('Dominance Protocols · 1CP',{exact:true})).toHaveCount(1);

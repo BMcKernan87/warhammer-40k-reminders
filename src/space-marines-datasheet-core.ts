@@ -17,7 +17,7 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 const key=(s:string)=>s.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
 const core=(army:ArmySelection,s:RosterInstance)=>spaceMarineCards(army.faction)[s.unit]?.core??[];
 const fitted=(army:ArmySelection,s:RosterInstance,item:string)=>spaceMarineModelLoadouts(s,army.faction).some(m=>m.items.some(i=>key(i)===key(item)))||spaceMarineWeaponCount(s,item,army.faction)>0;
-const defence:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during'],['Fight','either','during']];
+const defence:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during'],['Fight','either','during']];
 type FormationInput=readonly RosterInstance[]|{members:readonly RosterInstance[];split?:{rootId:string}};
 const membersOf=(group:FormationInput):readonly RosterInstance[]=>'members' in group?group.members:group;
 const formationRoster=(group:FormationInput,roster:readonly RosterInstance[])=>{
@@ -52,8 +52,8 @@ export function spaceMarineDatasheetCoreReminders(army:ArmySelection,roster:read
  for(const {squad,group} of selected.flatMap(squad=>groups.filter(g=>g.members.some(s=>s.id===squad.id)).map(group=>({squad,group})))){
   const card=spaceMarineCards(army.faction)[squad.unit],context=group.part?chapterPartRoster(group.part,roster):roster;
   const ids=group.members.map(s=>s.id),tags=spaceMarineKeywords(army,squad,undefined,context),physical=group.part?group.part.physical.filter(m=>m.squad.id===squad.id):spaceMarineModelLoadouts(squad,army.faction),label=squad.id+(group.part?' · Group '+group.part.key:'');
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-space-marines-profile',label,title,window,turn,timing].join(':'),title:label+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-space-marines-profile',label,title,window,turn,savedTiming].join(':'),title:label+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,{...card,save:null},tags.has('TITANIC'),(s,name)=>spaceMarineWeaponCount(s,name,army.faction),(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')return;

@@ -162,8 +162,8 @@ it('prints complete physical weapon profiles and all incoming native save and St
  const normal=profile(a,'Ranged weapon profiles').find(r=>r.window==='Shooting'&&r.units?.includes(id('The Twin Lance')))!;
  expect(normal.summary).toContain('2 × Twin pulse blaster');expect(normal.summary).toContain('1 × Fusion eliminator');expect(normal.summary).toContain('BS ');expect(normal.summary).toContain('A ');
  const snap=profile(a,'Ranged weapon profiles').find(r=>r.window==='Movement'&&r.units?.includes(id('The Twin Lance')))!;expect(snap.summary).not.toContain('BS ');
- expect(profile(a,'Invulnerable save').filter(r=>r.units?.includes(id('The Twin Lance')))).toHaveLength(4);expect(profile(a,'Invulnerable save').some(r=>r.units?.includes(id('Commander In Enforcer Battlesuit')))).toBe(false);
- expect(profile(a,'Stealth').filter(r=>r.units?.includes(id('Ghostkeel Battlesuit')))).toHaveLength(3);expect(profile(a,'Lone Operative')).toHaveLength(3);
+ expect(profile(a,'Invulnerable save').filter(r=>r.units?.includes(id('The Twin Lance')))).toHaveLength(5);expect(profile(a,'Invulnerable save').some(r=>r.units?.includes(id('Commander In Enforcer Battlesuit')))).toBe(false);
+ expect(profile(a,'Stealth').filter(r=>r.units?.includes(id('Ghostkeel Battlesuit')))).toHaveLength(4);expect(profile(a,'Lone Operative')).toHaveLength(4);
  const rows=tauProfileReminders(a);expect(new Set(rows.map(r=>r.id)).size).toBe(rows.length);expect(tauIntrinsicReminders({...a,faction:'Necrons'})).toEqual([]);
  expect(tauFormationScoutRange(a,tauFormations(a).find(g=>g.root.id===id('The Twin Lance'))!.members)).toBe(8);
 });

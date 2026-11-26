@@ -288,7 +288,7 @@ it('retains Fabius’s battle-long Bodyguard bonuses after death and keeps its d
 it('uses the actual Enforcer and Ogryn models without leaking the personal invulnerable save',()=>{
  const a=join(army(['Traitor Enforcer','Traitor Guardsmen Squad']),'Traitor Enforcer','Traitor Guardsmen Squad');
  expect(csmArmyModelLoadouts(a.instances![0]).map(m=>m.model)).toEqual(['Traitor Enforcer','Traitor Ogryn']);
- const inv=profile(a,'Invulnerable save · Traitor Enforcer');expect(inv).toHaveLength(4);expect(inv.every(r=>r.summary.includes('Only an actual Traitor Enforcer')&&r.summary.includes('5+'))).toBe(true);
+ const inv=profile(a,'Invulnerable save · Traitor Enforcer');expect(inv).toHaveLength(5);expect(inv.every(r=>r.summary.includes('Only an actual Traitor Enforcer')&&r.summary.includes('5+'))).toBe(true);
  expect(profile(a,'Invulnerable save')).toEqual([]);expect(profile(a,'Invulnerable save · Traitor Ogryn')).toEqual([]);
  expect(get(a,'Mutated Bodyguard')[0].summary).toContain('Character models');expect(get(a,'Mutated Bodyguard')[0].summary).toContain('Ogryn and other non-Character');
  expect(get(a,'Brutal Example')[0]).toMatchObject({window:'Movement',turn:'opponent',timing:'end'});expect(get(a,'Brutal Example')[0].summary).toContain('destroys one Bodyguard model');

@@ -59,8 +59,8 @@ export function sororitasProfileReminders(army:ArmySelection,roster:readonly Ros
   const group=groups.find(g=>g.root.id===squad.id),formation=groups.find(g=>g.members.some(s=>s.id===squad.id));
   if(!formation)continue;
   const tags=sororitasKeywords(army,squad),reactions=sororitasReactionShooting(army,squad,roster);
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-sororitas-profile',squad.id,title,window,turn,timing].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-sororitas-profile',squad.id,title,window,turn,savedTiming].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,card,tags.has('TITANIC'),sororitasWeaponCount,(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')summary=(stage[0]==='Movement'?'When firing Overwatch, use snap shooting. ':'')+fullWeapons(squad,card,title==='Melee weapon profiles'?'Fight':'Shooting',stage[0]==='Movement');
@@ -95,7 +95,7 @@ export function sororitasProfileReminders(army:ArmySelection,roster:readonly Ros
     if(split.length)emit('Holy Vanguard · split Scouts 6″',['Pre-battle','either','during'],
      'If this Dominion squad is split for '+split.map(s=>s.id).join(' or ')+', an attached Leader allocated to a half that starts embarked gains Scouts 6″ through Holy Vanguard. Check each resulting half separately: every model in a half must have Scouts, and a Support without its own Scouts blocks its half. No ability is granted to an attached model placed in the other, unembarked half.',ids);
    }
-   if(group.members.every(s=>core(s).includes('Lone Operative')))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)
+   if(group.members.every(s=>core(s).includes('Lone Operative')))for(const stage of [['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during']] as const)
     emit('Lone Operative',stage,'Every model in this formation has Lone Operative. Enemy models more than 12″ away cannot see this unit or target it with Indirect Fire.',ids);
    if(group.members.some(s=>core(s).includes('Fights First')))emit('Fights First',['Fight','either','start'],'This formation has Fights First. It fights in the Fights First step; use the normal alternation and eligibility rules.',ids);
   }

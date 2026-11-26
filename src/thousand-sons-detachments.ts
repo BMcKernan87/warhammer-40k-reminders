@@ -14,7 +14,7 @@ type Timing=GeneratedReminder['timing'];
 const source='https://wahapedia.ru/wh40k11ed/factions/thousand-sons/';
 const phases=['Command','Movement','Shooting','Charge','Fight'] as const;
 const attacks=['Shooting','Fight'] as const;
-const rangedDefences=[['Shooting','opponent','during'],['Movement','own','during'],['Shooting','own','during']] as const;
+const rangedDefences=[['Shooting','opponent','during'],['Movement','own','during'],['Shooting','own','during'],['Movement','opponent','during']] as const;
 const inferno=['Inferno bolt pistol','Inferno boltgun','Inferno combi-bolter','Inferno combi-weapon'];
 const effects:Record<typeof TS_STRATAGEMS[number]['id'],string>={
  '000010198002':'After enemy target selection, subtract 1 from Hit rolls against the chosen Thousand Sons or Scintillating Legions formation until phase end.',
@@ -212,7 +212,7 @@ export function thousandSonsDetachmentReminders(army:ArmySelection,roster:readon
    case '000010201003':
     if(f.root!==bearer){
      for(const [p,turn] of [['Shooting','opponent'],['Fight','either'],['Shooting','own']] as const)cue(p,turn,'during',(p==='Shooting'&&turn==='own'?'During permitted enemy return fire: ':'')+'While this Shaman leads its formation, subtract 1 from incoming Hit rolls against that formation.',unit);
-     cue('Movement','own','during','When permitted enemy reactions use normal shooting, while this Shaman leads its formation, subtract 1 from incoming Hit rolls against that formation. Snap shooting ignores this Hit modifier.',unit);
+     for(const turn of ['own','opponent'] as const)cue('Movement',turn,'during','When permitted enemy arrival or reaction attacks use normal shooting, while this Shaman leads its formation, subtract 1 from incoming Hit rolls against that formation. Snap shooting ignores this Hit modifier.',unit);
     }break;
    case '000010972003':cue('Fight','either','during','The upgraded Spawn unit improves its melee AP by 1 and its melee attacks gain Cleave 1.',unit);break;
    case '000010964003':if(psykers.includes(f)&&!kw(f,'MONSTER')&&f.members.some(s=>casters.some(c=>c.id===s.id)))cue('Shooting','own','start','Once per turn when this formation successfully manifests a Ritual, Sorcerous Invigoration heals D3 wounds. If the bearer heals as a result, it can add 3 to the number of wounds healed.',unit);break;

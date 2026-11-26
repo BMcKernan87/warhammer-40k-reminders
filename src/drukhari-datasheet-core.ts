@@ -12,7 +12,7 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 
 const key=(name:string)=>name.split(/\s+[–—-]\s+/)[0].normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
 const core=(s:RosterInstance):readonly string[]=>drukhariCard(s)?.core??[];
-const defence:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during'],['Fight','either','during']];
+const defence:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during'],['Fight','either','during']];
 const sheets=new Map(DRUKHARI_SHEETS.map(s=>[s.unit,s]));
 
 export function drukhariFormationHasDeepStrike(army:ArmySelection,members:readonly RosterInstance[],roster:readonly RosterInstance[]=expandRoster(army)):boolean{
@@ -48,8 +48,8 @@ export function drukhariDatasheetCoreReminders(army:ArmySelection,roster:readonl
  for(const squad of selected){
   const card=drukhariCard(squad),group=groups.find(g=>g.members.some(s=>s.id===squad.id));if(!group)continue;
   const tags=drukhariKeywords(army,squad,undefined,roster);
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-drukhari-profile',squad.id,title,window,turn,timing].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-drukhari-profile',squad.id,title,window,turn,savedTiming].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,{...card,save:null},tags.has('TITANIC'),drukhariWeaponCount,(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')return; // Emitted once by drukhariWeaponReminders.

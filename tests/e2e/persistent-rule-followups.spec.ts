@@ -66,8 +66,9 @@ test('desktop Thousand Sons saves separate incoming-fire defenses and prints bot
  await page.goto('./');
  await page.getByLabel('Army faction',{exact:true}).selectOption('Thousand Sons');
  await page.getByRole('checkbox',{name:/Rubricae Phalanx/}).check();
- await add(page,['Exalted Sorcerer','Rubric Marines','Sekhetar Robots']);
+ await add(page,['Exalted Sorcerer','Rubric Marines','Sekhetar Robots','Magnus The Red','Scarab Occult Terminators']);
  await page.getByLabel('Attach squad Exalted Sorcerer#1',{exact:true}).selectOption('Rubric Marines#1');
+ await expect(page.getByText('Warlord: Magnus The Red#1',{exact:true})).toBeVisible();
  await expect(page.getByRole('region',{name:'Roster validation findings'}).getByText('ERROR',{exact:true})).toHaveCount(0);
  await page.reload();
  await expect(page.getByLabel('Attach squad Exalted Sorcerer#1',{exact:true})).toHaveValue('Rubric Marines#1');
@@ -83,6 +84,16 @@ test('desktop Thousand Sons saves separate incoming-fire defenses and prints bot
  await expect(turnCard(page,'All is Dust','Your turn')).toContainText('unmodified Damage 1');
  await expect(turnCard(page,'All is Dust','Your turn').locator('.rule-subjects')).toContainText('Rubric Marines#1');
  await expect(turnCard(page,'All is Dust','Your turn').locator('.rule-subjects')).not.toContainText('Exalted Sorcerer#1');
+ await expect(turnCard(page,'Impossible Form','Your turn')).toContainText('If chosen this round');
+ await expect(turnCard(page,'Rites of Coalescence','Your turn').locator('.rule-subjects')).toContainText('Scarab Occult Terminators#1');
+ await sheet(page).getByLabel('Show phase').selectOption('Movement');
+ for(const turn of ['Your turn','Opponent’s turn']){
+  await expect(turnCard(page,'Arcane Shield',turn)).toContainText('4+ invulnerable save');
+  await expect(turnCard(page,'Impossible Form',turn)).toContainText('non-Psychic attack');
+  await expect(turnCard(page,'Rites of Coalescence',turn)).toContainText('Psyker model');
+  await expect(turnCard(page,'Sekhetar Robots#1 · Stealth',turn)).toContainText('Benefit of Cover');
+ }
+ await sheet(page).getByLabel('Show phase').selectOption('Shooting');
  await turnCard(page,save,'Your turn').getByRole('checkbox').click();
  await expect(turnCard(page,save,'Your turn')).toHaveCount(0);
  await expect(turnCard(page,save,'Opponent’s turn').getByRole('checkbox')).not.toBeChecked();
@@ -95,10 +106,12 @@ test('desktop Thousand Sons saves separate incoming-fire defenses and prints bot
  await page.screenshot({path:info.outputPath('phase-reminders.png'),fullPage:true});
  await page.emulateMedia({media:'print'});
  const printed=page.getByRole('region',{name:'Printable army reminders'});
- await expect(printed.getByText(save,{exact:true})).toHaveCount(4);
- await expect(printed.getByText('Sekhetar Robots#1 · Stealth',{exact:true})).toHaveCount(3);
- await expect(printed.getByText('All is Dust',{exact:true})).toHaveCount(4);
- await expect(printed.getByText('Arcane Shield',{exact:true})).toHaveCount(4);
+ await expect(printed.getByText(save,{exact:true})).toHaveCount(5);
+ await expect(printed.getByText('Sekhetar Robots#1 · Stealth',{exact:true})).toHaveCount(4);
+ await expect(printed.getByText('All is Dust',{exact:true})).toHaveCount(5);
+ await expect(printed.getByText('Arcane Shield',{exact:true})).toHaveCount(5);
+ await expect(printed.getByText('Impossible Form',{exact:true})).toHaveCount(5);
+ await expect(printed.getByText('Rites of Coalescence',{exact:true})).toHaveCount(5);
  await verifyPrint(page,info);
  expect(errors).toEqual([]);
 });

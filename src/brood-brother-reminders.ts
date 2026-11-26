@@ -21,6 +21,11 @@ const shooting:Stage=['Shooting','own','during'],fight:Stage=['Fight','either','
 const overwatch:Stage=['Movement','opponent','end'],enemyShooting:Stage=['Shooting','opponent','during'],enemyOverwatch:Stage=['Movement','own','end'];
 const battlePhases:Stage[]=['Command','Movement','Shooting','Charge','Fight'].map(p=>[p as ReminderWindow,'either','during']);
 const defence=[enemyShooting,enemyOverwatch,fight],attacks=[shooting,overwatch,fight];
+const incomingEnemyMovement:Stage=['Movement','opponent','during'];
+const passiveRanged=[enemyShooting,movement,shooting,incomingEnemyMovement],passiveDefence=[enemyShooting,movement,fight,shooting,incomingEnemyMovement];
+const expandedDefences=new Set(['Rolling Fortress','Urban Warfare','Malign Wardings(Psychic)','Ablative Plating']);
+const sameMember=(a:RosterInstance,b:RosterInstance)=>a.id===b.id&&a.unit===b.unit&&a.attachedTo===b.attachedTo&&a.retinueTo===b.retinueTo;
+const hasModels=(s:RosterInstance)=>(s.models??1)>0;
 type Recipients='self'|'led'|'cargo'|'otherGuard'|'guard';
 interface Rule {windows:readonly Stage[];text:string;recipients?:Recipients}
 const effect=(windows:readonly Stage[],text:string,recipients?:Recipients):Rule=>({windows,text,recipients});
@@ -39,7 +44,7 @@ const rules:Readonly<Record<string,Rule>>={
  'Plasma Warhead':effect([shooting],'Fire the missile once per battle in your Shooting phase if stationary, with an existing marker that you neither placed nor moved this phase. Resolve attacks separately for every unit within 6″ of its centre, including friendly units.'),
  'Armoured Spearhead':effect([shooting,fight],'Re-roll Hit rolls of 1. Against an enemy within range of an objective you do not control, you may re-roll the entire Hit roll instead.'),
  'Line-breaker':effect([shooting],'While engaged, ignore the ranged Hit penalty. The demolisher cannon may target an enemy engaged with this tank if no other friendly unit is engaged with that enemy.'),
- 'Rolling Fortress':effect([enemyShooting,enemyOverwatch],'A friendly Astra Militarum model obscured by this Baneblade from at least one attacking model gains cover against the ranged attack.','otherGuard'),
+ 'Rolling Fortress':effect(passiveRanged,'When a ranged attack is allocated to a friendly Astra Militarum model, if this source tank prevents that model being fully visible to every model in the attacking unit, the allocated model has the Benefit of Cover against that attack. Only the obscured Astra Militarum model benefits.','otherGuard'),
  'Tremor Quake':effect([shooting],'When the tremor cannon declares its target, that unit and every other enemy Infantry unit within 3″ of it take Battle-shock tests.'),
  'Armour Obliteration':effect([shooting],'When the quake cannon destroys a model with Deadly Demise, its demise inflicts mortal wounds on 3+ instead of 6.'),
  'Close-range Titan Killer':effect([shooting],'For the magma cannon, count a Monster or Vehicle target as being within half range, regardless of the actual distance.'),
@@ -49,7 +54,7 @@ const rules:Readonly<Record<string,Rule>>={
  'Concussive Wave':effect([shooting],'When declaring the siege cannon target, roll for that unit and each other unit within 3″. For each 5+, deal D3 mortal wounds to that unit after completing attacks against the original target.'),
  'Transport Support':effect([shooting],'After firing, choose an enemy hit. Models that disembarked from this transport this turn may re-roll Hit rolls against it for this phase.','cargo'),
  'Airborne Insertion':effect([overwatch],'At the end of the opponent’s Movement phase, any number of units currently aboard may disembark.','cargo'),
- 'Malign Wardings(Psychic)':effect(defence,'While the Primaris Psyker leads this formation, its models have Feel No Pain 4+ against psychic attacks.','led'),
+ 'Malign Wardings(Psychic)':effect(passiveDefence,'While the surviving Primaris Psyker leads this formation, its models have Feel No Pain 4+ against Psychic attacks. The surviving originally attached formation retains this leading ability after its Bodyguard is destroyed. If an attack destroys the Psyker, the protection lasts only until that attacking unit finishes its attacks.','led'),
  'Psychic Barrier (Psychic)':effect([['Shooting','opponent','start']],'You may roll one D6. On 1 the Psyker’s formation suffers D3 mortal wounds. On 2+ its models gain a 4+ invulnerable save through this phase.'),
  'Senior Officer':effect([shooting],'While the Castellan leads this formation, its ranged weapons gain Sustained Hits 1.','led'),
  'Get Back in the Fight':effect([movement,shooting],'While the Castellan leads this formation, it can shoot in a turn in which it Fell Back.','led'),
@@ -57,8 +62,8 @@ const rules:Readonly<Record<string,Rule>>={
  'Shock Troops':effect([['Command','own','end']],'An objective you control within range of this unit stays under your control until the opponent has greater Level of Control there at the end of a phase.'),
  'Jungle Fighters':effect([fight],'Add 1 to melee Wound rolls if the unit charged or was charged this turn.'),
  'Horsemasters':effect([movement,shooting,['Charge','own','during']],'Falling Back this turn leaves this unit eligible to shoot and charge.'),
- 'Ablative Plating':effect(defence,'Once per battle, when allocating an attack to this model, change that attack’s Damage to 0.'),
- 'Urban Warfare':effect([enemyShooting,enemyOverwatch],'While this tank has cover against a ranged attack, reduce its Damage by 1.'),
+ 'Ablative Plating':effect(passiveDefence,'Once per battle for this actual model, when an attack is allocated to it and its single use is unspent, change that attack’s Damage to 0. The one use is shared across every phase; other models receive no protection.'),
+ 'Urban Warfare':effect(passiveRanged,'When a ranged attack targets this actual tank model, if it has the Benefit of Cover against that attack, subtract 1 from that attack’s Damage. Other models receive no protection.'),
  'Gung-ho Executioners':effect([shooting],'Add 1 to Hit with the executioner plasma cannon against a unit below Half-strength.'),
  'Withering Hail':effect([shooting],'After firing, select an enemy hit by the exterminator autocannon. Friendly Astra Militarum attacks improve AP by 1 against it for the rest of the phase. Apply this effect to a given target only once per phase.','guard'),
  'Mow Down the Enemy':effect([shooting,overwatch],'Against a target with neither Monster nor Vehicle, the punisher gatling cannon gains Devastating Wounds.'),
@@ -77,11 +82,58 @@ const rules:Readonly<Record<string,Rule>>={
  'Grim Demeanour':effect([shooting,fight],'If below Starting Strength add 1 to Hit. If below Half-strength also add 1 to Wound.'),
 };
 
-export function sharedGuardNamedReminders(army:ArmySelection,context:GuardCardContext):GeneratedReminder[]{
+export function sharedGuardNamedReminders(army:ArmySelection,context:GuardCardContext,roster:readonly RosterInstance[]):GeneratedReminder[]{
  const guard=context.guards.filter(s=>Object.hasOwn(GUARD_CARDS,s.unit));
  if(!guard.length)return [];
  const root=(s:RosterInstance)=>context.groups.find(g=>g.members.some(m=>m.id===s.id))?.body.id??s.id;
  const guardRoots=context.groups.map(g=>g.body.id);
+ const original=expandRoster(army),originalContext=guardCardContext(army,original);
+ const originalById=new Map(original.map(s=>[s.id,s]));
+ const currentById=new Map(roster.map(s=>[s.id,s]));
+ const originalFormation=(s:RosterInstance)=>{
+  const originalSource=originalById.get(s.id);
+  if(!hasModels(s)||!originalSource||!hasModels(originalSource)||!sameMember(s,originalSource))return;
+  if(originalSource.attachedTo){
+   const body=knightJoinedBodyguard(army,originalSource);
+   if(!body||!hasModels(body))return;
+  }
+  const originalGroup=originalContext.groups.find(g=>g.members.some(m=>m.id===s.id));
+  if(!originalGroup||originalSource.retinueTo&&!originalGroup.members.some(m=>m.id===originalSource.retinueTo))return;
+  const originals=new Map(originalGroup.members.map(m=>[m.id,m]));
+  // A surviving GSC Leader can have no currentGroup after its Bodyguard is
+  // removed. Validate raw identities and links even in that case.
+  for(const current of roster){
+   const prior=originals.get(current.id);
+   if(prior&&(!sameMember(prior,current)||roster.filter(m=>m.id===current.id).length!==1))return;
+   if((current.attachedTo&&originals.has(current.attachedTo)||current.retinueTo&&originals.has(current.retinueTo))&&(!prior||!sameMember(prior,current)))return;
+  }
+  const currentGroup=context.groups.find(g=>g.members.some(m=>m.id===s.id));
+  if(currentGroup?.members.some(m=>!originalGroup.members.some(o=>sameMember(o,m))))return;
+  return originalGroup;
+ };
+ const coverMembers=context.guards.filter(s=>context.tags(s).has('ASTRA MILITARUM')&&originalFormation(s));
+ const coverIds=new Set(coverMembers.map(s=>s.id));
+ const groupedIds=new Set(context.groups.flatMap(g=>g.members.map(s=>s.id)));
+ const livingGuardRoots=[...new Set([
+  ...context.groups.flatMap(g=>{
+   const members=g.members.filter(s=>coverIds.has(s.id));
+   return members.length?[members[0].id]:[];
+  }),
+  ...coverMembers.filter(s=>!groupedIds.has(s.id)).map(s=>originalFormation(s)!.members.find(m=>coverIds.has(m.id))!.id),
+ ])];
+ const wardedFormation=(s:RosterInstance):string[]=>{
+  const originalGroup=originalFormation(s),originalSource=originalById.get(s.id);
+  if(!originalGroup||!originalSource)return [];
+  const body=knightJoinedBodyguard(army,originalSource);
+  if(!body||!hasModels(body))return [];
+  const currentGroup=context.groups.find(g=>g.members.some(m=>m.id===s.id));
+  const currentBody=currentById.get(body.id);
+  if(currentBody&&hasModels(currentBody))return sameMember(body,currentBody)&&currentGroup?.members.some(m=>m.id===body.id)?[body.id]:[];
+  return originalGroup.members.flatMap(m=>{
+   const current=currentById.get(m.id);
+   return current&&hasModels(current)&&sameMember(m,current)?[current.id]:[];
+  });
+ };
  const result:GeneratedReminder[]=[];
  const transports=context.cargo;
  for(const s of guard){
@@ -91,15 +143,22 @@ export function sharedGuardNamedReminders(army:ArmySelection,context:GuardCardCo
    if(!targets.length)return;
    const [phase,turn,timing]=window;
    if(window===overwatch&&tags.has('TITANIC')&&title!=='Mount Up!')return;
-   result.push({id:['11e-brood',s.id,title,phase,turn,timing].join('-'),title:s.unit+' · '+title,window:phase,turn,timing,
+   // Preserve the legacy passive own-Movement checkmark when broadening its
+   // displayed timing from end to during; new windows retain distinct IDs.
+   const identityTiming=expandedDefences.has(title)&&phase==='Movement'&&turn==='own'?'end':timing;
+   result.push({id:['11e-brood',s.id,title,phase,turn,identityTiming].join('-'),title:s.unit+' · '+title,window:phase,turn,timing,
     source:card.source,origin:'unit',units:targets,summary});
   };
   for(const name of card.named){
    const rule=rules[name];
    if(!rule)continue;
-   const targets=rule.recipients==='cargo'?transports.get(s.id)??[]:rule.recipients==='led'?(led?[led.id]:[]):
+   if(expandedDefences.has(name)&&!hasModels(s))continue;
+   const targets=name==='Malign Wardings(Psychic)'?wardedFormation(s):name==='Rolling Fortress'?livingGuardRoots.filter(id=>id!==formation):name==='Ablative Plating'||name==='Urban Warfare'?[s.id]:rule.recipients==='cargo'?transports.get(s.id)??[]:rule.recipients==='led'?(led?[led.id]:[]):
     rule.recipients==='guard'?guardRoots:rule.recipients==='otherGuard'?guardRoots.filter(id=>id!==formation):[formation];
-   for(const stage of rule.windows)emit(name,stage,rule.text+(rule.recipients==='cargo'||rule.recipients==='guard'||rule.recipients==='otherGuard'?' Eligible formations: '+targets.join(', ')+'.':''),targets);
+   for(const stage of rule.windows){
+    const incoming=expandedDefences.has(name)?stage===movement?' This applies to permitted enemy attacks throughout your Movement phase, including normal reactions and end-phase Fire Overwatch.':stage===incomingEnemyMovement?' This applies to permitted enemy attacks during their Movement phase, including attacks after a Deep Strike arrival.':stage===shooting?' This applies during permitted enemy return fire.':'':'';
+    emit(name,stage,rule.text+incoming+(name==='Rolling Fortress'?' Source: '+s.id+'.':'')+(rule.recipients==='cargo'||rule.recipients==='guard'||rule.recipients==='otherGuard'?' Eligible formations: '+targets.join(', ')+'.':''),targets);
+   }
   }
   if(card.named.includes('Covering Fire')){
    const platoons=context.guards.filter(x=>context.tags(x).has('PLATOON')).map(root);
@@ -114,5 +173,5 @@ export function sharedGuardNamedReminders(army:ArmySelection,context:GuardCardCo
 export function broodBrotherIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Genestealer Cults')return [];
  const context=guardCardContext(army,roster);
- return [...sharedGuardNamedReminders(army,context),...broodBrotherSpecialReminders(army,roster,context),...broodBrotherProfileReminders(army,roster)];
+ return [...sharedGuardNamedReminders(army,context,roster),...broodBrotherSpecialReminders(army,roster,context),...broodBrotherProfileReminders(army,roster)];
 }
