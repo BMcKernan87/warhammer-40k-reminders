@@ -24,7 +24,7 @@ function army(faction:Faction,units:string[],detachments:string[]=[]):ArmySelect
 const id=(unit:string,n=1)=>unit+'#'+n;
 const named=(a:ArmySelection,title:string)=>generate11thReminders(a).filter(r=>r.title===title);
 const stages=(rows:GeneratedReminder[])=>rows.map(r=>[r.window,r.turn,r.timing].join(':')).sort();
-const rangedDefence=['Shooting:opponent:during','Movement:own:end','Shooting:own:during'].sort();
+const rangedDefence=['Shooting:opponent:during','Movement:own:during','Movement:opponent:during','Shooting:own:during'].sort();
 const ownShot=(rows:GeneratedReminder[])=>rows.find(r=>r.window==='Shooting'&&r.turn==='own');
 const unique=(rows:GeneratedReminder[])=>expect(new Set(rows.map(r=>r.id)).size).toBe(rows.length);
 
@@ -68,7 +68,7 @@ describe('native defensive profiles during enemy return fire',()=>{
   const a=setInstanceAttachment(army('Emperor’s Children',['Lucius the Eternal','Flawless Blades','Tormentors']),id('Lucius the Eternal'),id('Flawless Blades'));
   for(const [unit,save] of [['Lucius the Eternal',4],['Flawless Blades',5]] as const){
    const rows=named(a,id(unit)+' · Invulnerable save');
-   expect(rows).toHaveLength(4);
+   expect(rows).toHaveLength(5);
    expect(rows.every(r=>r.units?.join()===id(unit)&&r.summary.includes(save+'+ invulnerable save'))).toBe(true);
    expect(ownShot(rows)?.summary).toContain('Models from a different attached datasheet use their own saves.');
   }

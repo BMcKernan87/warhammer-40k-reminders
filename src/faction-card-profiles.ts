@@ -3,9 +3,11 @@ import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {equippedWeaponText,type KnightCardStats} from './knight-card-rules';
 import type {RosterInstance} from './roster-instances';
 
-export type ProfileStage=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing']];
+// A corrected display timing can retain its original saved completion key.
+export type ProfileStage=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing'],GeneratedReminder['timing']?];
 const deploy:ProfileStage=['Pre-battle','either','during'],shoot:ProfileStage=['Shooting','own','during'],fight:ProfileStage=['Fight','either','during'];
-const snap:ProfileStage=['Movement','opponent','end'],enemyShooting:ProfileStage=['Shooting','opponent','during'],enemySnap:ProfileStage=['Movement','own','end'];
+const snap:ProfileStage=['Movement','opponent','end'],enemyShooting:ProfileStage=['Shooting','opponent','during'],enemyMovement:ProfileStage=['Movement','own','during','end'];
+const enemyArrival:ProfileStage=['Movement','opponent','during'];
 type Emit=(title:string,stage:ProfileStage,summary:string,units?:string[])=>void;
 type FiringDeckCards=Readonly<Record<string,Pick<KnightCardStats,'weapons'>>>;
 type ModelLoadouts=(s:RosterInstance)=>readonly {model:string;items:readonly string[]}[];
@@ -16,7 +18,10 @@ export function printCombatProfiles(squad:RosterInstance,stats:KnightCardStats,t
    const melee=stage===fight,text=equippedWeaponText(squad,stats,melee?'Fight':'Shooting',stage===snap,count);
    if(text)emit(melee?'Melee weapon profiles':'Ranged weapon profiles',stage,(stage===snap?'When firing Overwatch, use snap shooting. ':'')+text);
   }
-  if(stats.save)for(const stage of [enemyShooting,enemySnap,fight,shoot])emit('Invulnerable save',stage,(stage===shoot?'When permitted enemy return fire allocates an attack to a model from ':'When an attack is allocated to a model from ')+squad.id+', that model can use its '+stats.save+'+ invulnerable save.'+(stage===shoot?' Models from a different attached datasheet use their own saves.':''));
+  // Normal arrival reactions can attack before Movement ends; Overwatch is
+  // only one incoming attack window. The personal save applies to either.
+  // Servo-sentry can fire when an enemy Aquilon unit arrives in its own turn.
+  if(stats.save)for(const stage of [enemyShooting,enemyMovement,enemyArrival,fight,shoot])emit('Invulnerable save',stage,(stage===shoot?'When permitted enemy return fire allocates an attack to a model from ':'When an attack is allocated to a model from ')+squad.id+', that model can use its '+stats.save+'+ invulnerable save.'+(stage===shoot?' Models from a different attached datasheet use their own saves.':''));
   const fnp=stats.core?.find(c=>c.startsWith('Feel No Pain '));
   if(fnp)for(const phase of PHASES)emit(fnp,[phase,'either','during'],'Each time a model from '+squad.id+' would lose a wound, roll a D6. On a '+fnp.slice('Feel No Pain '.length)+', it keeps that wound.');
   if(stats.demise)for(const phase of PHASES)emit('Deadly Demise '+stats.demise,[phase,'either','during'],'When a model in this unit is destroyed, after any emergency disembarkation roll one D6. On a 6, each unit within 6″ suffers '+stats.demise+' mortal wound'+(stats.demise==='1'?'':'s')+'.'+(stats.demise.includes('D')?' Roll the number separately for each affected unit.':''));

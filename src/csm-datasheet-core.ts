@@ -17,7 +17,7 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 const key=(name:string)=>name.split(/\s+[–—-]\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g,'');
 const profileCards:typeof CSM_ARMY_CARDS=Object.fromEntries(Object.entries(CSM_ARMY_CARDS).map(([unit,card])=>[unit,{...card,weapons:CSM_CARDS[unit]?.weapons??CSM_CULT_WEAPONS[unit]??card.weapons}]));
 const core=(s:RosterInstance):readonly string[]=>csmArmyCard(s)?.core??[];
-const defences:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during'],['Fight','either','during']];
+const defences:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during'],['Fight','either','during']];
 const selectedLink=(army:ArmySelection,squad:RosterInstance)=>csmSelectedUpgrade(army,squad)==='Soul Link'&&eligibleCsmUpgrades(army,squad.unit,squad.id).some(u=>u.name==='Soul Link');
 
 function fullWeapons(squad:RosterInstance,card:KnightCardStats,phase:'Shooting'|'Fight',snap:boolean,count=csmArmyWeaponCount):string{
@@ -49,8 +49,8 @@ export function csmProfileReminders(army:ArmySelection,roster:readonly RosterIns
   const card=profileCards[squad.unit],formation=groups.find(g=>g.members.some(s=>s.id===squad.id));if(!formation)continue;
   const tags=csmKeywords(army,squad,undefined,roster),reactions=csmReactionShooting(army,squad,roster);
   const link=selectedLink(army,squad);
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-csm-profile',squad.id,title,window,turn,timing].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-csm-profile',squad.id,title,window,turn,savedTiming].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,card,tags.has('TITANIC'),csmArmyWeaponCount,(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')summary=(title==='Melee weapon profiles'?'Each model selects one melee weapon, plus any weapons with Extra Attacks. ':stage[0]==='Movement'?'When firing Overwatch, use snap shooting. ':'')+fullWeapons(squad,card,title==='Melee weapon profiles'?'Fight':'Shooting',stage[0]==='Movement');
@@ -99,8 +99,8 @@ export function csmCopiedCoreReminders(army:ArmySelection,bearer:RosterInstance,
  const formation=csmFormations(army,roster).find(g=>g.members.some(s=>s.id===bearer.id));if(!formation)return [];
  const result:GeneratedReminder[]=[],ids=formation.members.map(s=>s.id);
  const prefix='Only if '+bearer.id+' chose '+source.id+' for Soul Link in your Command phase, until your next Command phase: ';
- function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[bearer.id]){
-  result.push({id:['11e-csm-copied-core',bearer.id,source.id,title,window,turn,timing].join(':'),title:'Soul Link · '+title,window,turn,timing,summary:prefix+summary,units,source:card.source,origin:'unit'});
+ function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[bearer.id]){
+  result.push({id:['11e-csm-copied-core',bearer.id,source.id,title,window,turn,savedTiming].join(':'),title:'Soul Link · '+title,window,turn,timing,summary:prefix+summary,units,source:card.source,origin:'unit'});
  }
  const otherModelsQualify=(ability:string)=>formation.members.every(s=>{
   if(s.id!==bearer.id)return core(s).includes(ability);

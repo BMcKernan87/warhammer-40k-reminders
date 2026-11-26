@@ -187,7 +187,7 @@ describe('Grey Knights source-backed detachment rules',()=>{
  it('uses current Stealth cover and preserves only the permitted Fury re-roll for snap shooting',()=>{
   const a=force([warpbane],captain),b=force([immaterial],interceptor);
   for(const rows of [by(equip(a,captain,'Phial of the Abyss'),'000009777004'),by(equip(b,interceptor,'Astral Overlap'),'000010928003')]){
-   expect(rows.map(r=>[r.window,r.turn])).toEqual([['Shooting','opponent'],['Movement','own'],['Shooting','own']]);
+   expect(rows.map(r=>[r.window,r.turn])).toEqual([['Shooting','opponent'],['Movement','own'],['Movement','opponent'],['Shooting','own']]);
    expect(rows.every(r=>r.summary.includes('Benefit of Cover')&&!r.summary.includes('Hit rolls'))).toBe(true);
   }
   const fury=named(force([brotherhood],captain),'Fury of Titan · snap shooting')[0];

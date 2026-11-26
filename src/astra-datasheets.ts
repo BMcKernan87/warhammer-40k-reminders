@@ -13,12 +13,25 @@ const sheets=new Map(ASTRA_SHEETS.map(s=>[s.unit,s]));
 const phases=['Command','Movement','Shooting','Charge','Fight'] as const;
 type Turn=NonNullable<GeneratedReminder['turn']>;
 type Timing=GeneratedReminder['timing'];
+const incomingRanged=[['Shooting','opponent'],['Movement','own'],['Shooting','own'],['Movement','opponent']] as const;
+const incomingAttacks=[['Shooting','opponent'],['Fight','either'],['Movement','own'],['Shooting','own'],['Movement','opponent']] as const;
+const sameMember=(a:RosterInstance,b:RosterInstance)=>a.id===b.id&&a.unit===b.unit&&a.attachedTo===b.attachedTo&&a.retinueTo===b.retinueTo;
+const hasModels=(s:RosterInstance)=>(s.models??1)>0;
 
-function nativeGuardPersonal(army:ArmySelection,{guards,groups,tags}:GuardCardContext):GeneratedReminder[]{
+function nativeGuardPersonal(army:ArmySelection,{guards,groups,tags}:GuardCardContext,roster:readonly RosterInstance[]):GeneratedReminder[]{
  const result:GeneratedReminder[]=[];
+ const original=expandRoster(army),originalContext=guardCardContext(army,original);
+ const originalById=new Map(original.map(s=>[s.id,s])),currentById=new Map(roster.map(s=>[s.id,s]));
+ const legalOriginal=(s:RosterInstance)=>hasModels(s)&&!s.retinueTo&&(!s.attachedTo||Boolean(knightJoinedBodyguard(army,s)));
+ const originalVehicles=originalContext.guards.filter(s=>originalContext.tags(s).has('ASTRA MILITARUM')&&originalContext.tags(s).has('VEHICLE')&&legalOriginal(s));
+ const survivingVehicles=originalVehicles.flatMap(s=>{
+  const current=guards.find(m=>hasModels(m)&&sameMember(s,m));
+  return current?[current]:[];
+ });
  const roots=groups.map(g=>g.body.id);
  const tagged=(tag:string)=>groups.filter(g=>g.members.some(m=>tags(m).has(tag)));
  const regiments=tagged('REGIMENT').map(g=>g.body.id),vehicles=guards.filter(s=>tags(s).has('VEHICLE')).map(s=>s.id);
+ const livingVehicles=guards.filter(s=>hasModels(s)&&tags(s).has('VEHICLE')).map(s=>s.id);
  const infantry=tagged('INFANTRY'),groupSize=(members:RosterInstance[])=>members.reduce((n,m)=>n+(m.models??sheets.get(m.unit)?.sizes[0]??1),0);
  const sources=guards.filter(s=>s.unit==='Avenger Strike Fighter');
  function emit(key:string,title:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,units:string[],source:string){
@@ -68,9 +81,11 @@ function nativeGuardPersonal(army:ArmySelection,{guards,groups,tags}:GuardCardCo
    add('Holy Piety','Fight','either','during','If the Priest’s unit is not Battle-shocked, you may re-roll the Hit roll for the Priest’s own melee attacks.');
   }
   if(unit==='Tech-Priest Enginseer'&&vehicles.length){
-   for(const [window,turn] of [['Shooting','opponent'],['Movement','own']] as const)add('Enginseer',window,turn,window==='Movement'?'end':'during','Within 3″ of a friendly Astra Militarum Vehicle unit, this model has Lone Operative. It only protects the formation if every surviving model has Lone Operative. Enemy models more than 12″ away then cannot see or target it with Indirect Fire.',[id,...vehicles]);
-   add('Omnissiah’s Blessing','Command','own','during','Choose one friendly Astra Militarum Vehicle model within 3″. It recovers up to D3 lost wounds and gains a 4+ invulnerable save until the start of your next Command phase. A vehicle model can receive this ability only once per turn.',[id,...vehicles]);
-   for(const [window,turn] of [['Shooting','opponent'],['Fight','either'],['Movement','own']] as const)add('Omnissiah’s Blessing',window,turn,window==='Movement'?'end':'during','If the Enginseer blessed a vehicle model in your last Command phase, that model may use a 4+ invulnerable save until your next Command phase starts.',[id,...vehicles]);
+   const originalSource=originalById.get(id);
+   if(hasModels(squad)&&livingVehicles.length&&originalSource&&sameMember(originalSource,squad)&&legalOriginal(originalSource)){
+    for(const [window,turn] of incomingRanged)add('Enginseer',window,turn,'during','While this Enginseer is unattached and within 3″ of a friendly Astra Militarum Vehicle unit, the bearer has Lone Operative: enemy models outside 12″ cannot see this bearer or target it with Indirect Fire. This personal protection does not extend to attached models. Nearby Vehicle candidates: '+livingVehicles.join(', ')+'.',[id,...livingVehicles]);
+    add('Omnissiah’s Blessing','Command','own','during','Choose one friendly Astra Militarum Vehicle model within 3″. It recovers up to D3 lost wounds and gains a 4+ invulnerable save until the start of your next Command phase. A vehicle model can receive this ability only once per turn.',[id,...livingVehicles]);
+   }
    add('Vengeance for the Omnissiah','Fight','either','during','Once a friendly Astra Militarum Vehicle model has been destroyed within 12″ of this Enginseer, its own Enginseer axe has 6 Attacks for the rest of the battle.',[id,...vehicles]);
   }
   if(unit==='Sly Marbo'&&regiments.length)add('One-man Army','Shooting','opponent','during','Once per turn when an enemy makes a ranged attack targeting a friendly Regiment unit within 3″ of Marbo, Marbo may shoot after that enemy finishes. His only target is that attacker, if eligible.',[id,...regiments]);
@@ -110,12 +125,22 @@ function nativeGuardPersonal(army:ArmySelection,{guards,groups,tags}:GuardCardCo
    if(!mounted)for(const window of ['Movement','Shooting','Charge'] as const)add('Icon of Discipline',window,'own','during','This formation remains eligible to shoot and declare a charge after it Falls Back this turn.',formation,17);
   }
  }
+ // The selected model's timed save is independent of the Enginseer's survival.
+ // Use original legal identities so new or repurposed roster entries cannot
+ // inherit an earlier selection. These IDs are the existing follow-up IDs.
+ for(const source of originalContext.guards.filter(s=>s.unit==='Tech-Priest Enginseer'&&legalOriginal(s))){
+  const currentSource=currentById.get(source.id);
+  if(currentSource&&!sameMember(source,currentSource))continue;
+  if(!survivingVehicles.length)continue;
+  const summary='Only if '+source.id+' selected one of these original Astra Militarum Vehicle models within 3″ in your last Command phase, and that same selected model survives: it retains a 4+ invulnerable save until the start of your next Command phase. This continues if the Enginseer is destroyed or the selected model moves farther away. Only the selected physical model benefits; other models in its unit and the other listed Vehicles do not. This reminder neither heals again nor activates another blessing.';
+  for(const [window,turn] of incomingAttacks)emit(source.id,'Omnissiah’s Blessing',window,turn,'during',summary,[source.id,...survivingVehicles.map(s=>s.id)],sheets.get(source.unit)!.source);
+ }
  return result;
 }
 
 export function astraDatasheetReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Astra Militarum')return [];
  const context=guardCardContext(army,roster);
- return [...nativeGuardPersonal(army,context),...sharedGuardNamedReminders(army,context),
+ return [...nativeGuardPersonal(army,context,roster),...sharedGuardNamedReminders(army,context,roster),
   ...broodBrotherSpecialReminders(army,roster,context),...astraProfileReminders(army,roster)];
 }

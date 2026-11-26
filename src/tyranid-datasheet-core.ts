@@ -33,8 +33,8 @@ export function tyranidProfileReminders(army:ArmySelection,roster:readonly Roste
  for(const squad of native){
   const card=TYRANID_CARDS[squad.unit],group=groups.find(g=>g.root.id===squad.id),formation=groups.find(g=>g.members.some(s=>s.id===squad.id));if(!formation)continue;
   const tags=tyranidKeywords(current,squad);
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-tyranid-profile',squad.id,title,window,turn,timing].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-tyranid-profile',squad.id,title,window,turn,savedTiming].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,card,tags.has('TITANIC'),tyranidWeaponCount,(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')summary=(stage[0]==='Movement'?'When firing Overwatch, use snap shooting. ':'')+fullWeapons(squad,card,title==='Melee weapon profiles'?'Fight':'Shooting',stage[0]==='Movement');
@@ -46,8 +46,8 @@ export function tyranidProfileReminders(army:ArmySelection,roster:readonly Roste
     if(squad.unit==='Tyrannocyte'&&title==='Deep Strike')summary=stage[0]==='Pre-battle'?'This Tyrannocyte must start in Reserves. Its Aerial Seeding rule and actual passengers are listed separately.':'Aerial Seeding permits this Tyrannocyte to arrive in your first, second or third Movement phase. With Deep Strike, set it up more than 8″ horizontally from enemy units; its actual passengers must immediately disembark more than 8″ from enemies.';
     emit(title,stage,summary,units);
    });
-   if(group.members.every(s=>core(s).includes('Lone Operative')))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)emit('Lone Operative',stage,'Every surviving model in this formation has Lone Operative. Enemy models more than 12″ away cannot see it or target it with Indirect Fire.',ids);
-   if(group.members.every(s=>core(s).includes('Stealth')))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)emit('Stealth',stage,'Every surviving model in this formation has Stealth, so it has the Benefit of Cover against ranged attacks.',ids);
+   if(group.members.every(s=>core(s).includes('Lone Operative')))for(const stage of [['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during']] as const)emit('Lone Operative',stage,'Every surviving model in this formation has Lone Operative. Enemy models more than 12″ away cannot see it or target it with Indirect Fire.',ids);
+   if(group.members.every(s=>core(s).includes('Stealth')))for(const stage of [['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during']] as const)emit('Stealth',stage,'Every surviving model in this formation has Stealth, so it has the Benefit of Cover against ranged attacks.',ids);
    if(group.members.some(s=>core(s).includes('Fights First')))emit('Fights First',['Fight','either','start'],'This formation fights in the Fights First step; use normal alternation and eligibility rules.',ids);
   }
  }

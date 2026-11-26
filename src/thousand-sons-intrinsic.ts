@@ -12,8 +12,12 @@ import {TS_CARDS} from './ts-profiles.generated';
 
 type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing'],GeneratedReminder['timing']?];
 const shoot:Step=['Shooting','own','during'],fight:Step=['Fight','either','during'],move:Step=['Movement','own','during'];
-const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'],incomingSnap:Step=['Movement','own','end'];
-const charge:Step=['Charge','either','during'],defend=[incoming,incomingSnap,fight],eachPhase=PHASES.map((p):Step=>[p,'either','during']);
+const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'];
+// Normal arrival/reaction attacks can happen in either player's Movement phase.
+// Keep the original own-Movement/end IDs when widening passive defenses.
+const incomingMove:Step=['Movement','own','during','end'],incomingArrival:Step=['Movement','opponent','during'];
+const rangedDefend=[incoming,incomingMove,shoot,incomingArrival],defend=[incoming,incomingMove,fight,shoot,incomingArrival];
+const charge:Step=['Charge','either','during'],eachPhase=PHASES.map((p):Step=>[p,'either','during']);
 const sheets=new Map(THOUSAND_SONS_SHEETS.map(s=>[s.unit,s]));
 const distinct=(values:string[])=>[...new Set(values)];
 const list=(values:string[])=>distinct(values).join(', ');
@@ -33,6 +37,25 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
  if(!native.length)return [];
  const groups=thousandSonsFormations(army,roster).filter(g=>g.members.every(m=>allowed.has(m.unit)));
  const groupOf=(s:RosterInstance)=>groups.find(g=>g.members.some(m=>m.id===s.id));
+ const declared=expandRoster(army),declaredGroups=thousandSonsFormations(army,declared).filter(g=>g.members.every(m=>allowed.has(m.unit)));
+ function leadingDefence(s:RosterInstance){
+  const original=declaredGroups.find(g=>g.root.id!==s.id&&g.members.some(m=>m.id===s.id));
+  if(!original||original.members.some(m=>m.retinueTo||m.keepUnattached||declared.filter(d=>d.id===m.id).length!==1))return;
+  const ids=new Set(original.members.map(m=>m.id)),survivors:RosterInstance[]=[];
+  for(const member of original.members){
+   const current=roster.filter(m=>m.id===member.id);
+   if(current.length>1)return;
+   const live=current[0];
+   if(!live)continue;
+   if(live.unit!==member.unit||live.attachedTo!==member.attachedTo||live.retinueTo!==member.retinueTo||Boolean(live.keepUnattached)!==Boolean(member.keepUnattached))return;
+   if(live.models!==undefined&&live.models<=0)continue;
+   survivors.push(live);
+  }
+  // A surviving original Leader keeps its own while-leading defense (Core
+  // 19.04); a different model or a newly joined recipient cannot inherit it.
+  if(!survivors.some(m=>m.id===s.id)||roster.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return;
+  return {survivors,bodyguardSurvives:survivors.some(m=>m.id===original.root.id)};
+ }
  const rootId=(s:RosterInstance)=>groupOf(s)?.root.id??s.id;
  const targets=(...tags:string[])=>groups.filter(g=>{
   const groupTags=new Set(g.members.flatMap(m=>[...thousandSonsKeywords(army,m)]));
@@ -53,6 +76,10 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
    for(const [window,turn,timing,identityTiming=timing] of steps)results.push({id:['11e-ts-card',id,title,window,turn,identityTiming].join(':'),title,window,turn,timing,summary,origin:'unit',units:distinct([id,...ids]),source:sheets.get(unit)!.source});
   }
   const led=(title:string,steps:readonly Step[],summary:string)=>{if(leading)add(title,steps,summary,formation);};
+  const ledDefence=(title:string,steps:readonly Step[],summary:string)=>{
+   const original=leadingDefence(squad);
+   if(original)add(title,steps,summary+(original.bodyguardSurvives?'':' This surviving original Leader retains this benefit after its Bodyguard is destroyed because it started the battle in this legal attached formation.'),original.survivors.map(m=>m.id));
+  };
   const fitted=(name:string)=>thousandSonsWeaponCount(squad,name)>0;
   switch(unit){
    case 'Sorcerer':
@@ -125,9 +152,7 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
    case 'Ahriman':
     add('Scryer of Fates',[['Pre-battle','own','end']],'After both armies deploy, redeploy up to three friendly Thousand Sons units. They may go into Strategic Reserves regardless of the number of units already there.',targets('THOUSAND SONS'));break;
    case 'Exalted Sorcerer':
-    // Saves also apply to normal reactive shooting and snap shooting. Keep the
-    // former Movement/end checkmark identity when widening its timing to during.
-    led('Arcane Shield',[incoming,['Movement','own','during','end'],fight,['Shooting','own','during']],'While this Exalted Sorcerer leads the formation, every model in it has a 4+ invulnerable save.');
+    ledDefence('Arcane Shield',defend,'While this Exalted Sorcerer leads the formation, every model in it has a 4+ invulnerable save.');
     led('Rebind Rubricae',[['Command','own','during']],'While leading, you may roll one D6. On 1 the formation suffers D3 mortal wounds. On 2–5 return one destroyed Bodyguard model. On 6 return up to two destroyed Bodyguard models.');break;
    case 'Tzaangors':{
     const mirage=army.detachments2026?.includes('Warpmeld Pact');
@@ -142,8 +167,8 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
    }
    case 'Daemon Prince of Tzeentch':
     if(nativeInfantry.length){
-     add('Servile Pawns',[incoming,incomingSnap],'While within 3″ of a friendly Thousand Sons Infantry unit, this Prince has Lone Operative. Enemy models outside 12″ cannot see it or target it with Indirect Fire.',nativeInfantry);
-     add('Glamour of Tzeentch',[incoming,incomingSnap],'Models in friendly Thousand Sons Infantry units within 6″ of this Prince gain Stealth and receive the Benefit of Cover against ranged attacks.',nativeInfantry);
+     add('Servile Pawns',rangedDefend,'While within 3″ of a friendly Thousand Sons Infantry unit, this Prince has Lone Operative. Enemy models outside 12″ cannot see it or target it with Indirect Fire.',nativeInfantry);
+     add('Glamour of Tzeentch',rangedDefend,'Models in friendly Thousand Sons Infantry units within 6″ of this Prince gain Stealth and receive the Benefit of Cover against ranged attacks.',nativeInfantry);
     }break;
    case 'Tzaangor Shaman':
     led('Bestial Prophet',groupGuns?[shoot,fight]:[fight],'While this Shaman leads the formation, add 1 to its models’ attack Hit rolls.');
@@ -157,9 +182,10 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
     add('Mutating Vortex',[['Movement','own','end']],'Roll one D6 for each enemy unit within 6″. On 2–3 it suffers 1 mortal wound, on 4–5 it suffers D3, and on 6 it suffers D6. Every enemy unit within 6″ then tests Battle-shock, including on a roll of 1.');break;
    case 'Infernal Master':
     led('Malefic Maelstrom',groupGuns?[shoot,fight]:[fight],'While this Infernal Master leads the formation, its weapons have Sustained Hits 1. Critical Hits score one additional hit. Torrent weapons score no Critical Hits.');
-    add('Glimpse of Eternity',[shoot,snap,...defend],'Once per turn, change one Hit roll, Wound roll or saving throw made for this Infernal Master to an unmodified 6. All three roll types share that use.');break;
+    add('Glimpse of Eternity',[shoot,snap,incoming,incomingMove,fight],'Once per turn, change one Hit roll, Wound roll or saving throw made for this Infernal Master to an unmodified 6. All three roll types share that use.');
+    add('Glimpse of Eternity',[incomingArrival],'When an enemy makes a permitted arrival or reaction attack during its Movement phase, once per turn change one saving throw made for this Infernal Master to an unmodified 6. This shares its use with changing this model’s Hit or Wound roll, including when it fires Overwatch later this phase.');break;
    case 'Exalted Sorcerer on Disc of Tzeentch':
-    led('Illusions of Tzeentch',[incoming,incomingSnap],'While this Sorcerer leads the formation, an attacking model can target the formation with a ranged attack only from within 18″.');
+    ledDefence('Illusions of Tzeentch',rangedDefend,'While this Sorcerer leads the formation, an attacking model can target the formation with a ranged attack only from within 18″.');
     add('Binding Tendrils',[shoot],'After this Sorcerer shoots, choose one enemy Infantry unit hit by its Arcane Fire. Its Move is reduced by 2″ and its Charge rolls by 2 until your next turn starts.');
     add('Binding Tendrils',[['Movement','opponent','during'],['Charge','opponent','during']],'The enemy Infantry unit hit and ensnared by Arcane Fire has −2″ Move and −2 to Charge rolls until your next turn starts.');break;
    case 'Daemon Prince of Tzeentch with Wings':{

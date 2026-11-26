@@ -54,13 +54,13 @@ it('uses the whole attached unit for Scouting but keeps the Castellan save on th
  const joined=sheet(kasrkin,officer,chimera);
  expect(joined.some(r=>r.title.includes('Scouts'))).toBe(false);
  const saves=joined.filter(r=>r.title.includes('Invulnerable save'));
- expect(saves.map(r=>r.window)).toEqual(['Shooting','Movement','Fight']);
+ expect(saves.map(r=>r.window)).toEqual(['Shooting','Movement','Fight','Shooting','Movement']);
  expect(saves.every(r=>r.summary.includes('allocated to the Cadian Castellan model')&&r.summary.includes('5+')&&r.units?.length===1&&r.units[0]===officer.id)).toBe(true);
 });
 it('shows the troop’s legal pre-battle deployment, defensive cover and current non-Aircraft Hover',()=>{
  const troops=squad('Cadian Recon Squad'),results=sheet(troops,squad('Valkyrie'));
  expect(results.find(r=>r.title.includes('Infiltrators'))).toMatchObject({window:'Pre-battle',summary:expect.stringMatching(/more than 8″.*enemy models.*enemy deployment zone/)});
- expect(results.filter(r=>r.title.includes('Stealth')).map(r=>[r.window,r.turn])).toEqual([['Shooting','opponent'],['Movement','own']]);
+ expect(results.filter(r=>r.title.includes('Stealth')).map(r=>[r.window,r.turn])).toEqual([['Shooting','opponent'],['Movement','own'],['Shooting','own'],['Movement','opponent']]);
  expect(results.find(r=>r.title.includes('Hover'))).toMatchObject({window:'Movement',turn:'own',summary:expect.stringMatching(/takes to the skies.*2″ reduction/)});
 });
 it('selects individual embarked guns and counts only Krieg gunners as two Firing Deck slots',()=>{

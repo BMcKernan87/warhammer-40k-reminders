@@ -18,9 +18,13 @@ import type {RosterInstance} from './roster-instances';
 
 type Stage=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing']];
 const pre:Stage=['Pre-battle','either','during'],shoot:Stage=['Shooting','own','during'],fight:Stage=['Fight','either','during'];
-const enemyFire:Stage=['Shooting','opponent','during'],incomingSnap:Stage=['Movement','own','end'],outgoingSnap:Stage=['Movement','opponent','end'];
+const enemyFire:Stage=['Shooting','opponent','during'],incomingFire:Stage=['Movement','own','during'],outgoingSnap:Stage=['Movement','opponent','end'];
+const enemyMovementFire:Stage=['Movement','opponent','during'];
+const rangedDefences=[enemyFire,incomingFire,shoot,enemyMovementFire],defences=[enemyFire,incomingFire,fight,shoot,enemyMovementFire];
+const defensiveContext=(stage:Stage)=>stage===incomingFire?' This protection applies throughout your Movement phase, including permitted normal enemy reactions and Fire Overwatch at phase end.':stage===enemyMovementFire?' Apply this during permitted enemy shooting in their Movement phase, including attacks after a Deep Strike arrival.':stage===shoot?' Apply this during permitted enemy return fire.':'';
 const sourceKey=(name:string)=>name.toLowerCase().replace(/[^a-z0-9]/g,'');
 const baseName=(name:string)=>name.split(/\s+[-–—]\s+/)[0];
+const hasModels=(s:RosterInstance)=>(s.models??1)>0;
 
 const nativeSizes=new Map(ASTRA_SHEETS.map(s=>[s.unit,s.sizes[0]]));
 function carries(army:ArmySelection,s:RosterInstance,name:string):boolean{
@@ -88,6 +92,8 @@ function guardProfiles(army:ArmySelection,roster:readonly RosterInstance[]):Gene
  for(const squad of guards){
   const card=cards[squad.unit],group=byBody.get(squad.id),passengerIds=cargo.get(squad.id);
   function emit(title:string,[window,turn,timing]:Stage,summary:string,units=[squad.id],source=card.source){
+   // Timing is deliberately absent from these IDs: broadening passive
+   // Movement protection keeps existing checkmarks on the same reminder.
    result.push({id:[native?'11e-guard-profile':'11e-brood-profile',squad.id,title,window,turn].join(':'),title:squad.id+' · '+title,window,turn,timing,origin:'unit',units,summary,source});
   }
   const stats=shootingStats(card,squad.unit),titanic=tags(squad).has('TITANIC');
@@ -97,20 +103,20 @@ function guardProfiles(army:ArmySelection,roster:readonly RosterInstance[]):Gene
    const text=equippedWeaponText(squad,stats,melee?'Fight':'Shooting',snap,astraMilitarumWeaponCount);
    if(text)emit(melee?'Melee weapon profiles':'Ranged weapon profiles',stage,(snap?'When firing Overwatch, use snap shooting. ':'')+text);
   }
-  for(const {model,save,restriction} of card.saves){
+  for(const {model,save,restriction} of hasModels(squad)?card.saves:[]){
    const bearer=model.toUpperCase()===model?model.toLowerCase().replace(/\b\p{L}/gu,l=>l.toUpperCase()):model;
    const limit=restriction&&!restriction.toLowerCase().includes(bearer.toLowerCase()+' only')?' '+restriction.replace(/\.+$/,'')+'.':'';
-   for(const stage of [enemyFire,incomingSnap,fight])emit(bearer+' · Invulnerable save',stage,'When an attack is allocated to the '+bearer+' model, it may use its '+save+'+ invulnerable save.'+limit);
+   for(const stage of defences)emit(bearer+' · Invulnerable save',stage,'When an attack is allocated to the '+bearer+' model, it may use its '+save+'+ invulnerable save.'+limit+defensiveContext(stage));
   }
   const feel=card.core.find(c=>c.startsWith('Feel No Pain '));
-  if(feel)for(const phase of PHASES)emit(feel,[phase,'either','during'],'Each time a model from '+squad.id+' would lose a wound, roll a D6. On '+feel.slice('Feel No Pain '.length)+' it keeps that wound.');
-  if(['Bullgryn Squad','Ogryn Bodyguard'].includes(squad.unit)){
+  if(feel&&hasModels(squad))for(const phase of PHASES)emit(feel,[phase,'either','during'],'Each time a model from '+squad.id+' would lose a wound, roll a D6. On '+feel.slice('Feel No Pain '.length)+' it keeps that wound.');
+  if(hasModels(squad)&&['Bullgryn Squad','Ogryn Bodyguard'].includes(squad.unit)){
    const bearers=astraMilitarumModelLoadouts(squad);
    for(const item of ['Brute Shield','Slabshield']){
     const count=bearers.filter(b=>b.items.some(i=>sourceKey(i)===sourceKey(item))).length;
     if(!count)continue;
     const effect=item==='Brute Shield'?'has a 4+ invulnerable save':'has a Wounds characteristic of '+(squad.unit==='Ogryn Bodyguard'?'7':'4');
-    for(const stage of [enemyFire,incomingSnap,fight])emit(item,stage,'When allocating attacks, only the '+count+' '+item+' bearer'+(count===1?'':'s')+' in '+squad.id+' '+(count===1?effect:effect.replace('has','have'))+'.');
+    for(const stage of defences)emit(item,stage,'When allocating attacks, only the '+count+' '+item+' bearer'+(count===1?'':'s')+' in '+squad.id+' '+(count===1?effect:effect.replace('has','have'))+'.'+defensiveContext(stage));
    }
   }
   if(card.damage){
@@ -127,10 +133,12 @@ function guardProfiles(army:ArmySelection,roster:readonly RosterInstance[]):Gene
   if(card.core.includes('Hover'))emit('Hover',['Movement','own','during'],'Each time this unit takes to the skies, use its full maximum movement distance without the usual 2″ reduction.');
   if(group){
    const ids=group.members.map(m=>m.id),all=(ability:string)=>group.members.every(m=>cards[m.unit]?.core.includes(ability));
+   const surviving=group.members.filter(hasModels),defensiveIds=surviving.map(m=>m.id);
+   const allDefensive=(ability:string)=>hasModels(squad)&&surviving.every(m=>cards[m.unit]?.core.includes(ability));
    if(all('Infiltrators')||group.members.length===1&&carries(army,squad,'Long-Range Scout'))emit('Infiltrators',pre,'During deployment, set this formation up anywhere more than 8″ horizontally from all enemy models and the enemy deployment zone.',ids);
-   if(all('Stealth'))for(const stage of [enemyFire,incomingSnap])emit(squad.unit==='Gaunt’s Ghosts'?'Stealth · Tanith Camo-cloaks':'Stealth',stage,'This formation has the Benefit of Cover against ranged attacks while every model has Stealth.'+(squad.unit==='Gaunt’s Ghosts'?' The Ghosts’ camo-cloaks also give their models the Benefit of Cover.':''),ids);
+   if(allDefensive('Stealth'))for(const stage of rangedDefences)emit(squad.unit==='Gaunt’s Ghosts'?'Stealth · Tanith Camo-cloaks':'Stealth',stage,'This formation has the Benefit of Cover against ranged attacks while every model has Stealth.'+(squad.unit==='Gaunt’s Ghosts'?' The Ghosts’ camo-cloaks also give their models the Benefit of Cover.':'')+defensiveContext(stage),defensiveIds);
    if(all('Fights First'))emit('Fights First',fight,'Resolve this formation in the Fights First step while every model has that ability.',ids);
-   if(group.members.length===1&&all('Lone Operative'))for(const stage of [enemyFire,incomingSnap])emit('Lone Operative',stage,'Unless part of an attached unit, this unit is invisible to enemies outside 12″, who cannot target it with Indirect Fire weapons either.',ids);
+   if(surviving.length===1&&allDefensive('Lone Operative'))for(const stage of rangedDefences)emit('Lone Operative',stage,'Unless part of an attached unit, this unit is invisible to enemies outside 12″, who cannot target it with Indirect Fire weapons either.'+defensiveContext(stage),defensiveIds);
    if(all('Deep Strike')){
     emit('Deep Strike',pre,'This formation can start in Strategic Reserves and deploy using Deep Strike on ingress.',ids);
     emit('Deep Strike',['Movement','own','during'],'On ingress from Strategic Reserves, normally from battle round two, set up anywhere more than 8″ horizontally away from every enemy unit, including inside the enemy deployment zone.',ids);

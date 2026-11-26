@@ -16,6 +16,8 @@ import {generate11thReminders} from '../src/reminders-11th';
 // https://wahapedia.ru/wh40k11ed/factions/necrons/Hexmark-Destroyer
 // Hyperspace Hunters permits normal enemy shooting during your Reinforcements:
 // https://wahapedia.ru/wh40k11ed/factions/necrons/Deathmarks
+// Servo-sentry permits normal arrival attacks in the opponent's Movement too:
+// https://assets.warhammer-community.com/eng_30-09_wh40k_faction_pack_astra_militarum-1hevkhdpmv-stfkch2tsz.pdf#page=24
 
 const id=(unit:string,n=1)=>unit+'#'+n;
 function army(detachment:string,...units:string[]):ArmySelection{
@@ -25,7 +27,7 @@ function army(detachment:string,...units:string[]):ArmySelection{
 }
 const named=(a:ArmySelection,title:string)=>generate11thReminders(a).filter(r=>r.title===title);
 const stages=(rows:GeneratedReminder[])=>rows.map(r=>[r.window,r.turn,r.timing].join(':')).sort();
-const rangedDefence=['Shooting:opponent:during','Movement:own:during','Shooting:own:during'].sort();
+const rangedDefence=['Shooting:opponent:during','Movement:own:during','Shooting:own:during','Movement:opponent:during'].sort();
 const unique=(a:ArmySelection)=>{
  const rows=generate11thReminders(a);
  expect(new Set(rows.map(r=>r.id)).size).toBe(rows.length);
@@ -90,12 +92,16 @@ describe('Thousand Sons passive defenses during reactive attacks',()=>{
  it('gives Walking Rampart healing and passive protection independent checkmarks while retaining the existing healing ID',()=>{
   const a=selectUpgrade2026(army('Sekhetar Cohort','Sorcerer','Sekhetar Robots'),id('Sorcerer'),'Walking Rampart');
   const movement=named(a,id('Sorcerer')+' · Walking Rampart').filter(r=>r.window==='Movement');
-  expect(movement).toHaveLength(2);
+  expect(movement).toHaveLength(3);
   expect(movement.find(r=>r.summary.includes('heals D3+1 wounds'))).toMatchObject({
    id:'11e-ts-000010968002-Sorcerer#1-Movement-own',timing:'during',units:[id('Sekhetar Robots')],
   });
   expect(movement.find(r=>r.summary.includes('Lone Operative'))).toMatchObject({
    id:'11e-ts-000010968002-Sorcerer#1-lone-operative-Movement-own',timing:'during',units:[id('Sorcerer')],
+  });
+  expect(movement.find(r=>r.turn==='opponent')).toMatchObject({
+   id:'11e-ts-000010968002-Sorcerer#1-lone-operative-Movement-opponent',timing:'during',units:[id('Sorcerer')],
+   summary:expect.stringContaining('Lone Operative'),
   });
   unique(a);
  });
@@ -105,11 +111,15 @@ describe('Thousand Sons passive defenses during reactive attacks',()=>{
   a=setInstanceAttachment(a,id('Tzaangor Shaman'),id('Tzaangors'));
   a=selectUpgrade2026(a,id('Tzaangor Shaman'),'Diamond of Distortion');
   const title=id('Tzaangor Shaman')+' · Diamond of Distortion',rows=named(a,title);
-  expect(stages(rows)).toEqual(['Shooting:opponent:during','Fight:either:during','Shooting:own:during','Movement:own:during'].sort());
+  expect(stages(rows)).toEqual([...rangedDefence,'Fight:either:during'].sort());
   expect(rows.every(r=>r.units?.join()===id('Tzaangors')&&r.summary.includes('Shaman leads')&&r.summary.includes('subtract 1 from incoming Hit rolls'))).toBe(true);
   expect(rows.find(r=>r.window==='Movement')).toMatchObject({
    id:'11e-ts-000010201003-Tzaangor Shaman#1-Movement-own',
    summary:expect.stringMatching(/normal shooting.*Snap shooting ignores this Hit modifier/),
+  });
+  expect(rows.find(r=>r.window==='Movement'&&r.turn==='opponent')).toMatchObject({
+   id:'11e-ts-000010201003-Tzaangor Shaman#1-Movement-opponent',
+   summary:expect.stringMatching(/arrival or reaction attacks use normal shooting.*Snap shooting ignores this Hit modifier/),
   });
   expect(rows.map(r=>r.id)).toEqual(expect.arrayContaining([
    '11e-ts-000010201003-Tzaangor Shaman#1-Shooting-opponent','11e-ts-000010201003-Tzaangor Shaman#1-Fight-either',

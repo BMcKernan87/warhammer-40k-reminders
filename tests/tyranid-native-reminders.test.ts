@@ -304,7 +304,7 @@ it('keeps personal invulnerable and Feel No Pain effects on their real source mo
  const a=join(army(['Old One Eye','Carnifexes','Norn Emissary','Zoanthropes']),'Old One Eye','Carnifexes');
  const fnp=profile(a,'Feel No Pain 5+').filter(r=>r.units?.includes(id('Old One Eye')));expect(fnp).toHaveLength(5);expect(fnp.every(r=>!r.units?.includes(id('Carnifexes')))).toBe(true);
  expect(get(a,'Unnatural Resilience')).toHaveLength(5);expect(get(a,'Unnatural Resilience')[0].summary).toContain('mortal wounds');expect(get(a,'Singular Purpose · Chosen objective')[0].summary).toContain('Objective Control 15');
- expect(profile(a,'Invulnerable save').filter(r=>r.units?.includes(id('Zoanthropes')))).toHaveLength(4);
+ expect(profile(a,'Invulnerable save').filter(r=>r.units?.includes(id('Zoanthropes')))).toHaveLength(5);
 });
 it('uses whole formations for Scouts and Deep Strike, including the multi-model Ravener leader',()=>{
  let a=join(army(['Broodlord','Genestealers','Hyperadapted Raveners','Raveners','Winged Tyranid Prime','Tyranid Warriors With Melee Bio-weapons']),'Broodlord','Genestealers');

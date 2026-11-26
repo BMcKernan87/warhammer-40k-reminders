@@ -44,8 +44,8 @@ export function mechanicusProfileReminders(army:ArmySelection,roster:readonly Ro
  for(const squad of native){
   const card=MECHANICUS_CARDS[squad.unit],group=groups.find(g=>g.root.id===squad.id),formation=groups.find(g=>g.members.some(s=>s.id===squad.id));if(!formation)continue;
   const tags=mechanicusKeywords(army,squad),reactions=mechanicusReactionShooting(army,squad,roster);
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-mechanicus-profile',squad.id,title,window,turn,timing].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-mechanicus-profile',squad.id,title,window,turn,savedTiming].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,card,tags.has('TITANIC'),mechanicusWeaponCount,(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')summary=(stage[0]==='Movement'?'When firing Overwatch, use snap shooting. ':'')+fullWeapons(squad,card,title==='Melee weapon profiles'?'Fight':'Shooting',stage[0]==='Movement');
@@ -67,8 +67,8 @@ export function mechanicusProfileReminders(army:ArmySelection,roster:readonly Ro
     if(squad.unit==='Archaeopter Transvector'&&title==='Deep Strike'&&stage[0]==='Movement')summary='Aerial Deployment allows ingress in your first Movement phase. When this formation makes ingress, Deep Strike permits it to set up anywhere more than 8″ horizontally from all enemy units, including inside the enemy deployment zone.';
     emit(title,stage,summary,units);
    });
-   if(group.members.every(s=>core(s).includes('Lone Operative')))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)emit('Lone Operative',stage,'Every model in this formation has Lone Operative. Enemy models more than 12″ away cannot see it or target it with Indirect Fire.',ids);
-   if(group.members.every(s=>core(s).includes('Stealth')))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)emit('Stealth',stage,'Every model in this formation has Stealth, so it has the Benefit of Cover against ranged attacks.',ids);
+   if(group.members.every(s=>core(s).includes('Lone Operative')))for(const stage of [['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during']] as const)emit('Lone Operative',stage,'Every model in this formation has Lone Operative. Enemy models more than 12″ away cannot see it or target it with Indirect Fire.',ids);
+   if(group.members.every(s=>core(s).includes('Stealth')))for(const stage of [['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during']] as const)emit('Stealth',stage,'Every model in this formation has Stealth, so it has the Benefit of Cover against ranged attacks.',ids);
    if(group.members.some(s=>core(s).includes('Fights First')))emit('Fights First',['Fight','either','start'],'This formation fights in the Fights First step; use the normal alternation and eligibility rules.',ids);
   }
   if(!tags.has('TRANSPORT'))continue;

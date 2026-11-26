@@ -36,8 +36,8 @@ describe('Brood Brothers personal datasheet abilities',()=>{
   const tank=squad('Baneblade'),sisters=squad('Neophyte Hybrids'),second=squad('Baneblade',{id:'Baneblade#2'});
   expect(named(army(tank,sisters),'Rolling Fortress')).toEqual([]);
   const rows=named(army(tank,sisters,second),'Rolling Fortress');
-  expect(rows).toHaveLength(4);
-  expect(rows.map(r=>r.units)).toEqual([[second.id],[second.id],[tank.id],[tank.id]]);
+  expect(rows).toHaveLength(8);
+  expect(rows.map(r=>r.units)).toEqual([[second.id],[second.id],[second.id],[second.id],[tank.id],[tank.id],[tank.id],[tank.id]]);
  });
  it('requires actual fitting passengers for reactions and excludes Artillery',()=>{
   const transport=squad('Stormlord'),field=squad('Field Ordnance Battery'),body=squad('Cadian Shock Troops',{models:10});

@@ -138,7 +138,7 @@ it('prints complete equipped profiles, omits snap Ballistic Skill and keeps nati
  const normal=profile(a,'Ranged weapon profiles').find(r=>r.units?.includes(id('Skitarii Rangers'))&&r.window==='Shooting')!;
  expect(normal.summary).toContain('A 2; BS 4+; D 1');expect(normal.summary).toContain('30″');
  const snap=profile(a,'Ranged weapon profiles').find(r=>r.units?.includes(id('Skitarii Rangers'))&&r.window==='Movement')!;expect(snap.summary).not.toContain('BS ');
- expect(profile(a,'Invulnerable save').filter(r=>r.units?.includes(id('Skitarii Rangers')))).toHaveLength(4);
- expect(profile(a,'Stealth').filter(r=>r.units?.includes(id('Sydonian Skatros')))).toHaveLength(3);expect(profile(a,'Lone Operative')).toHaveLength(3);
+ expect(profile(a,'Invulnerable save').filter(r=>r.units?.includes(id('Skitarii Rangers')))).toHaveLength(5);
+ expect(profile(a,'Stealth').filter(r=>r.units?.includes(id('Sydonian Skatros')))).toHaveLength(4);expect(profile(a,'Lone Operative')).toHaveLength(4);
  const rows=mechanicusProfileReminders(a);expect(new Set(rows.map(r=>r.id)).size).toBe(rows.length);expect(mechanicusIntrinsicReminders({...a,faction:'Necrons'})).toEqual([]);
 });

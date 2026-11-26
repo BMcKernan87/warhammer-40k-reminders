@@ -94,7 +94,7 @@ it('checks actual target identity for support priests, Solar redeployments, Gaun
  const a=build(eng,tank,leontus,ghosts,av,av2,troops,priest);
  expect(find(build(eng),'Omnissiah’s Blessing')).toEqual([]);
  expect(find(a,'Omnissiah’s Blessing')[0]).toMatchObject({window:'Command',turn:'own',units:[eng.id,tank.id,av.id,av2.id],summary:expect.stringMatching(/model within 3″.*D3.*4\+.*once per turn/)});
- expect(find(a,'Enginseer')[0].summary).toMatch(/every surviving model has Lone Operative/);
+ expect(find(a,'Enginseer')[0].summary).toMatch(/Enginseer is unattached.*bearer has Lone Operative/);
  expect(find(a,'Vengeance for the Omnissiah')[0].summary).toMatch(/destroyed within 12″.*axe has 6 Attacks/);
  expect(find(a,'War Hymns')[0].units).toEqual([priest.id,troops.id]);
  expect(find(a,'Holy Piety')[0].units).toEqual([priest.id]);

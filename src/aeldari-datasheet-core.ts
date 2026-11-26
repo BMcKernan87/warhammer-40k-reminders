@@ -11,7 +11,7 @@ import {expandRoster,type RosterInstance} from './roster-instances';
 
 const key=(name:string)=>name.split(/\s+[–—-]\s+/)[0].normalize('NFKD').toLowerCase().replace(/[^a-z0-9]/g,'');
 const core=(s:RosterInstance):readonly string[]=>aeldariCard(s)?.core??[];
-const defence:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during'],['Fight','either','during']];
+const defence:readonly ProfileStage[]=[['Shooting','opponent','during'],['Movement','own','during','end'],['Movement','opponent','during'],['Shooting','own','during'],['Fight','either','during']];
 function training(army:ArmySelection,squad:RosterInstance):string|undefined{
  if(squad.unit!=='Autarch')return undefined;
  const original=aeldariFormations(army,expandRoster(army)).find(g=>g.members.some(s=>s.id===squad.id));
@@ -42,8 +42,8 @@ export function aeldariDatasheetCoreReminders(army:ArmySelection,roster:readonly
  for(const squad of selected){
   const card=aeldariCard(squad),group=groups.find(g=>g.members.some(s=>s.id===squad.id));if(!group)continue;
   const tags=aeldariKeywords(army,squad,undefined,roster),ids=group.members.map(s=>s.id);
-  function emit(title:string,[window,turn,timing]:ProfileStage,summary:string,units=[squad.id]){
-   result.push({id:['11e-aeldari-profile',squad.id,title,window,turn,timing].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
+  function emit(title:string,[window,turn,timing,savedTiming=timing]:ProfileStage,summary:string,units=[squad.id]){
+   result.push({id:['11e-aeldari-profile',squad.id,title,window,turn,savedTiming].join(':'),title:squad.id+' · '+title,window,turn,timing,summary,units,origin:'unit',source:card.source});
   }
   printCombatProfiles(squad,{...card,save:null},tags.has('TITANIC'),aeldariWeaponCount,(title,stage,summary,units)=>{
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')return;
