@@ -1,6 +1,7 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {NECRON_RETINUES,necronFormationRoots,formationBodyguardStrength,ghostArkPassengers,necronTransportFormations} from './necron-retinues';
+import {CONVERGENCE_OF_DOMINION,necronBattleRoster,necronBattleFormations} from './necron-battle-units';
 import {expandRoster, type RosterInstance} from './roster-instances';
 import {BATTLEFIELD_RULES,type TriggerRule} from './necron-battlefield-rules';
 import {weaponSummary} from './necron-weapon-cues';
@@ -51,6 +52,7 @@ function referenceWindows(rule:TriggerRule):ReminderWindow[]{
 const snapAttackAbilities=new Set(['implacable-eradication','optimised','crawlers','hatred','doom-scythe','nebuloscope']);
 const movementDefences=new Set(['ghost-repair','szeras','guardian','orikan-save','shield','command-shield','overlord','necroadjust','tomb-shield-save','cover','timesplinter-mantle','tomb-shadowloom','harassment']);
 const circumstances:Record<string,string>={
+  'implacable-eradication':'When a model in this unit makes an attack.',
   legion:'Whenever this unit’s Reanimation Protocols activate, including stratagems or Resurrection Orbs.',
   'wraith-form':'After a Normal move over an enemy.',
   'warden':'If this unit Fell Back this turn.',
@@ -186,13 +188,14 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
   if(army.faction!=='Necrons')return [];
   const output:GeneratedReminder[]=[];
   const ids=new Set<string>();
-  const formations=necronFormationRoots(army,roster);
+  const battleRoster=necronBattleRoster(army,roster);
+  const formations=necronBattleFormations(army,roster);
   // A joined retinue is part of its original Bodyguard until battle end. Its
   // surviving models keep that Bodyguard's unit abilities (core 19.04), but do
   // not inherit dead original models' weapons, personal saves or wargear.
-  const liveIds=new Set(roster.map(s=>s.id));
+  const liveIds=new Set(battleRoster.map(s=>s.id));
   const retainedBodies=formations.filter(f=>!liveIds.has(f.originalBody.id)&&f.members.some(m=>m.retinueTo===f.originalBody.id)).map(f=>f.originalBody);
-  for(const squad of [...roster,...retainedBodies]){
+  for(const squad of [...battleRoster,...retainedBodies]){
     const retainedBody=!liveIds.has(squad.id);
     const formation=formations.find(f=>f.members.some(m=>m.id===squad.id)||(retainedBody&&f.originalBody.id===squad.id));
     const body=formation?.leading.some(m=>m.id===squad.id)?formation.originalBody:undefined;
@@ -215,7 +218,7 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
       for(const window of windows){
         if(window==='Movement'&&rule.id.startsWith('weapons-')&&necronKeywords.TITANIC.has(squad.unit))continue;
         const weapon=rule.id.startsWith('weapons-');
-        let summary=weapon?weaponSummary(squad,window==='Fight'?'fight':'shoot',window==='Movement'):referenceText(rule,squad,roster);
+        let summary=weapon?weaponSummary(squad,window==='Fight'?'fight':'shoot',window==='Movement'):referenceText(rule,squad,battleRoster);
         if(!summary)continue;
         const snapAttack=window==='Movement'&&snapAttackAbilities.has(rule.id);
         const movementDefence=window==='Movement'&&movementDefences.has(rule.id);
@@ -228,7 +231,9 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
         if(retainedBody)summary+=' The surviving joined retinue is still part of the original '+squad.unit+' Bodyguard unit. This unit ability ends when its last Bodyguard model is destroyed; if an attack destroys that model, retain the effect until the attacking unit finishes its attacks.';
         const overwatch=window==='Movement'&&(weapon||snapAttack||['sentinel','hex-hits','hex-overwatch','tachyon'].includes(rule.id));
         const base='11e-necron-'+(rule.id==='nekrosor-aura'&&window==='Fight'?'nekrosor-fight-aura':suffix);
-        const id=ids.has(base)?base+'-'+squad.id+'-'+window:base;
+        // Each Starstele is an independent aura/cover source. Do not carry a
+        // previous purchase-wide completion onto its individual source rows.
+        const id=squad.unit===CONVERGENCE_OF_DOMINION||ids.has(base)?base+'-'+squad.id+'-'+window:base;
         ids.add(id);
         const candidates=targets?' Eligible '+(rule.id==='trazyn'?'models':'formations')+': '+targets.join(', ')+'.':
           joined?' While joined: '+joined.members.map(m=>m.id).join(', ')+'.':'';
@@ -266,7 +271,7 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
 // surviving formation, even if its Cryptek or original Bodyguard has died.
 function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):GeneratedReminder[]{
  const out:GeneratedReminder[]=[];
- const original=expandRoster(army),originalFormations=necronFormationRoots(army),formations=necronFormationRoots(army,roster);
+ const original=expandRoster(army),originalFormations=necronBattleFormations(army),formations=necronBattleFormations(army,roster);
  const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo;
  const survivingFormation=(start:Formation)=>formations.find(f=>f.originalBody.id===start.originalBody.id&&f.members.some(m=>start.members.some(originalMember=>sameMember(originalMember,m))));
  for(const s of original){
@@ -296,6 +301,17 @@ function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[])
    emit('atavistic-fight','Atavistic Instigation · duck for cover','Fight','If an enemy previously ducked for cover when this Doom Scythe’s heavy death ray targeted it, its melee attacks suffer −1 to Hit until the start of your next Shooting phase, even if the Doom Scythe is destroyed.');
    emit('atavistic-movement','Atavistic Instigation · duck for cover','Movement','If an enemy previously ducked for cover when this Doom Scythe’s heavy death ray targeted it, subtract 1 from its normal reactive attack Hit rolls until the start of your next Shooting phase, even if the Doom Scythe is destroyed. Snap shooting, including Fire Overwatch, ignores this Hit modifier.');
   }
+  if(s.unit==='Monolith'){
+   // Eligibility is checked when the Gate is used. Its turn-long consequence
+   // stays on that original formation after the Monolith or Infantry source dies.
+   const recipients=originalFormations.filter(f=>f.members.some(m=>necronKeywords.INFANTRY.has(m.unit)))
+    .flatMap(f=>{const surviving=survivingFormation(f);return surviving?[surviving.id]:[];});
+   if(recipients.length){
+    const candidates=' Original eligible formations: '+recipients.join(', ')+'. Only the formation that actually used this Monolith’s gate is affected.';
+    emit('eternity-gate-charge','Eternity Gate · charge restriction','Charge','In your Charge phase, if this formation used this Monolith’s gate to make an ingress move this turn, it cannot make a Charge move until turn end, even if the Monolith is destroyed or the formation loses its Infantry keyword.'+candidates,recipients,'own');
+    emit('eternity-gate-shooting','Eternity Gate · shooting','Shooting','In your Shooting phase, a formation that used this Monolith’s gate this turn may shoot, including when set up away from a battlefield edge. This ingress permission is not lost if the Monolith is destroyed or the formation loses its Infantry keyword; all other shooting restrictions still apply.'+candidates,recipients,'own');
+   }
+  }
   // Activation rows use living sources and current eligibility. After a source
   // or keyword-bearer casualty retain only the previously applied phase effect.
   if(!current&&s.unit==='Triarch Stalker')emit('relay-lasting','Targeting Relay · selected target','Shooting','If this Triarch Stalker already selected an enemy it hit after resolving its attacks in this Shooting phase, that selected enemy cannot have the Benefit of Cover until this phase ends, even if the Stalker is destroyed. This does not select a new target.',[s.id],'own');
@@ -320,15 +336,24 @@ const demise:Record<string,string>={...Object.fromEntries(ctans.map(u=>[u,'D6'])
 const damaged:Record<string,number>={'The Silent King':6,'Monolith':7,'Obelisk':8,'Tesseract Vault':8,'Doomsday Ark':5,'Canoptek Doomstalker':4,'Night Scythe':4,'Doom Scythe':4,'Seraptek Heavy Construct':9};
 function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):GeneratedReminder[]{
  const out:GeneratedReminder[]=[];
- const formations=necronFormationRoots(army,roster);
+ const formations=necronBattleFormations(army,roster);
  const formation=(s:RosterInstance)=>formations.find(f=>f.members.some(m=>m.id===s.id));
  const combat=['Shooting','Fight'] as const;
  // Core 05.03, 24.24 and 24.33 apply to attacks/visibility, including Movement
  // reactions. These rows describe defences; they do not allow an attack to occur.
  const attackWindows=[...combat,'Movement'] as const;
  const rangedWindows=['Shooting','Movement'] as const;
- for(const s of roster){
-  const emit=(key:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units:string[]=[s.id],turn?:GeneratedReminder['turn'],source=necronSource(s.unit))=>out.push({id:'11e-necron-extra-'+key+'-'+s.id+'-'+window,title:s.id+' · '+title,window,timing,turn,summary,source,origin:'unit',units,previousSheetEntry:key==='blades'||key==='stars'?{window,units:[s.id]}:undefined});
+ // Core 14.02 checks control at the end of every phase and turn, before other
+ // end-of-phase/turn rules. These modifiers are not limited to Command scoring.
+ const controlWindows=[...PHASES,'End of your turn','End of opponent turn'] as const;
+ // Initial placement still applies to the purchased group, before its models
+ // become separate units. Later rows use those individual battle sources.
+ for(const s of roster.filter(s=>s.unit===CONVERGENCE_OF_DOMINION&&(s.models??1)>1))out.push({
+  id:'11e-necron-extra-starsteles-'+s.id+'-Pre-battle',title:s.id+' · Starsteles',window:'Pre-battle',timing:'during',
+  summary:'When first setting up this unit, place each model wholly within 12″ of another model from the unit in place of normal coherency. Each model then operates as a separate unit with Starting Strength 1. Select and resolve rules for each Starstele independently.',
+  source:necronSource(s.unit),origin:'unit',units:[s.id]});
+ for(const s of necronBattleRoster(army,roster)){
+  const emit=(key:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units:string[]=[s.id],turn?:GeneratedReminder['turn'],source=necronSource(s.unit))=>out.push({id:'11e-necron-extra-'+key+'-'+s.id+'-'+window,title:s.id+' · '+title,window,timing,turn,summary,source,origin:'unit',units,previousSheetEntry:key==='blades'||key==='stars'||(window==='Command'&&(key==='carrier'||key==='leadership'))?{window,units:[s.id]}:undefined});
   const f=formation(s);
   if(deepStrike.has(s.unit)&&f?.id===s.id&&f.members.every(m=>deepStrike.has(m.unit))){
    emit('deep-strike','Deep Strike','Pre-battle','This formation can be declared in reserves under the normal mission limits.','start',[f.id]);
@@ -341,12 +366,11 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    const threshold=damaged[s.unit];
    for(const window of combat)if(s.unit!=='Tesseract Vault'||window==='Shooting')emit('damaged','Damaged profile',window,'While '+(s.unit==='The Silent King'?'Szarekh':'this model')+' has 1–'+threshold+' wounds remaining: '+(s.unit==='Tesseract Vault'?'when selected to shoot in your Shooting phase, select at most one C’tan Powers weapon rather than two.':s.unit==='The Silent King'?'halve Szarekh’s weapon Attacks and subtract 1 from this unit’s Hit rolls.':'subtract 1 from this model’s Hit rolls.'),'during',[s.id],s.unit==='Tesseract Vault'?'own':undefined);
    if(s.unit==='The Silent King')emit('damaged','Damaged profile','Movement','End of the opponent’s Movement phase, when using Fire Overwatch: while Szarekh has 1–6 wounds remaining, halve the Attacks characteristic of Szarekh’s weapons. Triarchal Menhir weapon Attacks are unchanged. Snap shooting ignores the damaged profile’s −1 Hit modifier.','end',[s.id],'opponent');
-   if(['Monolith','Obelisk','Tesseract Vault','Seraptek Heavy Construct'].includes(s.unit))emit('damaged-oc','Damaged profile · OC','Command','While this model has 1–'+threshold+' wounds remaining, subtract '+(s.unit==='Seraptek Heavy Construct'?5:4)+' from its OC. Re-evaluate when scoring.');
+   if(['Monolith','Obelisk','Tesseract Vault','Seraptek Heavy Construct'].includes(s.unit))for(const window of controlWindows)emit('damaged-oc','Damaged profile · OC',window,'While this model has 1–'+threshold+' wounds remaining, subtract '+(s.unit==='Seraptek Heavy Construct'?5:4)+' from its OC. Use its current wounds when checking objective control at the end of each phase and turn, before resolving other end-of-phase or end-of-turn rules.','end',[s.id],'either');
   }
   if(s.unit==='Psychomancer')emit('nightmare-shroud','Nightmare Shroud (Aura)','Command','In the Battle-shock step of the opponent’s Command phase, each enemy below Starting Strength within 6″ of this model must test with −1 to its Battle-shock result.');
   if(s.unit==='Royal Warden')for(const window of PHASES)emit('engrammatic-logic','Engrammatic Logic',window,'Once per battle, at the start of either player’s phase, clear Battle-shock from one friendly Necron unit within 12″ of this model.','start');
-  if(s.unit==='Convergence Of Dominion'){
-   if((s.models??1)>1)emit('starsteles','Starsteles','Pre-battle','When first setting up this unit, place each model wholly within 12″ of another model from the unit in place of normal coherency. Each model then operates as a separate unit.','during');
+  if(s.unit===CONVERGENCE_OF_DOMINION){
    emit('fortification-fallback','Fortification','Movement','When an enemy is engaged only with friendly Fortifications, being battle-shocked does not force Desperate Escape tests on Fall Back. Models moving over enemies must still test.');
    emit('fortification-shooting','Fortification','Shooting','You can target an enemy engaged only with your Fortifications. Subtract 1 from ranged Hit rolls against it unless the attack uses a Pistol or equivalent Close-quarters weapon.');
   }
@@ -369,17 +393,12 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    emit('quantum-invader','Quantum Invader','Movement','In the Move Units step of your first, second or third Movement phase, this model may make an ingress move regardless of mission rules.','during',[s.id],'own');
    emit('hover','Hover','Movement','When taking to the skies, do not subtract 2″ from the maximum distance.');
   }
-  if(s.unit==='Monolith'){
-   const infantry=datasheetTargets('monolith',s,formations,army)!;
-   if(infantry.length)emit('eternity-gate-charge','Eternity Gate · charge restriction','Charge','In your Charge phase, a formation that used this gate to make an ingress move this turn cannot make a Charge move. Eligible formations: '+infantry.join(', ')+'.','during',infantry,'own');
-   if(infantry.length)emit('eternity-gate-shooting','Eternity Gate · shooting','Shooting','If a formation used this Monolith’s gate this turn it may shoot, including when set up away from a battlefield edge. Eligible formations: '+infantry.join(', ')+'.','during',infantry);
-  }
   if(s.unit==='Canoptek Wraiths'&&army.detachments2026?.includes('Canoptek Court'))emit('wraith-form-reactive','Wraith Form · Reactive Subroutines','Movement','In the opponent’s Movement phase, if Reactive Subroutines lets this formation make a Normal move over an enemy, Wraith Form can trigger. Choose one crossed enemy and roll one D6 per surviving model in this formation, with each 4+ causing a mortal wound.','during',[f?.id??s.id]);
   if(s.unit==='Ophydian Destroyers')emit('tunnelling-ingress','Tunnelling Horrors · ingress','Movement','If Tunnelling Horrors was used last turn, this unit must make an ingress move now, including on your first turn.');
-  if(s.unit==='Canoptek Scarab Swarms')for(const window of ['Command','Movement','Charge','Fight'] as const)emit('chittering','Chittering Swarm',window,'Engaged enemy models lose 1 OC (minimum 1). '+(roster.some(m=>necronKeywords.CRYPTEK.has(m.unit))?'While within 6″ of a friendly Cryptek model, Scarab models have OC 1.':''));
-  if(s.unit==='Catacomb Command Barge')emit('carrier','Carrier Wave (Aura)','Command','Friendly Necron models in units within 6″ of this Barge gain +1 OC. Check when scoring.');
+  if(s.unit==='Canoptek Scarab Swarms')for(const window of controlWindows)emit('chittering','Chittering Swarm',window,'While an enemy unit is within Engagement Range of this surviving Scarab unit, subtract 1 from the OC of every model in that enemy unit (minimum 1), including models not themselves in Engagement Range. '+(roster.some(m=>necronKeywords.CRYPTEK.has(m.unit))?'While this Scarab unit is within 6″ of a surviving friendly Cryptek model, its Scarab models have OC 1. ':'')+'Apply the current conditions when checking objective control at the end of each phase and turn. Battle-shocked models retain OC “–”.','end',[s.id],'either');
+  if(s.unit==='Catacomb Command Barge')for(const window of controlWindows)emit('carrier','Carrier Wave (Aura)',window,'While a friendly Necron unit is within 6″ of this surviving Barge, every model in that unit gains +1 OC. Measure the unit’s range when checking objective control at the end of each phase and turn. Battle-shocked models retain OC “–”.','end',formations.map(root=>root.id),'either');
   if(s.unit==='The Silent King'){
-   emit('leadership','The Silent King · Leadership','Command','Friendly Necron units within 6″ of Szarekh improve Leadership by 1.');
+   for(const window of PHASES)emit('leadership','The Silent King · Leadership',window,'While a friendly Necron unit is within 6″ of the surviving Szarekh model, improve that unit’s Leadership by 1. Use that characteristic for Leadership and Battle-shock rolls whenever a rule calls for them, including outside the Command phase.','during',formations.map(root=>root.id),'either');
    // The official September 30 v1.3 replacement for Bringer of Unity applies to all Necrons.
    emit('march','Relentless March (Aura)','Movement','If selected this battle round, friendly Necron units within 6″ of Szarekh gain +2″ Move, including friendly Monsters.','during',formations.map(root=>root.id),undefined,'https://assets.warhammer-community.com/eng_30-09_wh40k_faction_pack_necrons-1urphgbmpy-wbhocjbaba.pdf');
    const nonMonsters=formations.filter(root=>!root.members.some(m=>necronKeywords.MONSTER.has(m.unit))).map(root=>root.id);

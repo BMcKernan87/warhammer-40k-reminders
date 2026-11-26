@@ -6,7 +6,7 @@ import {individualArmy} from '../src/roster-instances';
 describe('11e Scout eligibility and timing',()=>{
  it('does not show a Scout reminder for an army without a verified grant',()=>{
   expect(eligibleScoutReminders(newSelection()).length).toBe(0);
-  expect(generate11thReminders(newSelection()).some(r=>r.window==='Pre-battle')).toBe(false);
+  expect(generate11thReminders(newSelection()).some(r=>r.window==='Pre-battle'&&/scout/i.test(r.title))).toBe(false);
  });
  it('shows a pre-battle reminder only for the upgraded Necron Warrior squad',()=>{
   const army=individualArmy({...newSelection('Necrons'),units:{'Necron Warriors':1},detachments2026:['Hand of the Dynasty']});

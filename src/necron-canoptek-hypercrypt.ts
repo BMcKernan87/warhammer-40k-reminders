@@ -1,5 +1,5 @@
 import type {ArmySelection} from './catalog';
-import {necronFormationRoots} from './necron-retinues';
+import {necronBattleFormations} from './necron-battle-units';
 import {resolvedWarlord} from './necron-muster-legality';
 import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
@@ -15,7 +15,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  const result:GeneratedReminder[]=[];
  const selected=army.detachments2026??[];
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
- const formations=necronFormationRoots(army,roster);
+ const formations=necronBattleFormations(army,roster);
  const root=(s:RosterInstance)=>formations.find(f=>f.members.some(m=>m.id===s.id));
  const attached=(s:RosterInstance)=>!!root(s)?.leading.some(m=>m.id===s.id);
  const matching=(predicate:(unit:string)=>boolean)=>formations.filter(f=>f.members.some(s=>predicate(s.unit))).map(f=>f.id);

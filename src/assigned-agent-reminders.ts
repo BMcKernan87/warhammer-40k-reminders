@@ -25,8 +25,6 @@ const phases=['Command','Movement','Shooting','Charge','Fight'] as const;
 const attacks=['Movement','Shooting','Fight'] as const;
 const titleCase=(s:string)=>s.replace(/\b[a-z]/g,l=>l.toUpperCase());
 function weaponEffect(raw:string,snap:boolean){
- if(raw==='one shot')return 'One Shot (this bearer can fire this weapon once per battle)';
- if(raw==='psychic')return 'Psychic attack';
  if(raw==='psychic assassin')return 'Psychic Assassin sets the animus speculum to 6 attacks against a Psyker unit';
  if(raw.startsWith('blast '))return 'Blast '+raw.slice(6)+' adds '+raw.slice(6)+' attacks per five models in the target';
  return weaponAbilityText(titleCase(raw),snap);

@@ -26,7 +26,7 @@ function fullWeapons(squad:RosterInstance,card:KnightCardStats,phase:'Shooting'|
  return detailed.filter(w=>w.phase===phase&&count(squad,w.name)>0).map(w=>{
   const stats=(phase==='Shooting'?w.range+'″; ':'')+'A '+w.attacks+'; '+(snap?'':(phase==='Shooting'?'BS ':'WS ')+w.skill+(w.skill==='-'?'':'+')+'; ')+'D '+w.damage;
   const text=equippedWeaponText(squad,{...card,weapons:[w]},phase,snap,count).replace(' — ',' — '+stats+'; ');
-  return snap?text:text.replace('Psychic (these attacks are psychic attacks for rules that affect them)','Psychic (these are psychic attacks; you may ignore any or all modifiers to their Ballistic Skill or Weapon Skill and Hit roll)');
+  return text;
  }).join(' ');
 }
 

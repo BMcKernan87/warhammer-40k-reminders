@@ -25,7 +25,9 @@ const upgrades=tables.Enhancements.filter(r=>detachments.has(r.detachment_id)).m
  const detachment=detachments.get(row.detachment_id).name;
  const name=row.name.replace(/\s*\(Aura\)/i,'').trim().replace('drop Beacon','Drop Beacon');
  const price=mfm.detachments.find(d=>normalize(d.name)===normalize(detachment)).enhancements.find(e=>normalize(e.name)===normalize(name));
- const units=unitLinks(tables.Datasheets_enhancements,'enhancement_id',row.id).filter(name=>natives.has(name));
+ // Astra Militarum September 30 faction pack, Loyal Protector correction:
+ // Ogryn Bodyguards cannot receive Enhancements despite their CHARACTER keyword.
+ const units=unitLinks(tables.Datasheets_enhancements,'enhancement_id',row.id).filter(name=>natives.has(name)&&name!=='Ogryn Bodyguard');
  if(!price||price.points!==Number(row.cost)||!units.length)throw Error('Unverified ASTRA enhancement '+name);
  return {id:row.id,name,detachment,points:price.points,repeatable:row.upgrade==='true',units};
 });

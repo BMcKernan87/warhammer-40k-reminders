@@ -56,7 +56,9 @@ describe('Custodes weapon choices, marked enemies and bodyguard formations',()=>
     expect(shooting).toContain('against a target with neither Monster nor Vehicle, each critical hit scores one extra hit');
     expect(named(tank,'Ranged weapon profiles').find(r=>r.window==='Movement')!.summary).not.toContain('Sustained Hits');
     const venom=rules(s('Venatari with Kinetic Destroyers'));
-    expect(named(venom,'Ranged weapon profiles').find(r=>r.window==='Shooting')?.summary).toContain('use close-quarters shooting against an engaged target');
+    const closeQuarters=named(venom,'Ranged weapon profiles').find(r=>r.window==='Shooting')?.summary;
+    expect(closeQuarters).toContain('if engaged and the unit did not Advance');
+    expect(closeQuarters).toContain('only at enemies engaged with their unit');
     const telemon=rules(s('Telemon Heavy Dreadnought'));
     expect(named(telemon,'Ranged weapon profiles').find(r=>r.window==='Shooting')?.summary).toContain('add 2 attack dice per five models');
     expect(named(rules(s('Trajann Valoris')),'Melee weapon profiles')[0].summary).toContain('all this weapon’s attacks target the same unit');

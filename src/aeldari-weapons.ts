@@ -31,7 +31,7 @@ export function aeldariWeaponText(army:ArmySelection,squad:RosterInstance,phase:
   let text=equippedWeaponText(squad,{...card,weapons:[w]},phase,snap,count).replace(' — ',' — '+stats+'; ');
   text=text.replace('Devastating Wounds: Non-Monster/vehicle','Devastating Wounds (against targets with neither Monster nor Vehicle, a critical wound inflicts this weapon’s Damage as mortal wounds on one model after normal damage)');
   text=text.replace(/Anti-Non-Monster\/vehicle 3\+ \([^)]*\)/g,'Anti: non-Monster/Vehicle 3+ (an unmodified Wound roll of 3+ scores a critical wound against a target with neither Monster nor Vehicle)');
-  return snap?text:text.replace('Psychic (these attacks are psychic attacks for rules that affect them)','Psychic (these are psychic attacks; you may ignore any or all modifiers to their Ballistic Skill or Weapon Skill and Hit roll)');
+  return text;
  }).join(' ');
 }
 

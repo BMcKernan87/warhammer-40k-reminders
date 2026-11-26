@@ -160,6 +160,7 @@ import {agentDetachmentReminders} from './imperial-agent-detachments';
 import {assignedAgentHasRanged,assignedAgentReminders} from './knight-assigned-agents';
 import {imperialKnightDatasheetReminders,knightHasRangedWeapon} from './imperial-knight-datasheets';
 import {ghostArkPassengers,necronFormationRoots} from './necron-retinues';
+import {CONVERGENCE_OF_DOMINION,necronBattleFormations} from './necron-battle-units';
 import {verifiedUnitSizes2026} from './datasheets-2026';
 import {expandRoster,type RosterInstance} from './roster-instances';
 import {canoptekHypercryptReminders} from './necron-canoptek-hypercrypt';
@@ -175,15 +176,25 @@ import {REMINDER_WINDOWS} from './generated-reminders';
 /** 11th-edition reminders ONLY. Legacy 10e datasheet/stratagem rules are never included. */
 const CORE_SOURCE='https://wahapedia.ru/wh40k11ed/the-rules/core-rules/';
 const CORE_11TH:readonly GeneratedReminder[]=[
- {id:'11e-core-cp',title:'Gain Core CP',window:'Command',timing:'during',summary:'In the Gain Core CP step, both players gain 1 Command Point.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-battle-shock',title:'Battle-shock rolls',window:'Command',timing:'during',summary:'During the Battle-shock step, roll for each of your units that is already battle-shocked or at or below half-strength. A successful roll clears existing battle-shock.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-command-abilities',title:'Command abilities',window:'Command',timing:'during',summary:'Resolve your eligible Command abilities after the Battle-shock step.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-core-cp',title:'Gain Core CP',window:'Command',timing:'during',turn:'either',summary:'After start-of-Command-phase abilities, both players gain 1 Command Point in the Gain Core CP step.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-battle-shock',title:'Battle-shock rolls',window:'Command',timing:'during',turn:'own',summary:'During your Battle-shock step, test each unit that is already battle-shocked or at or below half-strength. Roll 2D6; meet or exceed a Leadership characteristic in that unit to pass. A pass in this step clears existing battle-shock. While battle-shocked, every model has OC “–”, you cannot target the unit with Stratagems, and it cannot start or complete an action.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-command-abilities',title:'Command abilities',window:'Command',timing:'during',turn:'either',summary:'After the Battle-shock step, resolve eligible Command abilities. Start-of-phase, end-of-phase, Core CP and Battle-shock triggers keep their own timing.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-movement-reserves',title:'Reinforcements and ingress',window:'Movement',timing:'during',summary:'In your Move Units step, select eligible units in Strategic Reserves to make ingress moves in the order you choose alongside your other units.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-shoot',title:'Shoot with eligible units',window:'Shooting',timing:'during',summary:'Select eligible units to shoot, choose weapons and targets, then resolve attacks.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-charge',title:'Declare and resolve charges',window:'Charge',timing:'during',summary:'Declare eligible charges, roll the charge distance and complete legal charge moves.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-fight',title:'Fight phase sequence',window:'Fight',timing:'during',summary:'Resolve start-of-phase effects, pile-in moves, Fights First combats, remaining fights and consolidation.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-shoot',title:'Shoot with eligible units',window:'Shooting',timing:'during',turn:'own',summary:'Choose a unit on the battlefield that has not already been selected to shoot this phase, then an eligible shooting type: normal, assault, close-quarters or indirect. Apply that type’s weapon and target restrictions. After using any of these types, the unit cannot start an action for the rest of the phase. Falling Back normally prevents shooting until turn end.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-charge',title:'Declare and resolve charges',window:'Charge',timing:'during',turn:'own',summary:'Select an eligible unengaged unit that has not declared a charge this phase and is on the battlefield within 12″ of an enemy. Roll 2D6 before choosing charge targets. Each target must be within both 12″ and the modified charge distance. Complete a legal move engaging every target and no other enemy unit, or make no charge move. A completed charge grants every model Fights First until turn end. Advancing, Falling Back or starting an action normally prevents declaring a charge for the rest of that turn.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-fight',title:'Fight phase sequence',window:'Fight',timing:'during',turn:'either',summary:'After start-of-phase effects, the active player resolves all chosen pile-in moves, then the opponent does so. Resolve the Fight step, then the active player’s chosen consolidation moves followed by the opponent’s. Pile-in and consolidation moves are optional. Eligible units must be selected to fight unless the explicit pass rule applies.',source:CORE_SOURCE,origin:'army'},
  {id:'11e-core-overwatch',title:'Fire Overwatch · 1CP',window:'Movement',timing:'end',summary:'End of opponent’s Movement phase: choose one friendly unengaged non-Titanic unit to snap shoot one visible eligible enemy within 24″. Normally hits only on unmodified 6s; these are not critical hits. A specific rule may change the hit threshold, but Hit rolls cannot be re-rolled. No Charge-phase Fire Overwatch.',source:CORE_SOURCE,origin:'army'},
- {id:'11e-move-every-unit',title:'Select every unit to move',window:'Movement',timing:'during',summary:'Select each of your units once in the Move Units step, including units in Strategic Reserves or embarked in Transports. Remaining stationary counts as a selection.',source:CORE_SOURCE,origin:'army'}
+ {id:'11e-move-every-unit',title:'Select every unit to move',window:'Movement',timing:'during',turn:'own',summary:'Select each of your units once in the Move Units step, including units in Strategic Reserves or embarked in Transports. Remaining stationary counts as a selection: do not move or rotate any model, and do not trigger rules for starting or ending a move.',source:CORE_SOURCE,origin:'army'},
+ // Core 16.01: the mission or action supplies its start/completion window.
+ // Do not invent a selectable mission action or assume it always starts in Shooting.
+ {id:'11e-actions-requirements',title:'Actions · eligibility',window:'Pre-battle',timing:'during',turn:'either',summary:'Use only actions allowed by your mission or another rule, at their stated start time, with their stated units and use limit. Normally a unit must be on the battlefield, have OC above 0, not be Aircraft or Fortification, not be battle-shocked, and not have Advanced, Fallen Back or started another action this turn. An engaged unit is ineligible unless it is Titanic. Apply explicit exceptions.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-actions-movement',title:'Actions · movement and interruption',window:'Movement',timing:'during',turn:'either',summary:'Before moving a unit that is performing an action: any move other than a pile-in or consolidation, or leaving the battlefield, prevents that action completing. Advancing or Falling Back normally prevents starting an action until turn end. Becoming battle-shocked also prevents an action completing.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-actions-shooting',title:'Actions · shooting restrictions',window:'Shooting',timing:'during',turn:'either',summary:'Starting an action prevents shooting until turn end, except for Titanic units or an explicit rule. Conversely, normal, assault, close-quarters and indirect shooting prevent starting an action for the rest of the phase. Use the action’s actual start and completion times; completing it early does not remove its turn-long shooting restriction.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-actions-charge',title:'Actions · charge restrictions',window:'Charge',timing:'during',turn:'either',summary:'A unit that started an action this turn cannot declare a charge for the rest of the turn, even if the action completed or failed. Titanic units do not get an exception to this charge restriction; apply only an explicit rule that permits it.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-fight-selection',title:'Fight step · activation order',window:'Fight',timing:'during',turn:'either',summary:'A unit fights once if it is engaged, was engaged when the Fight step began, or charged this turn. Alternate eligible Fights First units, starting with the active player. When neither player has one, the player whose selection is next starts the remaining combats; do not automatically restart with the opponent. If a new eligible Fights First unit appears after a remaining combat, return to Fights First.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-fight-pass',title:'Fight step · no reachable targets',window:'Fight',timing:'during',turn:'either',summary:'When it is your selection, you may pass if all your units that are eligible to fight are more than 5″ from every enemy unit. Otherwise select an eligible unit. Two consecutive passes end the Fight step; so does one pass if the opponent has no remaining eligible units.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-fight-overrun',title:'Fight step · overrun fights',window:'Fight',timing:'during',turn:'either',summary:'When an eligible unit is selected to fight, it can use an overrun fight if it is unengaged, or if it was unengaged when the Fight step began and became engaged during this phase. It may make one additional pile-in move, then make its melee attacks. Being unengaged alone does not make an otherwise ineligible unit eligible to fight.',source:CORE_SOURCE,origin:'army'},
+ {id:'11e-fight-consolidation',title:'Consolidation · mode and enemy response',window:'Fight',timing:'during',turn:'either',summary:'After the Fight step, units that were eligible to fight may consolidate up to 3″. Use ongoing consolidation if engaged; otherwise use engaging consolidation if an enemy is within 3″; otherwise use objective consolidation if an objective is within 3″. Select every engaged enemy in ongoing mode, one or more enemies within 3″ in engaging mode, or one objective within 3″ in objective mode. Each model you move must finish closer to the closest selected enemy and engage it if possible, or reach the selected objective if possible and move closer otherwise. In ongoing mode, models in base contact stay still and already-engaged models must remain engaged with those enemies. Engaging mode must engage all selected targets; objective mode must end in objective range. In engaging mode, each engaged enemy unit not yet selected to fight this phase resolves a fight immediately, one at a time.',source:CORE_SOURCE,origin:'army'}
 ];
 const DETACHMENT_RULES:readonly Rule11th[]=[
 {"id":"11e-necron-starshatter-onslaught",requiresRangedWeapon:true,"anyUnits":[...necronKeywords.INFANTRY,...necronKeywords.VEHICLE,...necronKeywords.MOUNTED,"Canoptek Wraiths","Canoptek Scarab Swarms","Canoptek Macrocytes","Canoptek Tomb Crawlers"],"title":"Starshatter Arsenal · Relentless Onslaught","window":"Shooting","timing":"during","summary":"Necron models excluding Monsters gain +1 to Hit against targets within range of objectives; ranged weapons of non-Titanic Vehicle and Mounted models gain Assault.","origin":"detachment","faction":"Necrons","detachments":["Starshatter Arsenal"],"source":"https://wahapedia.ru/wh40k11ed/factions/necrons/datasheets.html"},
@@ -359,7 +370,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
     return {...s,id,models:actual.length,attachedTo:s.id===part.originalRootId?undefined:g.root.id};
    });
    return {id:g.root.id,body:g.root,members};
-  }):formations;
+  }):_army.faction==='Necrons'?necronBattleFormations(_army,roster):formations;
   const combatKeywords=(unit:string,id?:string)=>id&&splitKeywords.has(id)?splitKeywords.get(id)!:keywords(unit,id);
   const combatHasGun=(s:RosterInstance)=>splitGuns.get(s.id)??hasGun(s);
   result.push(...formationDeploymentReminders(_army,formations,keywords),
@@ -376,7 +387,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  if(_army.faction==='Leagues of Votann')result.push(...votannEnhancementReminders(_army,roster));
  const staticRows=matching11thRules(_army,DETACHMENT_RULES).filter(r=>!marines&&r.id!=='11e-necron-hod-enlivened');
  if(_army.faction==='Necrons'){
-  const formations=necronFormationRoots(_army,roster);
+  const formations=necronBattleFormations(_army,roster);
   result.push(...targetedNecronEnhancements(_army,formations));
   const targets=(rule:Rule11th)=>formations.filter(f=>(!rule.requiresRangedWeapon||f.members.some(hasNecronRangedWeapon))&&(!rule.anyUnits||f.members.some(s=>rule.anyUnits!.includes(s.unit)))&&(!rule.units||f.members.some(s=>rule.units!.includes(s.unit)))).map(f=>f.id);
   const formationScoped=new Set(['11e-necron-enh-nebuloscope','11e-necron-skyshroud-deepening','11e-necron-conclave-atomic','11e-necron-conclave-gauntlet','11e-necron-cursed-ankh-move','11e-necron-cursed-mark-shooting','11e-necron-cursed-mark-fight','11e-necron-cursed-circlet']);
@@ -385,6 +396,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
    const instructions=['At the end of your Command phase, each surviving unit on the battlefield heals D3 wounds. Roll once for each unit, including each attached formation as a single unit. Embarked units and units in reserves skip this activation.'];
    if(canRevive)instructions.push('Resolve one wound at a time. Heal a wounded model first. Once all surviving models have full wounds, return a destroyed non-Character model with one wound. Set it in coherency with models that began the phase on the battlefield, engaging only enemies already engaged with its unit.');
    if(formations.some(f=>f.members.some(s=>s.attachedTo===f.id)))instructions.push('A surviving attached Leader or Support can restore its lost Bodyguards. A destroyed Character cannot return through this healing.');
+   if(formations.some(f=>f.body.unit===CONVERGENCE_OF_DOMINION))instructions.push('After deployment, each Starstele is a separate one-model unit. Roll its D3 separately and heal only that surviving Starstele up to its 7 wounds; discard excess healing. Reanimation cannot return another destroyed Starstele.');
    result.push({id:'11e-necron-reanimation',title:'Reanimation Protocols · D3 wounds',window:'Command',timing:'end',summary:instructions.join(' '),source:'https://assets.warhammer-community.com/eng_30-09_wh40k_faction_pack_necrons-1urphgbmpy-wbhocjbaba.pdf#page=29',origin:'army',units:formations.map(f=>f.id)});
   }
   for(const r of staticRows){
@@ -409,7 +421,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  }else result.push(...staticRows);
  if(_army.faction==='Necrons'){
   if(_army.detachments2026?.includes('Cryptek Conclave')){
-   const roots=necronFormationRoots(_army,roster);
+   const roots=necronBattleFormations(_army,roster);
    const cryptekRoots=roots.filter(f=>f.members.some(m=>necronKeywords.CRYPTEK.has(m.unit)));
    const conditional=roots.filter(f=>!cryptekRoots.includes(f)&&f.members.some(m=>!necronKeywords.VEHICLE.has(m.unit)&&!necronKeywords.MONSTER.has(m.unit))).map(f=>f.id);
    const mixed=cryptekRoots.filter(f=>f.members.some(m=>!necronKeywords.CRYPTEK.has(m.unit)&&!necronKeywords.MONSTER.has(m.unit)&&!necronKeywords.VEHICLE.has(m.unit)&&hasNecronRangedWeapon(m))).map(f=>f.id);
@@ -428,14 +440,14 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  }
  result.push(...canoptekHypercryptReminders(_army,roster),...remainingNecronReminders(_army,roster));
  if(_army.faction==='Necrons'&&_army.detachments2026?.includes('Cryptek Conclave')){
-  for(const body of necronFormationRoots(_army,roster).filter(f=>['Necron Warriors','Immortals'].includes(f.body.unit)&&f.members.some(l=>l.id!==f.id&&necronKeywords.CRYPTEK.has(l.unit)&&necronKeywords.INFANTRY.has(l.unit))).map(f=>f.body)){
+  for(const body of necronBattleFormations(_army,roster).filter(f=>['Necron Warriors','Immortals'].includes(f.body.unit)&&f.members.some(l=>l.id!==f.id&&necronKeywords.CRYPTEK.has(l.unit)&&necronKeywords.INFANTRY.has(l.unit))).map(f=>f.body)){
    for(const window of ['Shooting','Fight'] as const)result.push({id:'11e-necron-conclave-microscarab-'+body.id+'-'+window,title:body.id+' · Microscarab Swarm · 1CP',window,timing:'during',summary:(window==='Shooting'?'Opponent’s turn. ':'')+'Immediately after enemy targets are selected, this formation gains a '+(body.unit==='Immortals'?'4+':'5+')+' invulnerable save for the phase.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'detachment',units:[body.id]});
   }
  }
 
  if(_army.faction==='Necrons'&&_army.detachments2026?.includes('Cursed Legion')){
   const source='https://wahapedia.ru/wh40k11ed/factions/necrons/';
-  const formations=necronFormationRoots(_army,roster);
+  const formations=necronBattleFormations(_army,roster);
   const nonHeavy=formations.filter(f=>!f.members.some(s=>necronKeywords.MONSTER.has(s.unit)||necronKeywords.VEHICLE.has(s.unit))).map(f=>f.id);
   const armed=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
   const destroyerModel=(s:RosterInstance)=>necronKeywords['DESTROYER CULT'].has(s.unit)||['Murdermind','Destroyer Ankh'].includes(upgradeName2026(_army,s)??'')&&eligibleUpgrades2026(_army,s.unit).some(option=>option.name===upgradeName2026(_army,s));
@@ -463,7 +475,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  if(_army.faction==='Necrons'&&_army.detachments2026?.includes('Pantheon of Woe')){
   const source='https://wahapedia.ru/wh40k11ed/factions/necrons/';
   const monsters=roster.filter(s=>necronKeywords.MONSTER.has(s.unit));
-  const formations=necronFormationRoots(_army,roster);
+  const formations=necronBattleFormations(_army,roster);
   const others=formations.filter(f=>!f.members.some(s=>necronKeywords.MONSTER.has(s.unit)));
   const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units?:string[])=>result.push({id:'11e-necron-pantheon-'+id,title,window,timing,summary,source,origin:'detachment',units:units??(id.startsWith('mass-')||id.startsWith('entropy-')?others.map(f=>f.id):formations.map(f=>f.id))});
   if(monsters.length){

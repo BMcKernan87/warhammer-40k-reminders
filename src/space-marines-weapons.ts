@@ -45,7 +45,7 @@ function abilityText(value:string,snap:boolean):string{
  const anti=value.match(/^anti-non-monster\/vehicle (\d+)\+$/i);
  if(anti)return 'Anti: non-Monster/Vehicle '+anti[1]+'+ (against targets with neither keyword, an unmodified Wound roll of '+anti[1]+'+ is critical)';
  const text=weaponAbilityText(title,snap);
- return !snap&&value==='psychic'?'Psychic (these are psychic attacks; you may ignore any or all modifiers to their Ballistic Skill or Weapon Skill and Hit roll)':text??'';
+ return text??'';
 }
 
 function formattedWeapons(profiles:(SpaceMarineWeapon&{count:number})[],phase:'Shooting'|'Fight',snap:boolean):string{
