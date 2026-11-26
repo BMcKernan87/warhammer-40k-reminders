@@ -200,7 +200,7 @@ describe('current Tyranid detachment source and execution',()=>{
  it('uses a single once-per-turn Perfectly Adapted choice and no snap Hit rerolls',()=>{
   const a=equip(force([invasion],neuro),neuro,'Perfectly Adapted');
   expect(by(a,'000008348003')[0].summary).toContain('one shared choice');
-  expect(by(a,'000008348003').find(r=>r.window==='Movement'&&r.turn==='opponent')?.summary).toContain('snap shooting cannot re-roll Hit rolls');
+  expect(by(a,'000008348003').find(r=>r.window==='Movement'&&r.turn==='opponent'&&r.timing==='end')?.summary).toContain('snap shooting cannot re-roll Hit rolls');
  });
  it('keeps Adaptive Biology permanent after triggering and applies it only to its bearer',()=>{
   const a=equip(join(force([invasion],hive,guard),hive,guard),hive,'Adaptive Biology');

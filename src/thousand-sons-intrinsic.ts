@@ -33,11 +33,26 @@ function iconWeapons(army:ArmySelection,members:readonly RosterInstance[]){
 
 export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Thousand Sons')return [];
- const allowed=new Set(thousandSonsMusterUnits(army)),native=roster.filter(s=>allowed.has(s.unit)&&sheets.has(s.unit));
- if(!native.length)return [];
+ const allowed=new Set(thousandSonsMusterUnits(army)),native=roster.filter(s=>allowed.has(s.unit)&&sheets.has(s.unit)&&(s.models??1)>0);
  const groups=thousandSonsFormations(army,roster).filter(g=>g.members.every(m=>allowed.has(m.unit)));
  const groupOf=(s:RosterInstance)=>groups.find(g=>g.members.some(m=>m.id===s.id));
  const declared=expandRoster(army),declaredGroups=thousandSonsFormations(army,declared).filter(g=>g.members.every(m=>allowed.has(m.unit)));
+ const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo&&Boolean(start.keepUnattached)===Boolean(current.keepUnattached);
+ // These enemy-targeted effects remember the original source, not a later unit
+ // reusing its ID. Validate original joins before looking at current casualties.
+ function unchangedSource(source:RosterInstance){
+  const original=declaredGroups.find(g=>g.members.some(m=>sameMember(m,source)));
+  if(!original||original.root.attachedTo||original.root.retinueTo)return false;
+  if(original.members.some(m=>m.retinueTo||(m.attachedTo&&m.keepUnattached)||declared.filter(d=>d.id===m.id).length!==1))return false;
+  const ids=new Set(original.members.map(m=>m.id));
+  if(declared.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return false;
+  for(const member of original.members){
+   const current=roster.filter(m=>m.id===member.id);
+   if(current.length>1||(current[0]&&!sameMember(member,current[0])))return false;
+  }
+  return !roster.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??'')));
+ }
+ const survivingIds=roster.filter(s=>allowed.has(s.unit)&&(s.models??1)>0&&declared.filter(d=>sameMember(d,s)).length===1&&roster.filter(m=>m.id===s.id).length===1).map(s=>s.id);
  function leadingDefence(s:RosterInstance){
   const original=declaredGroups.find(g=>g.root.id!==s.id&&g.members.some(m=>m.id===s.id));
   if(!original||original.members.some(m=>m.retinueTo||m.keepUnattached||declared.filter(d=>d.id===m.id).length!==1))return;
@@ -115,8 +130,9 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
    case 'Chaos Spawn':
     add('Regenerating Monstrosities',[['Command','either','start']],'At the start of each player’s Command phase, one surviving model in this unit regains up to 3 lost wounds.');break;
    case 'Heldrake':
+    if(!unchangedSource(squad))break;
     add('Flame-wreathed',[move],'After this Heldrake ends a Normal move, you may choose one enemy unit it moved over. Models in it cannot receive the Benefit of Cover for the rest of the turn.');
-    add('Flame-wreathed',[shoot],'Models in the enemy unit chosen when this Heldrake flew over it cannot receive the Benefit of Cover this turn.');break;
+    break;
    case 'Chaos Land Raider':{
     const cargo=thousandSonsCargoFormations(army,squad,roster).map(g=>g.root.id);
     if(cargo.length){
@@ -136,8 +152,7 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
    case 'Chaos Vindicator':
     add('Siege Shield',[shoot],'Its demolisher cannon can target an enemy engaged with this Vindicator if no other friendly unit is engaged with that enemy. The Vindicator’s ranged attacks ignore its Hit penalty for being engaged.');break;
    case 'Forgefiend':
-    add('Blazing Salvoes',[shoot],'After this Forgefiend shoots in your Shooting phase, choose one enemy unit it hit. That enemy subtracts 1 from all attack Hit rolls until your next turn starts.');
-    add('Blazing Salvoes',[incoming,fight],'While the marked enemy is suppressed, subtract 1 from its attack Hit rolls. The effect expires at the start of your next turn.');break;
+    if(unchangedSource(squad)&&hasGun)add('Blazing Salvoes',[shoot],'After this Forgefiend shoots in your Shooting phase, choose one enemy unit it hit. That enemy subtracts 1 from all attack Hit rolls until your next turn starts. Fixed snap-shot Hit rolls cannot be modified.');break;
    case 'Maulerfiend':
     add('Snarling Protector · Heroic Intervention',[['Charge','opponent','end']],'Heroic Intervention costs this Maulerfiend 1CP less. Other units can use it in the same phase before or after this use.');
     if(allPsykers.length)add('Snarling Protector · charge',[charge],'When declaring a charge, if an engaged friendly Psyker unit is within 12″, you may re-roll the charge roll. If you use this option, the Maulerfiend must finish engaged with an enemy engaged with that Psyker unit.',allPsykers);break;
@@ -186,8 +201,7 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
     add('Glimpse of Eternity',[incomingArrival],'When an enemy makes a permitted arrival or reaction attack during its Movement phase, once per turn change one saving throw made for this Infernal Master to an unmodified 6. This shares its use with changing this model’s Hit or Wound roll, including when it fires Overwatch later this phase.');break;
    case 'Exalted Sorcerer on Disc of Tzeentch':
     ledDefence('Illusions of Tzeentch',rangedDefend,'While this Sorcerer leads the formation, an attacking model can target the formation with a ranged attack only from within 18″.');
-    add('Binding Tendrils',[shoot],'After this Sorcerer shoots, choose one enemy Infantry unit hit by its Arcane Fire. Its Move is reduced by 2″ and its Charge rolls by 2 until your next turn starts.');
-    add('Binding Tendrils',[['Movement','opponent','during'],['Charge','opponent','during']],'The enemy Infantry unit hit and ensnared by Arcane Fire has −2″ Move and −2 to Charge rolls until your next turn starts.');break;
+    if(unchangedSource(squad)&&fitted('Arcane Fire'))add('Binding Tendrils',[shoot],'After this Sorcerer shoots in your Shooting phase, choose one enemy Infantry unit hit by its own Arcane Fire. Its Move is reduced by 2″ and its Charge rolls by 2 until your next turn starts.');break;
    case 'Daemon Prince of Tzeentch with Wings':{
     const healing=' If this Prince destroys a Character unit, it regains up to D3 lost wounds, or up to 3 if that unit was also a Psyker.';
     add('Hunter of Souls',[shoot,fight],'Against a Character unit, re-roll Hit and Wound rolls of 1. Against a Psyker Character unit, you may instead re-roll Hit and Wound rolls.'+healing);
@@ -214,6 +228,29 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
      if(fitted('Instrument of Chaos'))add('Instrument of Chaos',[charge],'While the Instrument bearer survives, add 1 to this unit’s Charge rolls.');
     }break;
   }
+ }
+ // The reproduced Appendix 01.02.02 and each card's stated duration preserve
+ // these selected enemy effects; the cards impose no source-survival condition.
+ // Keep old follow-up IDs and source-only roster labels (both form saved sheet
+ // keys), while separating new rows from activation checkmarks.
+ for(const source of declared.filter(s=>allowed.has(s.unit)&&sheets.has(s.unit)&&(s.models??1)>0&&unchangedSource(s))){
+  const add=(title:string,steps:readonly Step[],summary:string,legacy:(step:Step)=>boolean=()=>false)=>{
+   if(!survivingIds.length)return;
+   for(const step of steps){
+    const [window,turn,timing]=step;
+    results.push({id:[legacy(step)?'11e-ts-card':'11e-ts-lasting',source.id,title,window,turn,timing].join(':'),title:title+' · '+(title==='Blazing Salvoes'?'suppressed enemy':title==='Binding Tendrils'?'ensnared enemy':'exposed enemy'),window,turn,timing,summary,origin:'unit',units:[source.id],source:sheets.get(source.unit)!.source});
+   }
+  };
+  if(source.unit==='Forgefiend'&&thousandSonsHasRangedWeapon(source))add('Blazing Salvoes',[shoot,incomingArrival,incoming,fight],
+   'Only if this Forgefiend already suppressed an enemy after hitting it in your Shooting phase, subtract 1 from that enemy’s attack Hit rolls, including permitted normal arrival or return-fire attacks against any friendly unit. The effect expires at the start of your next turn, even if the Forgefiend is destroyed. Fixed snap-shot Hit rolls cannot be modified.',
+   ([window,turn])=>window==='Fight'||window==='Shooting'&&turn==='opponent');
+  if(source.unit==='Exalted Sorcerer on Disc of Tzeentch'&&thousandSonsWeaponCount(source,'Arcane Fire')>0)add('Binding Tendrils',
+   [shoot,['Charge','own','during'],fight,incomingArrival,incoming,['Charge','opponent','during']],
+   'Only the enemy Infantry unit already hit by this Sorcerer’s own Arcane Fire and selected in your Shooting phase is ensnared: subtract 2″ from its Move characteristic and 2 from its Charge rolls until the start of your next turn, even if the Sorcerer is destroyed. Apply the Move penalty when a move uses that characteristic; it does not shorten fixed-distance moves, Pile In or Consolidation moves.',
+   ([window,turn])=>turn==='opponent'&&(window==='Movement'||window==='Charge'));
+  if(source.unit==='Heldrake')add('Flame-wreathed',[move,shoot],
+   'Only the enemy already chosen after this Heldrake flew over it during a Normal move loses the Benefit of Cover for the rest of that turn, even if the Heldrake is destroyed. Apply this to permitted ranged attacks later in the same Movement phase as well as Shooting; the effect ends before the next turn.',
+   ([window])=>window==='Shooting');
  }
  return results;
 }

@@ -111,9 +111,11 @@ describe('Thousand Sons intrinsic defenses during incoming reactions',()=>{
 
  it('leaves the Forgefiend’s phase-locked activation and next-turn expiry intact',()=>{
   const rows=named(army('Forgefiend'),'Blazing Salvoes');
-  expect(stages(rows)).toEqual(['Shooting:own:during','Shooting:opponent:during','Fight:either:during'].sort());
+  expect(stages(rows)).toEqual(['Shooting:own:during']);
   expect(rows.find(r=>r.turn==='own')?.summary).toMatch(/After this Forgefiend shoots in your Shooting phase.*until your next turn starts/);
-  expect(rows.filter(r=>r.turn!=='own').every(r=>r.summary.includes('expires at the start of your next turn'))).toBe(true);
+  const followups=named(army('Forgefiend'),'Blazing Salvoes · suppressed enemy');
+  expect(stages(followups)).toEqual(['Shooting:own:during','Shooting:opponent:during','Movement:opponent:during','Fight:either:during'].sort());
+  expect(followups.every(r=>r.summary.includes('expires at the start of your next turn'))).toBe(true);
  });
 });
 

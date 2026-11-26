@@ -82,5 +82,7 @@ jobs:
             test-results/persistent-rule-followups-*/phase-reminders.png
             test-results/defensive-movement-saves-*/reminders.pdf
             test-results/defensive-movement-saves-*/phase-reminders.png
+            test-results/bespoke-reaction-followups-*/reminders.pdf
+            test-results/bespoke-reaction-followups-*/phase-reminders.png
           if-no-files-found: ignore
           retention-days: 7

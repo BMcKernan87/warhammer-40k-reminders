@@ -10,20 +10,39 @@ import {tyranidFormations} from './tyranid-transports';
 import {TYRANID_PACK,tyranidSynapseSources} from './tyranid-synapse';
 import {expandRoster,type RosterInstance} from './roster-instances';
 
-type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing']];
+type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing'],GeneratedReminder['timing']?];
 const shoot:Step=['Shooting','own','during'],fight:Step=['Fight','either','during'],move:Step=['Movement','own','during'];
-const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'],incomingSnap:Step=['Movement','own','end'],returnFire:Step=['Shooting','own','during'];
+const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'],incomingSnap:Step=['Movement','own','during','end'],incomingArrival:Step=['Movement','opponent','during'],returnFire:Step=['Shooting','own','during'];
 const eachPhase=PHASES.map((p):Step=>[p,'either','during']),endPhase=PHASES.map((p):Step=>[p,'either','end']);
-const defence=[incoming,incomingSnap,returnFire,fight] as const;
+// Keep the old own-Movement/end completion identity while showing defenses
+// throughout the phase, including normal arrival/reaction attacks before Overwatch.
+const rangedDefence=[incoming,incomingSnap,returnFire,incomingArrival] as const;
+const defence=[...rangedDefence,fight] as const;
 const cards=new Map(TYRANID_SHEETS.map(s=>[s.unit,s]));
 const unitPassives=new Set(['Vanguard Predator','Guardian Organism','Warp Field','Foul Spores','Adaptive Instincts','Adaptable Predators','Alpha Invader','Alpha Warrior']);
 const key=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const auditedDefences=new Set(['Foul Spores','Warp Field','Resilient Organism','Encephalic Diffusion','Psychological Saboteur · Enemy attacks']);
 
 export function tyranidIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Tyranids')return [];
  const current={...army,instances:[...roster]},legal=new Set(tyranidMusterUnits(army)),native=roster.filter(s=>cards.has(s.unit)&&legal.has(s.unit));
  if(!native.length)return [];
- const groups=tyranidFormations(army,roster).filter(g=>g.members.every(s=>legal.has(s.unit))),originalGroups=tyranidFormations(army,expandRoster(army));
+ const groups=tyranidFormations(army,roster).filter(g=>g.members.every(s=>legal.has(s.unit))),declared=expandRoster(army),originalGroups=tyranidFormations(army,declared);
+ const living=(s:RosterInstance)=>{const count=s.models??cards.get(s.unit)?.sizes[0]??0;return Number.isInteger(count)&&count>0;};
+ const sameIdentity=(a:RosterInstance,b:RosterInstance)=>a.id===b.id&&a.unit===b.unit&&a.attachedTo===b.attachedTo&&a.retinueTo===b.retinueTo&&Boolean(a.keepUnattached)===Boolean(b.keepUnattached);
+ function validDefensiveSource(s:RosterInstance){
+  if(!living(s)||roster.filter(m=>m.id===s.id).length!==1)return false;
+  const original=originalGroups.find(g=>!g.root.attachedTo&&!g.root.retinueTo&&g.members.some(m=>sameIdentity(s,m)));
+  if(!original)return false;
+  const ids=new Set(original.members.map(m=>m.id));
+  for(const member of original.members){
+   if(!living(member)||member.retinueTo||declared.filter(m=>m.id===member.id).length!==1)return false;
+   const active=roster.filter(m=>m.id===member.id);
+   if(active.length>1||active.length===1&&!sameIdentity(active[0],member))return false;
+  }
+  const extra=(m:RosterInstance)=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''));
+  return !declared.some(extra)&&!roster.some(extra);
+ }
  const groupOf=(s:RosterInstance)=>groups.find(g=>g.members.some(m=>m.id===s.id));
  const all=groups.flatMap(g=>g.members.map(s=>s.id));
  const rangedGroups=groups.filter(g=>g.members.some(tyranidHasRangedWeapon));
@@ -39,8 +58,8 @@ export function tyranidIntrinsicReminders(army:ArmySelection,roster:readonly Ros
   const ranged=group.members.some(tyranidHasRangedWeapon),hitRanged=group.members.some(hits),titanic=group.members.some(s=>tyranidKeywords(current,s).has('TITANIC'));
   function add(title:string,steps:readonly Step[],summary:string,recipients=[id],source=cards.get(unit)!.source){
    const expiry=bodyguardSource&&unitPassives.has(title)?' The original '+unit+' source must survive; if its last model dies to an attack, this benefit lasts until the attacking unit finishes its attacks.':'';
-   if(!recipients.length)return;
-   for(const [window,turn,timing] of steps)result.push({id:['11e-tyranid-native',id,title,window,turn,timing].join(':'),title,window,turn,timing,summary:summary+expiry,units:[...new Set([id,...recipients])],source,origin:'unit'});
+   if(!recipients.length||auditedDefences.has(title)&&!validDefensiveSource(squad))return;
+   for(const [window,turn,timing,identityTiming=timing] of steps)result.push({id:['11e-tyranid-native',id,title,window,turn,identityTiming].join(':'),title,window,turn,timing,summary:summary+expiry,units:[...new Set([id,...recipients])],source,origin:'unit'});
   }
   const source=' The originally attached source must survive; its own leading benefit continues after its Bodyguard is destroyed. If the source dies to an attack, retain the benefit until that attacking unit finishes.';
   const led=(title:string,steps:readonly Step[],summary:string)=>{if(leading)add(title,steps,summary+source,formation);};
@@ -98,20 +117,20 @@ export function tyranidIntrinsicReminders(army:ArmySelection,roster:readonly Ros
     }
     if(unit==='Neurolictor'){
      add('Neural Disruption',[['Command','own','during']],'Choose one enemy unit within 12″ of this Neurolictor; that enemy takes a Battle-shock test.');
-     add('Psychological Saboteur · Enemy attacks',[incoming,returnFire,fight],'A Battle-shocked enemy unit within 12″ of this Neurolictor subtracts 1 from its attack Hit rolls. This modifier does not alter fixed snap-shot Hit rolls.');
+     add('Psychological Saboteur · Enemy attacks',[incoming,['Movement','own','during'],returnFire,incomingArrival,fight],'A Battle-shocked enemy unit within 12″ of this Neurolictor subtracts 1 from its attack Hit rolls. This modifier does not alter fixed snap-shot Hit rolls.');
      add('Psychological Saboteur',[fight],'Friendly Tyranids models add 1 to Wound rolls when attacking a Battle-shocked enemy within 12″ of this Neurolictor.',all);
      add('Psychological Saboteur',[shoot],'Friendly Tyranids models add 1 to ranged Wound rolls against a Battle-shocked enemy within 12″ of this Neurolictor.',guns);
      add('Psychological Saboteur',[snap],'Friendly Tyranids snap shots add 1 to Wound rolls against a Battle-shocked enemy within 12″ of this Neurolictor. Snap shooting does not prevent Wound modifiers.',snapGuns);
     }break;
    case 'Maleceptor':
-    add('Encephalic Diffusion',[incoming,returnFire,fight],'Enemy units within 6″ of this Maleceptor subtract 1 from attack Hit rolls. If that enemy is Below Half-strength, also subtract 1 from its Wound rolls. Measure from this source model.');
-    add('Encephalic Diffusion',[incomingSnap],'Enemy snap shots from a unit within 6″ of this Maleceptor subtract 1 from Wound rolls if that enemy is Below Half-strength. The Hit modifier does not change fixed snap-shot Hit rolls.');break;
+    add('Encephalic Diffusion',[incoming,returnFire,incomingArrival,fight],'Enemy units within 6″ of this Maleceptor subtract 1 from attack Hit rolls. If that enemy is Below Half-strength, also subtract 1 from its Wound rolls. Measure from this source model.');
+    add('Encephalic Diffusion',[incomingSnap],'Enemy units within 6″ of this Maleceptor subtract 1 from attack Hit rolls during permitted normal arrival or reaction shooting. If the enemy unit is Below Half-strength, also subtract 1 from its Wound rolls. Snap shots retain the conditional Wound modifier, but their fixed Hit rolls are unchanged. Measure from this source model.');break;
    case 'Zoanthropes':
     if(tyranidModelLoadouts(squad).some(m=>key(m.model)==='neurothrope'))add('Spirit Leech',eachPhase,'While this formation’s original Neurothrope model survives, whenever an enemy within 6″ of this formation fails a Battle-shock test, that enemy suffers D3 mortal wounds and one model in this formation regains up to D3 lost wounds. The healing can affect an attached model, but the Neurothrope is the specific source.',formation);
     add('Warp Field',defence,'Models in friendly Tyranids formations within 6″ of this Zoanthrope formation have a 6+ invulnerable save. Apply it only when an attack is allocated to an eligible model; this does not replace a better available save.',all);break;
    case 'Venomthropes':
-    // Publisher v1.3 p18 expressly grants Stealth without the old MONSTER exception.
-    add('Foul Spores',[incoming,incomingSnap,returnFire],'Friendly Tyranids formations within 6″ of this Venomthrope formation have Stealth, granting the Benefit of Cover against ranged attacks. Monster formations and formations containing a Hive Tyrant are eligible.',all,TYRANID_PACK);break;
+    // Publisher v1.3 PDF p20 expressly grants Stealth without the old MONSTER exception.
+    add('Foul Spores',rangedDefence,'Friendly Tyranids formations within 6″ of this Venomthrope formation have Stealth, granting the Benefit of Cover against ranged attacks. Monster formations and formations containing a Hive Tyrant are eligible.',all,TYRANID_PACK);break;
    case 'Pyrovores':
     add('Burning Spray',[shoot],'After this formation shoots in your Shooting phase, choose one enemy it hit. That enemy cannot receive the Benefit of Cover for the rest of this Shooting phase. This is not triggered by Overwatch.',guns);break;
    case 'Haruspex':
