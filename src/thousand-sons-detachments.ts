@@ -14,6 +14,7 @@ type Timing=GeneratedReminder['timing'];
 const source='https://wahapedia.ru/wh40k11ed/factions/thousand-sons/';
 const phases=['Command','Movement','Shooting','Charge','Fight'] as const;
 const attacks=['Shooting','Fight'] as const;
+const rangedDefences=[['Shooting','opponent','during'],['Movement','own','during'],['Shooting','own','during']] as const;
 const inferno=['Inferno bolt pistol','Inferno boltgun','Inferno combi-bolter','Inferno combi-weapon'];
 const effects:Record<typeof TS_STRATAGEMS[number]['id'],string>={
  '000010198002':'After enemy target selection, subtract 1 from Hit rolls against the chosen Thousand Sons or Scintillating Legions formation until phase end.',
@@ -91,8 +92,8 @@ export function thousandSonsDetachmentReminders(army:ArmySelection,roster:readon
   if(units.length)rows.push({id:'11e-ts-'+key+'-'+window+'-'+turn,title,window,turn,timing,summary,units:[...new Set(units.map(s=>s.id))],origin:'detachment',source,sourceRuleId});
  };
  const card=(key:string,title:string,window:ReminderWindow,turn:Turn,timing:Timing,summary:string,fs:Form[])=>emit(key,title,window,turn,timing,summary,roots(fs));
- if(has('Changehost of Deceit')&&legions.length&&psykers.length)
-  card('illusions','Infernal Pacts · Daemonic Illusions','Shooting','opponent','during','While within 6″ of and visible to a friendly Scintillating Legions unit, the Psyker formation’s models have a 4+ invulnerable save against ranged attacks. Aura sources: '+names(legions)+'.',psykers);
+ if(has('Changehost of Deceit')&&legions.length&&psykers.length)for(const [p,turn,timing] of rangedDefences)
+  card('illusions','Infernal Pacts · Daemonic Illusions',p,turn,timing,(p==='Shooting'&&turn==='own'?'During permitted enemy return fire: ':'')+'While within 6″ of and visible to a friendly Scintillating Legions unit, the Psyker formation’s models have a 4+ invulnerable save against ranged attacks. Aura sources: '+names(legions)+'.',psykers);
  if(has('Hexwarp Thrallband')){
   for(const p of phases)card('flow','Flow of Magic · determine areas',p,'either','start','Your deployment zone is always in the Flow. No Man’s Land and the enemy deployment zone enter the Flow for this phase separately if you control at least half the objectives in the respective area.',sons);
   for(const p of attacks){
@@ -114,7 +115,7 @@ export function thousandSonsDetachmentReminders(army:ArmySelection,roster:readon
    if(p==='Shooting')card('sacrifice-melee-only','Warpmeld Sacrifice · defend',p,'opponent','during','After an enemy selects this unit as a shooting target, it may sacrifice for −1 to incoming Wound rolls this phase. The unit suffers D3 mortal wounds at phase end.',mortalGoats.filter(f=>!f.ranged));
   }
  }
- if(has('Rubricae Phalanx'))for(const p of attacks)emit('dust','All is Dust',p,p==='Fight'?'either':'opponent','during','When an attack with unmodified Damage 1 is allocated to a Rubricae model, add 1 to its armour saving throw.',rubricae.flatMap(f=>f.members.filter(s=>tag(s,'RUBRICAE'))));
+ if(has('Rubricae Phalanx'))for(const [p,turn,timing] of [...rangedDefences,['Fight','either','during']] as const)emit('dust','All is Dust',p,turn,timing,(p==='Shooting'&&turn==='own'?'During permitted enemy return fire: ':'')+'When an attack with unmodified Damage 1 is allocated to a Rubricae model, add 1 to its armour saving throw.',rubricae.flatMap(f=>f.members.filter(s=>tag(s,'RUBRICAE'))));
  if(has('Warpforged Cabal')){
   for(const p of attacks)card('warpfire','Warpfire Infusion',p,p==='Fight'?'either':'own','during','When the Vehicle unit is selected to attack, re-roll one Hit, one Wound or one Damage roll.'+(psykers.length?' If within 6″ of a friendly Thousand Sons Psyker model, re-roll one of each instead. Possible Psyker formations: '+names(psykers)+'.':''),vehicles.filter(f=>p==='Fight'||f.ranged));
   if(psykers.length)for(const p of phases)emit('warpfire-demise','Warpfire Infusion · Deadly Demise',p,'either','during','If a Vehicle model with Deadly Demise is destroyed within 6″ of a friendly Thousand Sons Psyker model, its Deadly Demise triggers on 5+.',vehicles.flatMap(f=>f.members.filter(s=>Boolean(TS_CARDS[s.unit]?.demise))));
@@ -178,8 +179,8 @@ export function thousandSonsDetachmentReminders(army:ArmySelection,roster:readon
   const pick=selected(bearer),up=pick&&eligibleThousandSonsUpgrades(army,bearer.unit,bearer.id).find(u=>u.name===pick);
   if(!up)continue;
   const f=group(bearer),unit=[f.root];
-  const cue=(p:ReminderWindow,turn:Turn,when:Timing,body:string,units:readonly RosterInstance[]=[bearer])=>
-   emit(up.id+'-'+bearer.id,bearer.id+' · '+up.name,p,turn,when,body,units,up.id);
+  const cue=(p:ReminderWindow,turn:Turn,when:Timing,body:string,units:readonly RosterInstance[]=[bearer],effect='')=>
+   emit(up.id+'-'+bearer.id+(effect?'-'+effect:''),bearer.id+' · '+up.name,p,turn,when,body,units,up.id);
   switch(up.id){
    case '000010209002':case '000010193002':case '000010201002':case '000010197003':case '000010193003':case '000010209005':
     // These only modify the caster's actual Ritual sequence, printed by thousandSonsRitualReminders.
@@ -188,7 +189,9 @@ export function thousandSonsDetachmentReminders(army:ArmySelection,roster:readon
    case '000010968002':
     if(robots.length){
      cue('Movement','own','during','At the start or end of this Sorcerer’s move, choose friendly Sekhetar Robots within 3″. That unit heals D3+1 wounds.',roots(robots));
-     cue('Shooting','opponent','during','The bearer gains Lone Operative while within 3″ of a friendly Sekhetar Robots unit. Possible bodyguards: '+names(robots)+'.');
+     // Preserve the healing row's existing Movement ID; passive protection is
+     // a separate effect and must have its own completion state.
+     for(const [p,turn,timing] of rangedDefences)cue(p,turn,timing,'While unattached and within 3″ of a friendly Sekhetar Robots unit, the bearer has Lone Operative: enemy models outside 12″ cannot see it or target it with Indirect Fire. Possible nearby Robots: '+names(robots)+'.',[bearer],p==='Movement'?'lone-operative':'');
     }break;
    case '000010964002':for(const p of phases)cue(p,'either','end','Once per battle per army, when this bearer has been destroyed, roll a D6 at phase end. On 2+ return the model unengaged as close as possible to its former position with 3 wounds. Its unit is unattached and has Starting Strength 1.');break;
    case '000010205002':{
@@ -205,8 +208,12 @@ export function thousandSonsDetachmentReminders(army:ArmySelection,roster:readon
      cue(p,p==='Fight'?'either':'own','during','When this formation is wholly within the Flow of Magic, re-roll failed Hazardous tests for its equipped Psychic weapons.',unit);
     if(bearer.unit==='Daemon Prince of Tzeentch')cue('Shooting','opponent','during','While this formation is wholly within the Flow, the bearer may extend the range of Glamour of Tzeentch from 6″ to 12″.',roots(sons.filter(g=>kw(g,'INFANTRY'))));
     break;
-   case '000010209003':if(vehicles.length)cue('Shooting','opponent','during','The bearer gains Lone Operative while within 3″ of a friendly Thousand Sons Vehicle. Possible Vehicles: '+names(vehicles)+'.');break;
-   case '000010201003':if(f.root!==bearer)for(const p of attacks)cue(p,p==='Fight'?'either':'opponent','during','While this Shaman leads its formation, subtract 1 from incoming Hit rolls against that formation.',unit);break;
+   case '000010209003':if(vehicles.length)for(const [p,turn,timing] of rangedDefences)cue(p,turn,timing,'While unattached and within 3″ of a friendly Thousand Sons Vehicle unit, the bearer has Lone Operative: enemy models outside 12″ cannot see it or target it with Indirect Fire. Possible Vehicles: '+names(vehicles)+'.');break;
+   case '000010201003':
+    if(f.root!==bearer){
+     for(const [p,turn] of [['Shooting','opponent'],['Fight','either'],['Shooting','own']] as const)cue(p,turn,'during',(p==='Shooting'&&turn==='own'?'During permitted enemy return fire: ':'')+'While this Shaman leads its formation, subtract 1 from incoming Hit rolls against that formation.',unit);
+     cue('Movement','own','during','When permitted enemy reactions use normal shooting, while this Shaman leads its formation, subtract 1 from incoming Hit rolls against that formation. Snap shooting ignores this Hit modifier.',unit);
+    }break;
    case '000010972003':cue('Fight','either','during','The upgraded Spawn unit improves its melee AP by 1 and its melee attacks gain Cleave 1.',unit);break;
    case '000010964003':if(psykers.includes(f)&&!kw(f,'MONSTER')&&f.members.some(s=>casters.some(c=>c.id===s.id)))cue('Shooting','own','start','Once per turn when this formation successfully manifests a Ritual, Sorcerous Invigoration heals D3 wounds. If the bearer heals as a result, it can add 3 to the number of wounds healed.',unit);break;
    case '000010968003':cue('Movement','own','during','At the start or end of the Sorcerer’s move, choose friendly Sekhetar Robots within 6″ of its formation. Their ranged attacks gain +1 Ballistic Skill until your next turn starts.',roots(robots.filter(g=>g.ranged)));break;

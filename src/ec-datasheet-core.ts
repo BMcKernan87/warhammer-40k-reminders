@@ -37,7 +37,7 @@ export function ecProfileReminders(army:ArmySelection,roster:readonly RosterInst
    const ids=group.members.map(s=>s.id);
    printFormationDeployment(ids,deepStrike,scouts,infiltrators,emit);
    if(group.members.every(s=>EC_CARDS[s.unit]?.core?.includes('Fights First')))emit('Fights First',['Fight','either','during'],'When this entire formation has Fights First, resolve its combat during the Fights First step.',ids);
-   if(group.members.length===1&&card.core?.includes('Lone Operative'))for(const stage of [['Shooting','opponent','during'],['Movement','own','end']] as const)emit('Lone Operative',stage,'Unless part of an attached unit, this unit is invisible to enemy models outside 12″ and their Indirect Fire weapons cannot target it.',ids);
+   if(group.members.length===1&&card.core?.includes('Lone Operative'))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)emit('Lone Operative',stage,'Unless part of an attached unit, this unit is invisible to enemy models outside 12″ and their Indirect Fire weapons cannot target it.',ids);
   }
   const deck=Number(card.core?.find(c=>c.startsWith('Firing Deck '))?.match(/\d+/)?.[0]);
   if(!deck)continue;

@@ -4,6 +4,7 @@ import type {necronFormationRoots} from './necron-retinues';
 import {hasNecronRangedWeapon, necronKeywords} from './necron-wargear';
 import {eligibleUpgrades2026, upgradeName2026} from './upgrades-2026';
 import {expandRoster} from './roster-instances';
+import {necronBattleFormations} from './necron-battle-units';
 
 type Formation = ReturnType<typeof necronFormationRoots>[number];
 const source = 'https://wahapedia.ru/wh40k11ed/factions/necrons/';
@@ -17,13 +18,19 @@ export function targetedNecronEnhancements(army: ArmySelection, formations: Form
   const auraRecipients = formations.filter(formation => !hasKeyword(formation, 'MONSTER')
     && !hasKeyword(formation, 'TITANIC')).map(formation => formation.id);
   const armed = new Set(formations.filter(f => f.members.some(hasNecronRangedWeapon)).map(f => f.id));
-  const hasMonolith = formations.some(formation => formation.body.unit === 'Monolith');
-
+  const originalRoster = expandRoster(army);
+  const originalFormations = necronBattleFormations(army);
+  const sameMember = (start: typeof originalRoster[number], current: typeof originalRoster[number]) =>
+    start.id === current.id && start.unit === current.unit && start.attachedTo === current.attachedTo && start.retinueTo === current.retinueTo;
   const liveById = new Map(formations.flatMap(formation => formation.members.map(model => [model.id, model] as const)));
-  for (const original of expandRoster(army)) {
+  // Gate use remains true after the original Monolith is destroyed. A new or
+  // replaced squad identity cannot supply that earlier transport event.
+  const hadMonolith = originalRoster.some(model => model.unit === 'Monolith'
+    && (!liveById.has(model.id) || sameMember(model, liveById.get(model.id)!)));
+  for (const original of originalRoster) {
       const live = liveById.get(original.id);
       // A changed identity cannot inherit an earlier source's selected effect.
-      if (live && live.unit !== original.unit) continue;
+      if (live && !sameMember(original, live)) continue;
       const bearer = live ?? original;
       const formation = formations.find(group => group.members.some(model => model.id === bearer.id && model.unit === bearer.unit));
       const name = upgradeName2026(army, bearer);
@@ -35,9 +42,14 @@ export function targetedNecronEnhancements(army: ArmySelection, formations: Form
       };
       switch (name) {
         case 'Prelocational Optimiser':
-          if (formation && hasMonolith && hasKeyword(formation, 'INFANTRY') && armed.has(formation.id)) {
+          // The bearer must still supply the enhancement when selected to
+          // shoot, but the original Gate and Infantry eligibility need not.
+          const start = originalFormations.find(group => group.members.some(model => sameMember(model, original)));
+          if (formation && start && hadMonolith && hasKeyword(start, 'INFANTRY') && armed.has(formation.id)
+            && formation.originalBody.id === start.originalBody.id
+            && formation.members.every(model => start.members.some(member => sameMember(member, model)))) {
             add('prelocational', name, 'Shooting',
-              'When this formation is selected to shoot in the turn it arrived via a Monolith’s Eternity Gate, choose Lethal Hits or Sustained Hits 1 for its ranged attacks.',
+              'When this formation is selected to shoot, only if it used a Monolith’s Eternity Gate this turn, choose Lethal Hits or Sustained Hits 1 for its ranged attacks. The Monolith need not still be alive. The enhancement bearer must still be in this original formation; using the gate does not itself grant another shooting activation.',
               [formation.id]);
           }
           break;

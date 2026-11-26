@@ -10,7 +10,7 @@ import {thousandSonsFormations,thousandSonsCargoFormations} from './thousand-son
 import {thousandSonsPsychicWeapons} from './ts-datasheet-core';
 import {TS_CARDS} from './ts-profiles.generated';
 
-type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing']];
+type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing'],GeneratedReminder['timing']?];
 const shoot:Step=['Shooting','own','during'],fight:Step=['Fight','either','during'],move:Step=['Movement','own','during'];
 const snap:Step=['Movement','opponent','end'],incoming:Step=['Shooting','opponent','during'],incomingSnap:Step=['Movement','own','end'];
 const charge:Step=['Charge','either','during'],defend=[incoming,incomingSnap,fight],eachPhase=PHASES.map((p):Step=>[p,'either','during']);
@@ -50,7 +50,7 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
   const hasGun=thousandSonsHasRangedWeapon(squad),groupGuns=group.members.some(thousandSonsHasRangedWeapon);
   function add(title:string,steps:readonly Step[],summary:string,ids=[id]){
    if(!ids.length)return;
-   for(const [window,turn,timing] of steps)results.push({id:['11e-ts-card',id,title,window,turn,timing].join(':'),title,window,turn,timing,summary,origin:'unit',units:distinct([id,...ids]),source:sheets.get(unit)!.source});
+   for(const [window,turn,timing,identityTiming=timing] of steps)results.push({id:['11e-ts-card',id,title,window,turn,identityTiming].join(':'),title,window,turn,timing,summary,origin:'unit',units:distinct([id,...ids]),source:sheets.get(unit)!.source});
   }
   const led=(title:string,steps:readonly Step[],summary:string)=>{if(leading)add(title,steps,summary,formation);};
   const fitted=(name:string)=>thousandSonsWeaponCount(squad,name)>0;
@@ -125,7 +125,9 @@ export function thousandSonsIntrinsicReminders(army:ArmySelection,roster:readonl
    case 'Ahriman':
     add('Scryer of Fates',[['Pre-battle','own','end']],'After both armies deploy, redeploy up to three friendly Thousand Sons units. They may go into Strategic Reserves regardless of the number of units already there.',targets('THOUSAND SONS'));break;
    case 'Exalted Sorcerer':
-    led('Arcane Shield',defend,'While this Exalted Sorcerer leads the formation, every model in it has a 4+ invulnerable save.');
+    // Saves also apply to normal reactive shooting and snap shooting. Keep the
+    // former Movement/end checkmark identity when widening its timing to during.
+    led('Arcane Shield',[incoming,['Movement','own','during','end'],fight,['Shooting','own','during']],'While this Exalted Sorcerer leads the formation, every model in it has a 4+ invulnerable save.');
     led('Rebind Rubricae',[['Command','own','during']],'While leading, you may roll one D6. On 1 the formation suffers D3 mortal wounds. On 2–5 return one destroyed Bodyguard model. On 6 return up to two destroyed Bodyguard models.');break;
    case 'Tzaangors':{
     const mirage=army.detachments2026?.includes('Warpmeld Pact');

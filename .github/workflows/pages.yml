@@ -78,5 +78,7 @@ jobs:
           path: |
             test-results/shared-core-instructions-*/reminders.pdf
             test-results/shared-core-instructions-*/fight-reminders.png
+            test-results/persistent-rule-followups-*/reminders.pdf
+            test-results/persistent-rule-followups-*/phase-reminders.png
           if-no-files-found: ignore
           retention-days: 7

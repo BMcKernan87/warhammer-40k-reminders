@@ -66,7 +66,6 @@ export function sororitasProfileReminders(army:ArmySelection,roster:readonly Ros
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')summary=(stage[0]==='Movement'?'When firing Overwatch, use snap shooting. ':'')+fullWeapons(squad,card,title==='Melee weapon profiles'?'Fight':'Shooting',stage[0]==='Movement');
    emit(title,stage,summary,units);
   });
-  if(card.save)emit('Invulnerable save',['Shooting','own','during'],'When permitted enemy reaction fire allocates an attack to a model from '+squad.id+', that model can use its '+card.save+'+ invulnerable save.');
   if(reactions.length&&card.weapons.some(w=>w.phase==='Shooting'&&sororitasWeaponCount(squad,w.name)>0)){
    const ordinal=new Map<string,number>();
    const inventory=sororitasModelLoadouts(squad).map(m=>{

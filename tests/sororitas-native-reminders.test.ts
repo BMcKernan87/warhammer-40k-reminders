@@ -182,6 +182,6 @@ it('keeps native defenses active against permitted enemy return fire during the 
  for(const title of ['Sworn Protectors','Stanchion of Holy Martyrs','The Pulpit of Saint Holline’s Basilica','Anchorite Sarcophagus'])expect(get(a,title).filter(ownShooting)).toHaveLength(1);
  const invulnerable=profiles(a,'Invulnerable save').filter(ownShooting);
  expect(invulnerable).toHaveLength(a.instances!.length);
- expect(invulnerable.every(r=>r.summary.includes('enemy reaction fire'))).toBe(true);
+ expect(invulnerable.every(r=>r.summary.includes('enemy return fire'))).toBe(true);
  expect(profiles(a,'Lone Operative').filter(ownShooting)).toHaveLength(1);
 });

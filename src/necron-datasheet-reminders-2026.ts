@@ -272,6 +272,9 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
 function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):GeneratedReminder[]{
  const out:GeneratedReminder[]=[];
  const original=expandRoster(army),originalFormations=necronBattleFormations(army),formations=necronBattleFormations(army,roster);
+ // This existing projection validates the originally declared Leader/Support
+ // and retinue links, without turning an invalid join into a separate target.
+ const declaredFormations=necronTransportFormations(army);
  const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo;
  const survivingFormation=(start:Formation)=>formations.find(f=>f.originalBody.id===start.originalBody.id&&f.members.some(m=>start.members.some(originalMember=>sameMember(originalMember,m))));
  for(const s of original){
@@ -311,6 +314,15 @@ function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[])
     emit('eternity-gate-charge','Eternity Gate · charge restriction','Charge','In your Charge phase, if this formation used this Monolith’s gate to make an ingress move this turn, it cannot make a Charge move until turn end, even if the Monolith is destroyed or the formation loses its Infantry keyword.'+candidates,recipients,'own');
     emit('eternity-gate-shooting','Eternity Gate · shooting','Shooting','In your Shooting phase, a formation that used this Monolith’s gate this turn may shoot, including when set up away from a battlefield edge. This ingress permission is not lost if the Monolith is destroyed or the formation loses its Infantry keyword; all other shooting restrictions still apply.'+candidates,recipients,'own');
    }
+  }
+  if(s.unit==='Canoptek Macrocytes'&&(s.wargear?.['Accelerator mandible']??0)>0&&declaredFormations.some(f=>f.members.some(m=>m.id===s.id))){
+   // The September v1.3 card selects a unit at the start of Fight and grants
+   // its weapon WS benefit until phase end. Source or keyword loss does not
+   // cancel an already-selected benefit (Core 01.02.02).
+   const currentTargets=new Set(current&&(current.wargear?.['Accelerator mandible']??0)>0?datasheetTargets('macro-mandible',current,formations,army):[]);
+   const targets=declaredFormations.filter(f=>f.members.some(m=>necronKeywords.CANOPTEK.has(m.unit)))
+    .flatMap(f=>{const surviving=survivingFormation(f);return surviving&&!currentTargets.has(surviving.id)?[surviving.id]:[];});
+   if(targets.length)emit('mandible-lasting','Accelerator Mandible · selected formation','Fight','If this Macrocytes unit’s Accelerator Mandible bearer selected one of these formations within 3″ of its unit at the start of this Fight phase, improve the Weapon Skill of weapons equipped by models in that selected formation by 1 until this phase ends, even if the bearer is destroyed or the formation loses its Canoptek keyword. Only the original formation actually selected gains the effect; this does not permit a new selection.',targets);
   }
   // Activation rows use living sources and current eligibility. After a source
   // or keyword-bearer casualty retain only the previously applied phase effect.

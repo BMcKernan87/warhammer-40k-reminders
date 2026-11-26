@@ -57,7 +57,6 @@ export function csmProfileReminders(army:ArmySelection,roster:readonly RosterIns
    else if(link&&(title.startsWith('Feel No Pain ')||title.startsWith('Deadly Demise ')))summary='The Soul Link bearer uses this native ability only while it has not been replaced; other models retain their own native abilities. '+summary;
    emit(title,stage,summary,units);
   });
-  if(card.save)emit('Invulnerable save',['Shooting','own','during'],'When permitted enemy return fire allocates an attack to a model from '+squad.id+', that model may use its '+card.save+'+ invulnerable save. An attached model from a different datasheet uses its own profile.');
   if(card.modelSaves){
    const roles=[...new Set(csmArmyModelLoadouts(squad).map(m=>m.model))];
    for(const role of roles){

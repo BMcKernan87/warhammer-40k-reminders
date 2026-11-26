@@ -48,6 +48,14 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
    const reanimation=card(page,'Reanimation Protocols · D3 wounds');
    await expect(reanimation).toContainText('each Starstele is a separate one-model unit');
    for(const star of starsteles)await expect(reanimation.locator('.rule-subjects')).toContainText(star);
+   await card(page,'Dominance Protocols · 1CP').getByRole('checkbox').click();
+   await expect(card(page,'Dominance Protocols · 1CP')).toHaveCount(0);
+   // Completing the selection must not hide its later objective-control effect.
+   for(const phase of ['Command','Movement','Shooting','Charge','Fight','End of your turn','End of opponent turn']){
+    await sheet(page).getByLabel('Show phase').selectOption(phase);
+    await expect(card(page,'Dominance Protocols · objective control').getByRole('checkbox')).not.toBeChecked();
+    await expect(card(page,'Dominance Protocols · objective control')).toContainText('Battle-shocked models retain OC “–”');
+   }
    await sheet(page).getByLabel('Show phase').selectOption('Movement');
    for(const star of starsteles){
     await expect(card(page,'Fire Overwatch · 1CP').locator('.rule-subjects')).toContainText(star);
@@ -74,6 +82,7 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
   await sheet(page).getByLabel('Show phase').selectOption('Fight');
   await sheet(page).getByLabel('Show completed reminders').check();
   await expect(card(page,'Fight step · activation order').getByRole('checkbox')).toBeChecked();
+  if(faction==='Necrons')await expect(card(page,'Dominance Protocols · objective control').getByRole('checkbox')).not.toBeChecked();
   await page.screenshot({path:info.outputPath('fight-reminders.png'),fullPage:true});
   // A filtered and checked digital sheet must still print the complete action and Fight rules.
   await page.emulateMedia({media:'print'});
@@ -81,6 +90,8 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
   await expect(printed.getByText('Actions · eligibility',{exact:true})).toHaveCount(1);
   await expect(printed.getByText('Fight step · activation order',{exact:true})).toHaveCount(1);
   if(faction==='Necrons'){
+   await expect(printed.getByText('Dominance Protocols · objective control',{exact:true})).toHaveCount(7);
+   await expect(printed.getByText('Dominance Protocols · 1CP',{exact:true})).toHaveCount(1);
    for(const star of starsteles){
     await expect(printed.getByText(star+' · Reanimation Nodes',{exact:true})).toHaveCount(5);
     await expect(printed.getByText(star+' · Ancient Cover',{exact:true})).toHaveCount(2);

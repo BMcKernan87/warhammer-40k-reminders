@@ -133,6 +133,7 @@ import {alliedTitanAndKnightReminders,applyWarhoundStratagemCost} from './titan-
 import {isWarhound} from './titan-support-data';
 import {applyStratagemWindow} from './stratagem-windows';
 import {targetedNecronEnhancements} from './necron-targeted-enhancements';
+import {necronPersistentStratagemReminders} from './necron-persistent-stratagems';
 import {necronDeploymentReminders} from './necron-deployment';
 import {formationShootingReminders} from './formation-shooting';
 import {formationDeploymentReminders} from './formation-deployment';
@@ -438,7 +439,7 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const strafe=result.find(r=>r.id==='11e-necron-skyshroud-omnilocked');
   if(strafe)result.push({...strafe,id:strafe.id+'-shooting',title:'Omnilocked Strafing · carryover',window:'Shooting',summary:'If you used the stratagem when this formation Fell Back this turn, it remains eligible to shoot.'});
  }
- result.push(...canoptekHypercryptReminders(_army,roster),...remainingNecronReminders(_army,roster));
+ result.push(...canoptekHypercryptReminders(_army,roster),...remainingNecronReminders(_army,roster),...necronPersistentStratagemReminders(_army,roster));
  if(_army.faction==='Necrons'&&_army.detachments2026?.includes('Cryptek Conclave')){
   for(const body of necronBattleFormations(_army,roster).filter(f=>['Necron Warriors','Immortals'].includes(f.body.unit)&&f.members.some(l=>l.id!==f.id&&necronKeywords.CRYPTEK.has(l.unit)&&necronKeywords.INFANTRY.has(l.unit))).map(f=>f.body)){
    for(const window of ['Shooting','Fight'] as const)result.push({id:'11e-necron-conclave-microscarab-'+body.id+'-'+window,title:body.id+' · Microscarab Swarm · 1CP',window,timing:'during',summary:(window==='Shooting'?'Opponent’s turn. ':'')+'Immediately after enemy targets are selected, this formation gains a '+(body.unit==='Immortals'?'4+':'5+')+' invulnerable save for the phase.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'detachment',units:[body.id]});
