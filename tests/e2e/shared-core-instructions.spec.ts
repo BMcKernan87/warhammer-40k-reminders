@@ -21,7 +21,8 @@ for(const [faction,width] of [['Necrons',390],['Astra Militarum',1280]] as const
    await page.getByRole('checkbox',{name:/Hand of the Dynasty/}).check();
    for(const unit of ['Immortals','Psychomancer','Canoptek Scarab Swarms','Monolith','Convergence Of Dominion'])await add(page,unit);
    await page.getByLabel('Models for squad '+convergence,{exact:true}).selectOption('3');
-   await page.getByLabel('Warlord',{exact:true}).selectOption('Psychomancer#1');
+   // The sole eligible Character is selected automatically and shown as text.
+   await expect(page.getByText('Warlord: Psychomancer#1',{exact:true})).toBeVisible();
   }else{
    await page.getByRole('checkbox',{name:/Recon Element/}).check();
    for(const unit of ['Cadian Command Squad','Cadian Shock Troops','Ogryn Bodyguard','Commissar'])await add(page,unit);
