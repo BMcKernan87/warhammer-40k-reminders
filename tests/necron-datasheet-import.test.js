@@ -20,6 +20,11 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
   expect(DATASHEETS_2026.filter(d=>d.faction==='Necrons')).toEqual([...snapshot.datasheets].sort((a,b)=>a.unit<b.unit?-1:a.unit>b.unit?1:0));
   expect(rosterCost2026(addSelectionUnit(newSelection('Necrons'),'Chronomancer',3)).entries.map(e=>e.points)).toEqual([70,80,80]);
  });
+ it('accepts the reviewed September v1.3 publisher supplement as a source',()=>{
+  const copy=structuredClone(snapshot);
+  copy.datasheets[0].source='https://assets.warhammer-community.com/eng_30-09_wh40k_faction_pack_necrons-1urphgbmpy-wbhocjbaba.pdf';
+  expect(generateDatasheets(copy)).toContain(copy.datasheets[0].source);
+ });
  it.each([
   s=>{s.edition=10;},
   s=>{s.revision='';},
@@ -34,6 +39,13 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
   s=>{s.datasheets[0].composition[0].max+=1;},
   s=>{s.datasheets[0].modelKeywords={Imaginary:['CHARACTER']};},
   s=>{s.datasheets[0].keywords=['Necrons'];},
+  s=>{delete s.datasheets[0].keywords;},
+  s=>{s.datasheets[0].keywords=s.datasheets[0].keywords.filter(k=>k!=='NECRONS');},
+  s=>{delete s.datasheets[0].composition;},
+  s=>{delete s.datasheets[0].profile;},
+  s=>{s.datasheets[0].profile.move='unknown';},
+  s=>{s.datasheets[0].profile.save='3';},
+  s=>{s.datasheets[0].profile.leadership='automatic';},
   s=>{s.datasheets[0].attachmentRole='support';s.datasheets[0].bodyguards=['Imaginary'];},
   s=>{s.datasheets.find(d=>d.unit==='Doom Scythe').profile.objectiveControl='absent';},
   s=>{s.datasheets.find(d=>d.unit==='The Silent King').modelProfiles.SZAREKH.wounds=-1;},
@@ -50,6 +62,10 @@ describe('normalized 11e Necron datasheet ingestion',()=>{
    expect(readFileSync(outputPath,'utf8')).toBe('last known good');
    writeFileSync(inputPath,JSON.stringify({...snapshot,edition:10}));
    expect(()=>runImport({inputPath,outputPath})).toThrow();
+   expect(readFileSync(outputPath,'utf8')).toBe('last known good');
+   const incomplete=structuredClone(snapshot);delete incomplete.datasheets[0].profile;
+   writeFileSync(inputPath,JSON.stringify(incomplete));
+   expect(()=>runImport({inputPath,outputPath})).toThrow(/missing model profile/);
    expect(readFileSync(outputPath,'utf8')).toBe('last known good');
    writeFileSync(inputPath,JSON.stringify(snapshot));
    expect(()=>runImport({inputPath,outputPath,check:true})).toThrow(/stale/);

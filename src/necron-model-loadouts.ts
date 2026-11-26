@@ -68,11 +68,13 @@ function sameCounts(a: Record<string, number> = {}, b: Record<string, number> = 
   return [...Object.keys(a), ...Object.keys(b)].every(key => (a[key] ?? 0) === (b[key] ?? 0));
 }
 
-export function validModelLoadouts(squad: RosterInstance, models: number): boolean {
+export function validModelLoadouts(squad: RosterInstance, models: number, inheritedEquipment?: string): boolean {
   if (squad.modelLoadouts === undefined) return true;
   try {
     const derived = applyModelLoadouts(squad, models, squad.modelLoadouts);
-    const primary = squad.equipment ?? NECRON_LOADOUTS[squad.unit].primary?.[0];
+    // Match expandRoster's saved-equipment precedence. A legacy unit-wide choice
+    // still applies to instances without their own primary or distribution.
+    const primary = squad.equipment ?? inheritedEquipment ?? NECRON_LOADOUTS[squad.unit].primary?.[0];
     const expected = squad.weaponCounts ?? (primary ? {[primary]:models} : {});
     const actual = derived.weaponCounts ?? (derived.equipment ? {[derived.equipment]:models} : {});
     return sameCounts(expected, actual) && sameCounts(squad.wargear, derived.wargear);

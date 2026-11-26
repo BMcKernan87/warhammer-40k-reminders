@@ -103,7 +103,11 @@ describe('source-reconciled wargear reminders',()=>{
   expect(r.filter(x=>x.title.includes('Nanoscarab Projector')).map(x=>x.window)).toEqual(['Command','Movement','Shooting','Charge','Fight']);
   expect(r.filter(x=>x.title.includes('Nanoscarab Projector')).every(x=>x.summary.includes('bearer survives'))).toBe(true);
  });
- it('does not confuse the Chronomancer weapon name with the Blast keyword',()=>{
-  expect(generate11thReminders(army('Chronomancer')).some(r=>r.title.includes('Ranged weapon abilities')&&r.summary.includes('Blast'))).toBe(false);
+ // Current Chronomancer datasheet: the ranged Aeonstave has Blast; its melee profile does not.
+ // https://wahapedia.ru/wh40k11ed/factions/necrons/Chronomancer
+ it('includes the ranged Aeonstave’s printed Blast ability in Shooting and Overwatch only',()=>{
+  const reminders=generate11thReminders(army('Chronomancer')).filter(r=>r.title.includes('weapon abilities'));
+  expect(reminders.filter(r=>r.summary.includes('Blast')).map(r=>r.window)).toEqual(['Shooting','Movement']);
+  expect(reminders.some(r=>r.window==='Fight'&&r.summary.includes('Blast'))).toBe(false);
  });
 });

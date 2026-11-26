@@ -74,7 +74,9 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
     const assignment=weapons?' Weapons on those bearers: '+weapons.join(', ')+'.':'';
     return 'The ranged weapons of surviving Nebuloscope bearers have Ignores Cover ('+bearer.wargear!.Nebuloscope+' originally equipped).'+assignment;
   },{gear:has('Nebuloscope')}),
-  rule('hunters','Hyperspace Hunters','Deathmarks','arrival','You may shoot the arriving unit if it is a legal target. All attacks from this reaction must target it.',{scope:'nearby',within:18,visible:true,phase:'Movement',turn:'opponent',limit:'turn'}),
+  // The current Deathmarks card retains "Reinforcements step" terminology;
+  // Core 09/20.04 now resolves ingress during Movement's Move Units step.
+  rule('hunters','Hyperspace Hunters','Deathmarks','arrival','When an enemy arrives from reserves in the opponent’s Movement phase, you may shoot that visible enemy unit within 18″ as if it were your Shooting phase, if it is a legal target. All attacks from this reaction must target it. This is normal reactive shooting, not snap shooting. Synaptic disintegrators retain Precision; their Heavy bonus applies only in your Shooting phase.',{scope:'nearby',within:18,visible:true,phase:'Movement',turn:'opponent',limit:'turn'}),
   rule('flesh-hunger','Flesh Hunger','Flayed Ones','fight','Against this below-half-strength target, every successful melee hit is a Critical Hit.',{when:c=>!!c.observation?.belowHalf}),
   rule('tomb-shield-move','Shieldvanes','Tomb Blades','phaseStart','Surviving shieldvane bearers have Move 8″, not 12″.',{phase:'Movement',gear:has('Shieldvanes')}),
   rule('tomb-shield-save','Shieldvanes','Tomb Blades','allocated','Surviving shieldvane bearers have a 3+ Save.',{gear:has('Shieldvanes')}),
@@ -139,7 +141,7 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('amulet','Nanoscarab Amulet','Lokhust Lord','allocated','This bearer has Feel No Pain 5+.',{gear:has('Nanoscarab amulet')}),
   rule('command-shield','Advanced Quantum Shielding','Catacomb Command Barge','targeted','The attack’s Strength exceeds this Barge’s Toughness. Subtract 1 from the Wound roll.',{when:c=>(c.observation?.strength??0)>(c.observation?.toughness??8)}),
   rule('hex-hits','Inescapable Death','Hexmark Destroyer','overwatch','Overwatch attacks from this Hexmark hit on unmodified rolls of 2+.'),
-  rule('tachyon','Tachyon Arrow','Overlord','shoot','This arrow can be fired once per battle. Mark it used when this Overlord fires it.',{gear:s=>hasPrimary(s,'Tachyon arrow and Overlord’s blade'),limit:'battle'}),
+  rule('tachyon','Tachyon Arrow','Overlord',['shoot','overwatch'],'This Overlord’s tachyon arrow can be fired once per battle, including when using Fire Overwatch. Mark it used when this bearer fires it; returning that bearer to the battlefield does not restore the shot.',{gear:s=>hasPrimary(s,'Tachyon arrow and Overlord’s blade'),limit:'battle'}),
   rule('hex-overwatch','Inescapable Death · free Overwatch','Hexmark Destroyer','overwatch','You may use Fire Overwatch for 0 CP, including after using it on another unit this phase.',{limit:'turn',shared:true}),
   rule('hex-return','Multi-threat Eliminator','Hexmark Destroyer',['enemyAttacked','enemyWounded'],'One Hexmark within 3″ may shoot back at that enemy alone, provided it is an eligible target.',{phase:'Shooting',turn:'opponent',scope:'nearby',within:3,limit:'turn',shared:true}),
   ...weaponRules,

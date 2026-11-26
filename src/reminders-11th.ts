@@ -167,6 +167,7 @@ import {remainingNecronReminders} from './necron-remaining-detachments';
 import {hasNecronRangedWeapon,necronKeywords} from './necron-wargear';
 import {naturalScoutReminders,necronDatasheetReminders2026} from './necron-datasheet-reminders-2026';
 import {matching11thRules,type Rule11th} from './rules-11th-registry';
+import {eligibleUpgrades2026,upgradeName2026} from './upgrades-2026';
 import type {ArmySelection} from './catalog';
 import {detachmentBudget,DETACHMENTS_2026,EDITION_2026_SOURCE} from './edition-2026';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
@@ -401,6 +402,10 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
     if(eligible.length)result.push({...r,units:eligible});
    }
   }
+  if(_army.detachments2026?.includes('Starshatter Arsenal')){
+   const hunters=formations.filter(f=>f.members.some(s=>s.unit==='Deathmarks')).map(f=>f.id);
+   if(hunters.length)result.push({id:'11e-necron-starshatter-onslaught-movement',title:'Starshatter Arsenal · Relentless Onslaught',window:'Movement',timing:'during',turn:'opponent',summary:'During normal Hyperspace Hunters shooting, Deathmarks gain +1 to Hit against targets within range of an objective marker. This modifier does not change the unmodified Hit roll required for snap shooting.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'detachment',units:hunters});
+  }
  }else result.push(...staticRows);
  if(_army.faction==='Necrons'){
   if(_army.detachments2026?.includes('Cryptek Conclave')){
@@ -433,18 +438,22 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
   const formations=necronFormationRoots(_army,roster);
   const nonHeavy=formations.filter(f=>!f.members.some(s=>necronKeywords.MONSTER.has(s.unit)||necronKeywords.VEHICLE.has(s.unit))).map(f=>f.id);
   const armed=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
-  const destroyers=formations.filter(f=>f.members.some(s=>necronKeywords['DESTROYER CULT'].has(s.unit)||['Murdermind','Destroyer Ankh'].includes(_army.upgrades2026?.[s.id]??_army.upgrades2026?.[s.unit]??''))).map(f=>f.id);
+  const destroyerModel=(s:RosterInstance)=>necronKeywords['DESTROYER CULT'].has(s.unit)||['Murdermind','Destroyer Ankh'].includes(upgradeName2026(_army,s)??'')&&eligibleUpgrades2026(_army,s.unit).some(option=>option.name===upgradeName2026(_army,s));
+  const destroyers=formations.filter(f=>f.members.some(destroyerModel)).map(f=>f.id);
+  const strengthTargets=(window:ReminderWindow)=>formations.filter(f=>f.members.some(s=>(destroyerModel(s)||!necronKeywords.MONSTER.has(s.unit)&&!necronKeywords.TITANIC.has(s.unit))&&(window==='Fight'||hasNecronRangedWeapon(s)))).map(f=>f.id);
   const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units?:string[])=>result.push({id:'11e-necron-cursed-'+id,title,window,timing,summary,source,origin:'detachment',units:units??(id.startsWith('cold-')?formations.filter(f=>f.members.some(s=>!necronKeywords.MONSTER.has(s.unit)&&!necronKeywords.TITANIC.has(s.unit))).map(f=>f.id):id.startsWith('image-')||id.startsWith('driven-')?destroyers:nonHeavy)});
   for(const window of ['Shooting','Fight'] as const){
    const turn=window==='Shooting'?'Your Shooting phase. ':'Either Fight phase. ';
    if(destroyers.length){
-    emit(window==='Fight'?'cold-fervour':'cold-fervour-shooting','Cursed Legion · Cold Fervour',window,'Destroyer Cult models gain +2 weapon Strength. The first time each turn a Destroyer Cult unit kills a unit or brings it Below Half-strength, after resolving its attacks, other friendly Necron models (not Destroyer Cult, Monster or Titanic) gain +2 weapon Strength for the rest of the turn.');
+    const strength=strengthTargets(window);
+    if(strength.length)emit(window==='Fight'?'cold-fervour':'cold-fervour-shooting','Cursed Legion · Cold Fervour',window,'Destroyer Cult models gain +2 weapon Strength. The first time each turn a Destroyer Cult unit kills a unit or brings it Below Half-strength, after resolving its attacks, other friendly Necron models (not Destroyer Cult, Monster or Titanic) gain +2 weapon Strength for the rest of the turn.','during',strength);
     emit('image-'+window.toLowerCase(),'Image of Death · 1CP',window,(window==='Shooting'?'Opponent’s Shooting phase. ':'Either Fight phase. ')+'Immediately after an enemy targets a Destroyer Cult unit, subtract 1 from Hit rolls of attacks targeting it for this phase.');
     if(nonHeavy.length)emit('mortis-'+window.toLowerCase(),'Mortis Protocols · 1CP',window,turn+'Immediately after the first Destroyer Cult kill this turn, activate Reanimation for one non-Monster, non-Vehicle Necron unit within 9″ of that Destroyer Cult unit.');
    }
    const attackers=window==='Shooting'?nonHeavy.filter(id=>armed.has(id)):nonHeavy;
    if(attackers.length)emit('methodical-'+window.toLowerCase(),'Methodical Murder · 1CP',window,turn+'Select a non-Monster, non-Vehicle Necron unit not yet selected to shoot or fight. Its weapons gain Sustained Hits 1 this phase.','during',attackers);
   }
+  if(destroyers.length&&strengthTargets('Movement').length)emit('cold-fervour-movement','Cursed Legion · Cold Fervour','Movement','During permitted Movement-phase ranged attacks, Destroyer Cult models gain +2 weapon Strength. After the first Destroyer Cult unit this turn destroys an enemy unit or brings it Below Half-strength, other friendly Necron models excluding Destroyer Cult, Monster and Titanic models gain +2 weapon Strength until turn end. This effect does not grant an extra attack or permission to shoot.','during',strengthTargets('Movement'));
   if(destroyers.length)for(const window of ['Shooting','Charge'] as const)emit('driven-'+window.toLowerCase(),'Driven to Butchery · 1CP',window,'Your turn: select a Destroyer Cult unit; until turn end it may shoot and charge after Advancing. Once per turn.');
   if(nonHeavy.length){
    emit('spreading','Spreading Madness · 1CP','Charge','Your turn: select a non-Monster, non-Vehicle unit that has not declared a charge; add 2 to its charge roll if a target is engaged with a friendly unit, for this phase.');

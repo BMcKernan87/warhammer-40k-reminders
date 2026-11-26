@@ -28,7 +28,11 @@ describe('11e Canoptek Court',()=>{
   a=selectUpgrade2026(a,leader.id,'Hyperphasic Fulcrum');
   expect(reminders(a).some(x=>x.title.includes('Hyperphasic Fulcrum'))).toBe(false);
   a=setInstanceAttachment(a,leader.id,body.id);
-  expect(reminders(a).filter(x=>x.title.includes('Hyperphasic Fulcrum')).map(x=>x.units)).toEqual([[leader.id,body.id],[leader.id,body.id]]);
+  expect(reminders(a).filter(x=>x.title.includes('Hyperphasic Fulcrum')).map(x=>({window:x.window,units:x.units}))).toEqual([
+   {window:'Movement',units:[leader.id,body.id]},
+   {window:'Shooting',units:[leader.id,body.id]},
+   {window:'Fight',units:[leader.id,body.id]},
+  ]);
   expect(reminders(selectUpgrade2026(a,leader.id,'Dimensional Sanctum')).find(x=>x.title.includes('Dimensional Sanctum'))?.window).toBe('Pre-battle');
   expect(()=>selectUpgrade2026(a,body.id,'Autodivinator')).toThrow();
   expect(reminders({...a,detachments2026:[]}).some(x=>x.id.startsWith('11e-necron-court-'))).toBe(false);
