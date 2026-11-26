@@ -1,3 +1,4 @@
+import {currentNecronDetachment} from './necron-detachment-names';
 import type {ArmySelection,Faction} from './catalog';
 import type {GeneratedReminder} from './generated-reminders';
 import {expandRoster} from './roster-instances';
@@ -5,6 +6,7 @@ import {expandRoster} from './roster-instances';
 export interface Rule11th extends GeneratedReminder{
  faction?:Faction;
  detachments?:readonly string[];
+ requiresRangedWeapon?:true;
  anyUnits?:readonly string[];
  allUnits?:readonly string[];
  equipment?:Readonly<Record<string,string>>;
@@ -13,7 +15,7 @@ export interface Rule11th extends GeneratedReminder{
 export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):GeneratedReminder[]{
  const instances=expandRoster(army);
  const units=new Set([...Object.entries(army.units).filter(([,count])=>count>0).map(([name])=>name),...(army.instances||[]).map(x=>x.unit)]);
- const detachments=new Set(army.detachments2026||[]);
+ const detachments=new Set(army.faction==='Necrons'?(army.detachments2026??[]).map(currentNecronDetachment):army.detachments2026??[]);
  return rules.filter(rule=>{
   if(rule.faction&&rule.faction!==army.faction)return false;
   if(rule.detachments&&!rule.detachments.some(d=>detachments.has(d)))return false;
@@ -22,7 +24,7 @@ export function matching11thRules(army:ArmySelection,rules:readonly Rule11th[]):
   if(rule.enhancements&&!instances.some(instance=>rule.enhancements!.includes(army.upgrades2026?.[instance.id]??army.upgrades2026?.[instance.unit]??'')&&(!rule.anyUnits||rule.anyUnits.includes(instance.unit))&&(!rule.units||rule.units.includes(instance.unit))))return false;
   if(rule.equipment&&!Object.entries(rule.equipment).every(([unit,choice])=>army.equipment?.[unit]===choice||army.instances?.some(x=>x.unit===unit&&x.equipment===choice)))return false;
   return true;
- }).flatMap(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,...reminder})=>{
+ }).flatMap(({faction:_,detachments:__,anyUnits:___,allUnits:____,equipment:_____,enhancements:______,requiresRangedWeapon:_ranged,...reminder})=>{
   if(!______){
    if(_____&&army.instances?.length){
     const equipped=instances.filter(instance=>Object.entries(_____).some(([unit,choice])=>instance.unit===unit&&(instance.equipment??army.equipment?.[unit])===choice)&&(!reminder.units||reminder.units.includes(instance.unit)));

@@ -3,10 +3,10 @@ import {newSelection,addSelectionUnit,validateSelection} from '../src/catalog';
 import {DETACHMENTS_2026,detachmentBudget} from '../src/edition-2026';
 import {generate11thReminders,grouped11thReminders,armySetup11th} from '../src/reminders-11th';
 describe('11th-edition-only application pipeline',()=>{
- it('includes every official Space Marine detachment from the June 2026 table',()=>{
-  expect(DETACHMENTS_2026['Space Marines']).toHaveLength(22);
-  expect(detachmentBudget('Space Marines',['Fulguris Task Force','Vanguard Spearhead'],'Strike Force')).toMatchObject({valid:true,spent:3});
-  expect(detachmentBudget('Space Marines',['Gladius Task Force','Vanguard Spearhead'],'Strike Force').valid).toBe(false);
+ it('uses the October Space Marines and Deathwatch detachments',()=>{
+  expect(DETACHMENTS_2026['Space Marines']).toHaveLength(23);
+  expect(detachmentBudget('Space Marines',['Spearpoint Task Force','Gauntlet Task Force'],'Strike Force')).toMatchObject({valid:true,spent:3});
+  expect(detachmentBudget('Space Marines',['Gladius Task Force','Phobos Shadow Force'],'Strike Force').valid).toBe(false);
  });
  it('does not leak legacy 10th-edition datasheet or stratagem reminders',()=>{
   for(const faction of ['Necrons','Orks','Tyranids','Space Marines'] as const){
@@ -35,7 +35,7 @@ describe('11th-edition-only application pipeline',()=>{
   expect(generate11thReminders(warriors).some(r=>r.id==='11e-necron-hod-will')).toBe(true);
  });
  it('preserves an 11th-edition Space Marine detachment selection in validated armies',()=>{
-  const army={...newSelection('Space Marines'),detachments2026:['Fulguris Task Force','Vanguard Spearhead'],battleSize2026:'Strike Force' as const};
+  const army={...newSelection('Space Marines'),detachments2026:['Spearpoint Task Force','Gauntlet Task Force'],battleSize2026:'Strike Force' as const};
   expect(validateSelection(army)).toBe(true);
   expect(armySetup11th(army).some(item=>item.label==='Force Dispositions'&&item.description.includes('Reconnaissance'))).toBe(true);
  });

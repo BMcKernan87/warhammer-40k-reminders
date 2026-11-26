@@ -1,10 +1,10 @@
 import {describe,it,expect} from 'vitest';
 import {addSelectionUnit,newSelection,validateSelection,removeSelectionUnit} from '../src/catalog';
 import {expandRoster,removeRosterInstance} from '../src/roster-instances';
-import {generateReminders} from '../src/generated-reminders';
+import {generate11thReminders as generateReminders} from '../src/reminders-11th';
 describe('individual squad mode across factions',()=>{
  it.each(['Orks','Tyranids','Space Marines'] as const)('supports squad mode for %s',(faction)=>{
-  const unit=faction==='Orks'?'Gretchin':faction==='Tyranids'?'Termagants':'Eradicator Squad';
+  const unit=faction==='Orks'?'Gretchin':faction==='Tyranids'?'Termagants':'Eradicator Squad with Melta Rifles';
   let army=addSelectionUnit(newSelection(faction),unit,3);
   army={...army,instances:expandRoster(army)};
   expect(validateSelection(army)).toBe(true);

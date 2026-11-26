@@ -43,8 +43,8 @@ const armyBattleline = (unit?: RosterInstance) => unit?.unit === 'Necron Warrior
 
 function hasKeyword(c:TriggerContext,keyword:keyof typeof necronKeywords):boolean {
   if(!c.subject)return false;
-  const bodyId=c.subject.attachedTo??c.subject.id;
-  return c.roster.some(s=>(s.id===bodyId||s.attachedTo===bodyId)&&necronKeywords[keyword].has(s.unit));
+  const bodyId=c.subject.retinueTo??c.subject.attachedTo??c.subject.id;
+  return c.roster.some(s=>(s.id===bodyId||s.attachedTo===bodyId||s.retinueTo===bodyId)&&necronKeywords[keyword].has(s.unit));
 }
 function augmentationRange({battle,bearer}:TriggerContext):number {
   const completed=new Set(battle.events.filter(e=>e.observation?.squadId===bearer.id&&e.observation.action==='meleeKill'&&
@@ -65,18 +65,27 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('shield','Dispersion Shield','Lychguard','allocated','Shield bearers have a 4+ invulnerable save.',{gear:s=>hasPrimary(s,'Hyperphase sword and dispersion shield')}),
   rule('whirling','Whirling Onslaught','Skorpekh Destroyers','fight',c=>c.actedThisTurn('charged')?'This squad charged this turn. You may re-roll its melee Hit rolls.':'Re-roll melee Hit rolls of 1. A squad that charged this turn may re-roll each Hit roll.'),
   rule('plasmacyte','Plasmacyte',['Ophydian Destroyers','Skorpekh Destroyers'],'fight','Spend one Plasmacyte to give the unit’s melee weapons Devastating Wounds for the rest of this phase.',{gear:has('Plasmacyte'),limit:'plasmacytes'}),
-  rule('tunnelling','Tunnelling Horrors','Ophydian Destroyers',atEnd,'If unengaged, this squad may enter Strategic Reserves. It must make an ingress move in your next Movement phase.',{phase:'Fight',turn:'opponent'}),
+  rule('tunnelling','Tunnelling Horrors','Ophydian Destroyers',atEnd,'If unengaged, this squad may enter Strategic Reserves. It must make an ingress move in your next Movement phase, even on your first turn.',{phase:'Fight',turn:'opponent'}),
   rule('charge-reroll','Relentless Combatants','Triarch Praetorians','chargeRoll','You may re-roll this squad’s Charge roll.'),
   rule('praetorian-fallback','Relentless Combatants','Triarch Praetorians','fallback','This squad may still declare a charge this turn.'),
   rule('tomb-evasion','Evasion Engrams','Tomb Blades',['shot','shotHit'],'You may make a Normal move of up to 6″. Taking the move prevents this squad from declaring a charge this turn.',{turn:'own',phase:'Shooting'}),
-  rule('nebuloscope','Nebuloscope','Tomb Blades','shoot',c=>`The ranged weapons of the ${c.bearer.wargear!.Nebuloscope} equipped model(s) have Ignores Cover.`,{gear:has('Nebuloscope')}),
-  rule('hunters','Hyperspace Hunters','Deathmarks','arrival','You may shoot the arriving unit if it is a legal target. All attacks from this reaction must target it.',{scope:'nearby',within:18,visible:true,phase:'Movement',turn:'opponent',limit:'turn'}),
+  rule('nebuloscope','Nebuloscope','Tomb Blades',['shoot','overwatch'],({bearer})=>{
+    const weapons=bearer.modelLoadouts?.filter(row=>row.gear.includes('Nebuloscope')).map(row=>row.primary);
+    const assignment=weapons?' Weapons on those bearers: '+weapons.join(', ')+'.':'';
+    return 'The ranged weapons of surviving Nebuloscope bearers have Ignores Cover ('+bearer.wargear!.Nebuloscope+' originally equipped).'+assignment;
+  },{gear:has('Nebuloscope')}),
+  // The current Deathmarks card retains "Reinforcements step" terminology;
+  // Core 09/20.04 now resolves ingress during Movement's Move Units step.
+  rule('hunters','Hyperspace Hunters','Deathmarks','arrival','When an enemy arrives from reserves in the opponent’s Movement phase, you may shoot that visible enemy unit within 18″ as if it were your Shooting phase, if it is a legal target. All attacks from this reaction must target it. This is normal reactive shooting, not snap shooting. Synaptic disintegrators retain Precision; their Heavy bonus applies only in your Shooting phase.',{scope:'nearby',within:18,visible:true,phase:'Movement',turn:'opponent',limit:'turn'}),
   rule('flesh-hunger','Flesh Hunger','Flayed Ones','fight','Against this below-half-strength target, every successful melee hit is a Critical Hit.',{when:c=>!!c.observation?.belowHalf}),
-  rule('thrall-fight','Systematic Vigour','Cryptothralls','meleeCasualty','Roll for the destroyed Cryptothrall. On 2+, it fights after the enemy unit finishes its attacks, then is removed.'),
+  rule('tomb-shield-move','Shieldvanes','Tomb Blades','phaseStart','Surviving shieldvane bearers have Move 8″, not 12″.',{phase:'Movement',gear:has('Shieldvanes')}),
+  rule('tomb-shield-save','Shieldvanes','Tomb Blades','allocated','Surviving shieldvane bearers have a 3+ Save.',{gear:has('Shieldvanes')}),
+  rule('tomb-shadowloom','Shadowloom','Tomb Blades','targeted','Surviving shadowloom bearers have Stealth; the ranged target gains its Stealth cover benefit only if every model in the unit has Stealth.',{gear:has('Shadowloom')}),
+  rule('thrall-fight','Systematic Vigour','Cryptothralls','meleeCasualty','If the destroyed Cryptothrall has not fought this phase, roll D6. On 2+, it fights after the enemy unit finishes its attacks, then is removed.'),
   rule('scarab','Self-destruction','Canoptek Scarab Swarms',atStart,'If engaged, one Scarab can be destroyed. Choose an enemy in that model’s Engagement Range. Add 1 to the die against a Vehicle. A 2–5 deals D3 mortal wounds and a 6+ deals 3.',{phase:'Fight'}),
   rule('harassment','Harassment Swarm','Canoptek Macrocytes','enemyAttacks','Subtract 1 from the attacking unit’s Hit rolls while it is within this aura.',{scope:'nearby',within:3,when:c=>c.observation?.target==='other'}),
-  rule('macro-mandible','Accelerator Mandible','Canoptek Macrocytes',atStart,'Choose a friendly Canoptek unit within 3″ of the bearer’s unit. Improve its Weapon Skill by 1 for this phase.',{phase:'Fight',gear:has('Accelerator mandible')}),
-  rule('macro-projector','Nanoscarab Projector','Canoptek Macrocytes','reanimate','The bearer may add one wound to this Reanimation Protocols activation.',{gear:has('Atomiser beam and nanoscarab projector'),scope:'nearby',within:3,limit:'round'}),
+  rule('macro-mandible','Accelerator Mandible','Canoptek Macrocytes',atStart,'If the Accelerator Mandible bearer survives, choose a friendly Canoptek unit within 3″ of its unit. Improve its Weapon Skill by 1 for this phase.',{phase:'Fight',gear:has('Accelerator mandible')}),
+  rule('macro-projector','Nanoscarab Projector','Canoptek Macrocytes','reanimate','If the Nanoscarab Projector bearer survives, it may add one wound to this Reanimation Protocols activation.',{gear:has('Atomiser beam and nanoscarab projector'),scope:'nearby',within:3,limit:'round'}),
   rule('crawlers','Weapon Sentinels','Canoptek Tomb Crawlers','shoot','For these attacks within 12″, you may ignore Ballistic Skill, Hit and Wound modifiers.',{when:c=>c.observation?.range!==undefined && c.observation.range<=12}),
   rule('ghost-repair','Repair Barge','Ghost Ark','enemyWounded','This Ghost Ark may activate the affected Warriors’ Reanimation Protocols.',{scope:'nearby',within:3,when:c=>c.subject?.unit==='Necron Warriors',limit:'turn'}),
   rule('reanimation-beam','Nanoscarab Reanimation Beam','Canoptek Reanimator','reanimate','This activation heals an extra D3 wounds. Multiple copies of the same aura do not add further dice.',{scope:'nearby',within:3}),
@@ -89,16 +98,16 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('invasion','Invasion Beams','Night Scythe',atEnd,'If the transport is empty, an unengaged friendly Necrons Infantry unit wholly within 6″ may embark.',{phase:'Fight',when:c=>c.roster.some(eligibleInfantry)}),
   rule('arcing','Malevolent Arcing','Annihilation Barge','tesla','Roll for the target and each other enemy within 3″ of it. On 5+, that unit takes D3 mortal wounds after this model resolves its attacks against the target.',{phase:'Shooting',turn:'own'}),
   rule('relay','Targeting Relay','Triarch Stalker','shotHit','Choose one enemy this Stalker hit. It cannot receive the Benefit of Cover for the rest of this phase.',{phase:'Shooting',turn:'own'}),
-  rule('monolith','Eternity Gate','Monolith',atStart,'During Movement, choose friendly Necrons Infantry on the field or in Strategic Reserves. It can ingress wholly within 6″ of the Monolith, unengaged, and cannot charge this turn.',{phase:'Movement',turn:'own',when:c=>c.battle.round>1&&c.eligibleRoster.some(eligibleInfantry)}),
+  rule('monolith','Eternity Gate','Monolith',atStart,'During Movement, choose one friendly Necrons Infantry unit on the field or in Strategic Reserves. Put an on-field selection into Strategic Reserves first. The unit can ingress wholly within 6″ of the Monolith, unengaged, including in the enemy deployment zone, without needing a battlefield edge. It cannot make a Charge move this turn.',{phase:'Movement',turn:'own',when:c=>c.battle.round>1&&c.eligibleRoster.some(eligibleInfantry)}),
   rule('gravitic','Gravitic Pulse','Obelisk',atStart,'Choose a visible enemy within 18″. Halve its Move, Advance and Charge rolls this turn. If it can Fly, each time it finishes moving before your next Movement phase, a 4+ inflicts D3 mortal wounds.',{phase:'Movement',turn:'opponent'}),
-  rule('vault','Powers of the C’tan','Tesseract Vault','shoot','Choose up to two different C’tan Powers weapons for this phase before resolving shooting.'),
+  rule('vault','Powers of the C’tan','Tesseract Vault','shoot','When selected to shoot in your Shooting phase, choose up to two different C’tan Powers weapons (only one with 1–8 wounds remaining). This model is equipped with those chosen powers in addition to its other weapons until this phase ends.',{phase:'Shooting',turn:'own'}),
   rule('seraptek','Terrifying Monstrosity','Seraptek Heavy Construct',atStart,'Each enemy engaged with any Seraptek with this ability takes one Battle-shock test.',{phase:'Fight'}),
   rule('cover','Ancient Cover','Convergence Of Dominion','allocated','For a ranged attack, the defending model gains cover if this fortification prevents it being fully visible to every model in the attacking unit.',{scope:'nearby',when:c=>!!c.observation?.measurements?.[c.bearer.id]?.blocksSight}),
   rule('necroadjust','Necrodermis',ctan,'allocated','Reduce the Damage characteristic of the attack allocated to this C’tan by 1.'),
   rule('drain','Drain Life',ctan[0],atEnd,'Roll for each enemy unit within 6″. A 4+ inflicts D3 mortal wounds on that unit.',{phase:'Fight'}),
   rule('matter','Matter Absorption',ctan[1],atStart,'Choose an enemy Vehicle within 12″. On 2+, it suffers D3 mortal wounds and the shard regains up to that many lost wounds.',{phase:'Shooting',turn:'own'}),
   rule('displace','Transdimensional Displacement',ctan[3],'advance','This Advance may travel any distance through models. Finish more than 8 inches horizontally from every enemy unit.'),
-  rule('command-king','Triarch Abilities','The Silent King',atStart,'Choose Phaeron of the Stars, Phaeron of the Blades or Relentless March for this battle round.',{phase:'Command',when:c=>c.battle.player==='A'}),
+  rule('command-king','Triarch Abilities','The Silent King',atStart,'Choose Phaeron of the Stars, Phaeron of the Blades or Relentless March for this battle round. Only one is active.',{phase:'Command',when:c=>c.battle.player==='A'}),
   rule('imotekh-cp','Grand Strategist','Imotekh the Stormlord',atStart,'Gain 1 CP for Imotekh being on the battlefield.',{phase:'Command',turn:'own'}),
   rule('imotekh-storm','Lord of the Storm','Imotekh the Stormlord',atEnd,'For each enemy within 12″, roll one die. A 2–5 inflicts D3 mortal wounds and a 6 inflicts D3+3.',{phase:'Command',turn:'own',limit:'battle'}),
   rule('stars','The Stars Are Right','Orikan the Diviner',atStart,'Triple the Attacks and Strength of the Staff of Tomorrow this phase. Each successful Wound roll with Orikan’s attacks is critical.',{phase:'Fight',limit:'battle'}),
@@ -108,6 +117,7 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('harbinger','Harbinger of Destruction','Plasmancer','shoot','A successful unmodified ranged Hit roll of 5+ scores a Critical Hit for the attached unit.',{scope:'leading'}),
   rule('lightning','Living Lightning','Plasmancer',atStart,'During Shooting, choose a visible enemy within 18″. An unattached Lone Operative must be within 12″. Roll four dice, inflicting a mortal wound for each 4+.',{phase:'Shooting',turn:'own'}),
   rule('chronometron','Chronometron','Chronomancer',['shot','shotHit'],'The unengaged unit may make a 5″ Normal move. Taking it prevents a charge this turn.',{scope:'formation',turn:'own',phase:'Shooting',when:c=>!!c.observation?.unengaged}),
+  rule('timesplinter-mantle','Timesplinter Mantle','Chronomancer','targeted','This unit has Stealth; subtract 1 from melee Hit rolls against it.',{scope:'formation'}),
   rule('terror','Harbinger of Despair','Psychomancer',atStart,'Choose an enemy unit within 18″. It takes a Battle-shock test with −1 to the result.',{turn:'own',limit:'turn'}),
   rule('geomancer','Tectonic Reverberations','Geomancer',atStart,'During Movement you may pin a visible enemy within 18″. It takes −2 Move and −2 to Charge rolls until your next Movement phase starts.',{phase:'Movement',turn:'own'}),
   rule('warden','Adaptive Strategy','Royal Warden','fallback','This unit may still shoot and declare a charge this turn.',{scope:'formation'}),
@@ -124,14 +134,14 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('trazyn','Surrogate Hosts','Trazyn the Infinite',atStart,'You may replace another friendly Necrons Infantry Character on the field. Exclude Epic Heroes and Skorpekh Lords. Ignore destruction triggers, restore Trazyn to full wounds and inherit the host’s leadership assignment.',{phase:'Command',turn:'own',when:c=>c.roster.some(s=>['Overlord','Overlord with translocation shroud','Chronomancer','Geomancer','Hexmark Destroyer','Plasmancer','Psychomancer','Royal Warden','Technomancer'].includes(s.unit))}),
   rule('overlord','Implacable Resilience','Overlord','allocated','Reduce incoming Damage by 1 when the attack is allocated to this Overlord model.'),
   rule('will','My Will Be Done',overlords,'stratagem','You may reduce the cost of this use of the Stratagem by 1 CP.',{scope:'formation',limit:'round',shared:true}),
-  rule('shroud','Translocation Shroud',overlords[1],'advance','Add 6″ to Move instead of rolling to Advance. Models can pass horizontally through models and terrain and must finish clear.',{scope:'formation'}),
+  rule('shroud','Translocation Shroud',overlords[1],['normal','advance','fallback'],'When Advancing, add 6″ to Move instead of rolling. During Normal, Advance or Fall Back moves, the unit’s models may move horizontally through models and terrain, finishing clear of other models and their bases.',{scope:'formation'}),
   rule('orb','Resurrection Orb',[...overlords,'Lokhust Lord','Catacomb Command Barge'],atEnd,c=>c.bearer.unit==='Catacomb Command Barge'?'Choose a friendly Necrons Infantry or Mounted unit within 6″. Activate its Reanimation Protocols with D6 wounds.':'Activate this unit’s Reanimation Protocols with D6 wounds.',{gear:carriesOrb,limit:'battle',when:c=>c.bearer.unit!=='Catacomb Command Barge'||c.roster.some(s=>eligibleInfantry(s)||necronKeywords.MOUNTED.has(s.unit))}),
   rule('lokhust-lead','Destroyer Cult','Lokhust Lord','shoot','Successful unmodified ranged Hit rolls of 5+ are critical for the led unit.',{scope:'leading'}),
   rule('hatred','Driven by Hatred','Lokhust Lord',['shoot','fight'],'Against this below-half-strength enemy, the Lord may re-roll its Hit and Wound rolls.',{when:c=>!!c.observation?.belowHalf}),
   rule('amulet','Nanoscarab Amulet','Lokhust Lord','allocated','This bearer has Feel No Pain 5+.',{gear:has('Nanoscarab amulet')}),
   rule('command-shield','Advanced Quantum Shielding','Catacomb Command Barge','targeted','The attack’s Strength exceeds this Barge’s Toughness. Subtract 1 from the Wound roll.',{when:c=>(c.observation?.strength??0)>(c.observation?.toughness??8)}),
   rule('hex-hits','Inescapable Death','Hexmark Destroyer','overwatch','Overwatch attacks from this Hexmark hit on unmodified rolls of 2+.'),
-  rule('tachyon','Tachyon Arrow','Overlord','shoot','This arrow can be fired once per battle. Mark it used when this Overlord fires it.',{gear:s=>hasPrimary(s,'Tachyon arrow and Overlord’s blade'),limit:'battle'}),
+  rule('tachyon','Tachyon Arrow','Overlord',['shoot','overwatch'],'This Overlord’s tachyon arrow can be fired once per battle, including when using Fire Overwatch. Mark it used when this bearer fires it; returning that bearer to the battlefield does not restore the shot.',{gear:s=>hasPrimary(s,'Tachyon arrow and Overlord’s blade'),limit:'battle'}),
   rule('hex-overwatch','Inescapable Death · free Overwatch','Hexmark Destroyer','overwatch','You may use Fire Overwatch for 0 CP, including after using it on another unit this phase.',{limit:'turn',shared:true}),
   rule('hex-return','Multi-threat Eliminator','Hexmark Destroyer',['enemyAttacked','enemyWounded'],'One Hexmark within 3″ may shoot back at that enemy alone, provided it is an eligible target.',{phase:'Shooting',turn:'opponent',scope:'nearby',within:3,limit:'turn',shared:true}),
   ...weaponRules,

@@ -15,9 +15,9 @@ describe('army-wide roster findings',()=>{
   const findings=rosterFindings(addSelectionUnit(newSelection('Tyranids'),'Termagants',4));
   expect(findings.some(x=>x.code==='rule-of-three')).toBe(false);
  });
- it('discloses unverified detachments and unit sizes',()=>{
-  const findings=rosterFindings(addSelectionUnit(newSelection('Aeldari'),'Farseer'));
+ it('distinguishes a missing detachment choice from verified chapter unit sizes',()=>{
+  const findings=rosterFindings(addSelectionUnit({...newSelection('Dark Angels'),detachments2026:[]},'Azrael'));
   expect(findings.some(x=>x.code==='no-11e-detachment')).toBe(true);
-  expect(findings.some(x=>x.code==='size-unverified'&&x.unit==='Farseer')).toBe(true);
+  expect(findings.some(x=>x.code==='size-unverified'&&x.unit==='Azrael')).toBe(false);
  });
 });

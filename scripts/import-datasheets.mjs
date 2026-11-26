@@ -1,0 +1,119 @@
+import {readFileSync,writeFileSync,renameSync,rmSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const root=fileURLToPath(new URL('../',import.meta.url));
+const input=resolve(root,'data/necrons-11e-datasheets.json');
+const output=resolve(root,'src/datasheets-2026.generated.ts');
+const fail=message=>{throw new Error('11e datasheet import: '+message);};
+const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+const integer=(v,min=1)=>Number.isSafeInteger(v)&&v>=min;
+const string=v=>typeof v==='string'&&v.trim().length>0&&v===v.trim();
+function keys(v,allowed,label){
+ if(!object(v)||Object.keys(v).some(k=>!allowed.includes(k)))fail(label+' has unexpected fields or invalid shape');
+}
+function source(v,label){
+ if(!string(v))fail(label+' missing source');
+ let u;try{u=new URL(v);}catch{fail(label+' invalid source URL');}
+ if(u.protocol!=='https:'||u.username||u.password||u.port)fail(label+' invalid source URL');
+ const valid=(u.hostname==='wahapedia.ru'&&u.pathname.startsWith('/wh40k11ed/factions/necrons/'))||
+ (u.hostname==='assets.warhammer-community.com'&&(/warhammer40000_faction_pack_necrons.*\.pdf$/.test(u.pathname)||
+   u.pathname==='/eng_30-09_wh40k_faction_pack_necrons-1urphgbmpy-wbhocjbaba.pdf'))||
+ (u.hostname==='tactical40k.com'&&u.pathname==='/codex/necrons');
+ if(!valid)fail(label+' source not recognized as a Necron 11e reference');
+}
+function prices(v,sizes,label){
+ if(!object(v)||Object.keys(v).length!==sizes.length||sizes.some(s=>!integer(v[s]))||Object.keys(v).some(k=>!sizes.includes(Number(k))||String(Number(k))!==k))fail(label+' missing or invalid price for legal model size');
+}
+function keywords(list,label){
+ if(!Array.isArray(list)||!list.length||list.some(k=>!string(k)||k!==k.toUpperCase())||new Set(list).size!==list.length)fail(label+' invalid keywords');
+}
+function composition(d){
+ if(!Array.isArray(d.composition)||!d.composition.length)fail(d.unit+' missing model composition');
+ const names=new Set();let min=0,max=0;
+ for(const row of d.composition){
+  keys(row,['model','min','max'],d.unit+' composition');
+  if(!string(row.model)||names.has(row.model)||!integer(row.min)||!integer(row.max,row.min))fail(d.unit+' invalid model composition');
+  names.add(row.model);min+=row.min;max+=row.max;
+ }
+ if(min!==d.sizes[0]||max!==d.sizes.at(-1))fail(d.unit+' composition and price brackets disagree');
+ if(d.modelKeywords!==undefined){
+  if(!object(d.modelKeywords)||!Object.keys(d.modelKeywords).length)fail(d.unit+' invalid model keywords');
+  for(const [name,values] of Object.entries(d.modelKeywords)){
+   if(!names.has(name))fail(d.unit+' unknown keyword bearer '+name);
+   keywords(values,d.unit+' '+name);
+  }
+ }
+}
+function profile(v,label){
+ keys(v,['move','toughness','save','wounds','leadership','objectiveControl'],label);
+ if(!string(v.move)||!(/^[1-9]\d*"$/.test(v.move)||v.move==='-')||!string(v.save)||!(/^[1-9]\d*\+$/.test(v.save))||
+   !string(v.leadership)||!(/^[1-9]\d*\+$/.test(v.leadership))||!integer(v.toughness)||!integer(v.wounds)||(!integer(v.objectiveControl,0)&&v.objectiveControl!=='-'))fail(label+' invalid profile');
+}
+const canonical=v=>Array.isArray(v)?v.map(canonical):object(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
+export function generateDatasheets(snapshot){
+ keys(snapshot,['edition','faction','revision','sourceStatus','expectedUnits','datasheets'],'snapshot');
+ if(snapshot.edition!==11||snapshot.faction!=='Necrons'||!string(snapshot.revision)||!['mixed-source-unreconciled','source-reconciled'].includes(snapshot.sourceStatus))fail('unsupported edition, faction or missing revision/status');
+ if(!Array.isArray(snapshot.datasheets)||snapshot.datasheets.length===0)fail('empty datasheet input');
+ if(!Array.isArray(snapshot.expectedUnits)||snapshot.expectedUnits.length===0||snapshot.expectedUnits.some(u=>!string(u))||new Set(snapshot.expectedUnits).size!==snapshot.expectedUnits.length)fail('invalid expected unit manifest');
+ const seen=new Set();
+ for(const d of snapshot.datasheets){
+  keys(d,['faction','unit','source','sizes','pointsBySize','laterCopyPointsBySize','pointsSource','verified','profile','modelProfiles','keywords','modelKeywords','composition','attachmentRole','bodyguards'],'datasheet');
+  if(d.faction!==snapshot.faction||!string(d.unit)||seen.has(d.unit))fail('invalid faction, missing or duplicate unit: '+d.unit);
+  seen.add(d.unit);
+  source(d.source,d.unit);
+  source(d.pointsSource,d.unit+' points');
+  if(d.verified!=='sizes-and-points'||!Array.isArray(d.sizes)||d.sizes.length===0||d.sizes.some(n=>!integer(n))||new Set(d.sizes).size!==d.sizes.length)fail(d.unit+' invalid or incomplete model sizes');
+  if(d.sizes.some((n,i)=>i>0&&n<=d.sizes[i-1]))fail(d.unit+' unordered price brackets');
+  keywords(d.keywords,d.unit);
+  if(!d.keywords.includes('NECRONS'))fail(d.unit+' missing faction keyword');
+  composition(d);
+  if(d.bodyguards!==undefined||d.attachmentRole!==undefined){
+   if(!['leader','support'].includes(d.attachmentRole)||!Array.isArray(d.bodyguards)||!d.bodyguards.length||
+     new Set(d.bodyguards).size!==d.bodyguards.length||d.bodyguards.some(unit=>unit===d.unit||!snapshot.expectedUnits.includes(unit))){
+    fail(d.unit+' invalid attachment role or bodyguard');
+   }
+  }
+  prices(d.pointsBySize,d.sizes,d.unit);
+  if(d.laterCopyPointsBySize!==undefined){
+   if(!object(d.laterCopyPointsBySize)||!Object.keys(d.laterCopyPointsBySize).length)fail(d.unit+' invalid copy tiers');
+   for(const [tier,table] of Object.entries(d.laterCopyPointsBySize)){
+    if(!integer(Number(tier),2)||String(Number(tier))!==tier)fail(d.unit+' invalid copy tier');
+    prices(table,d.sizes,d.unit+' copy '+tier);
+   }
+  }
+  if(d.profile===undefined&&d.modelProfiles===undefined)fail(d.unit+' missing model profile');
+  if(d.profile!==undefined)profile(d.profile,d.unit);
+  if(d.modelProfiles!==undefined){
+   if(d.profile||!object(d.modelProfiles)||Object.keys(d.modelProfiles).length<2)fail(d.unit+' invalid model profiles');
+   for(const [name,value] of Object.entries(d.modelProfiles)){
+    if(!string(name))fail(d.unit+' unnamed model profile');
+    profile(value,d.unit+' '+name);
+   }
+  }
+ }
+ if(seen.size!==snapshot.expectedUnits.length||snapshot.expectedUnits.some(u=>!seen.has(u)))fail('datasheet set does not match expected unit manifest');
+ const ordered=[...snapshot.datasheets].sort((a,b)=>a.unit<b.unit?-1:a.unit>b.unit?1:0).map(canonical);
+ return '// Generated from data/necrons-11e-datasheets.json. Run npm run import:datasheets; do not edit.\n'+
+  "import type {Datasheet2026} from './datasheets-2026';\n"+
+  'export const DATASHEET_IMPORT_REVISION='+JSON.stringify({edition:snapshot.edition,faction:snapshot.faction,revision:snapshot.revision,sourceStatus:snapshot.sourceStatus})+' as const;\n'+
+  'export const IMPORTED_DATASHEETS_2026:readonly Datasheet2026[]='+JSON.stringify(ordered,null,2)+';\n';
+}
+export function runImport({inputPath=input,outputPath=output,check=false}={}){
+ // Read and validate everything before touching the last known good registry.
+ const snapshot=JSON.parse(readFileSync(inputPath,'utf8'));
+ const generated=generateDatasheets(snapshot);
+ if(check){
+  if(readFileSync(outputPath,'utf8')!==generated)fail('generated registry is stale; run npm run import:datasheets');
+  return;
+ }
+ const temp=outputPath+'.tmp-'+process.pid;
+ try{writeFileSync(temp,generated,{flag:'wx'});renameSync(temp,outputPath);}finally{rmSync(temp,{force:true});}
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ try{
+  if(process.argv.slice(2).some(a=>a!=='--check'))fail('usage: node scripts/import-datasheets.mjs [--check]');
+  runImport({check:process.argv.includes('--check')});
+  console.log('Necron 11e datasheet registry '+(process.argv.includes('--check')?'verified':'generated'));
+ }catch(e){console.error(e.message);process.exitCode=1;}
+}

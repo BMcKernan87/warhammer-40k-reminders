@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('mobile builder equipment choices persist across profiles without showing legacy reminders',async({page})=>{
  await page.setViewportSize({width:390,height:844});
- await page.goto('/');
+ await page.goto('./');
  await page.getByLabel('Select unit').selectOption('Immortals');
  await page.getByRole('button',{name:'Add',exact:true}).click();
  await page.getByRole('button',{name:'Play reminders'}).click();
@@ -20,12 +20,12 @@ test('mobile builder equipment choices persist across profiles without showing l
 });
 test('print contains all phases even when current phase is filtered',async({page})=>{
  await page.setViewportSize({width:375,height:812});
- await page.goto('/');
+ await page.goto('./');
  await page.getByRole('button',{name:'Play reminders'}).click();
 
  const phases=page.locator('.print-sheet h3');
- await expect(phases).toHaveCount(7);
+ await expect(phases).toHaveCount(11);
  await page.emulateMedia({media:'print'});
  await expect(page.locator('.print-sheet')).toBeVisible();
- await expect(page.locator('.print-sheet h3')).toContainText(['Pre-battle','Command','Movement','Shooting','Charge','Fight','End of opponent turn']);
+ await expect(page.locator('.print-sheet h3')).toContainText(['Pre-battle','Start of battle round','Start of turn','Command','Movement','Shooting','Charge','Fight','End of your turn','End of opponent turn','End of battle round']);
 });

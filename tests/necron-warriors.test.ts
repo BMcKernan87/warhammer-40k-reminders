@@ -16,7 +16,7 @@ describe('Necron Warrior squad configuration',()=>{
  it('rejects illegal squad sizes and permits legal mixed-weapon configurations',()=>{
   let a=addSelectionUnit(newSelection(),'Necron Warriors');
   a={...a,instances:expandRoster(a)};
-  expect(()=>setInstanceModelCount(a,'Necron Warriors#1',15)).toThrow();
+  expect(()=>setInstanceModelCount(a,'Necron Warriors#1',21)).toThrow();
   a=setInstanceWeaponCounts(a,'Necron Warriors#1',{'Gauss flayer':5,'Gauss reaper':5});
   expect(validateSelection(a)).toBe(true);
   const reminders=generateReminders(a);

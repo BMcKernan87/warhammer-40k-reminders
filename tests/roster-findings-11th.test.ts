@@ -21,6 +21,6 @@ describe('11th edition roster diagnostics',()=>{
  });
  it('does not treat another faction battleline as battleline',()=>{
   const army={...newSelection('Space Marines'),units:{'Necron Warriors':5},detachments2026:['Gladius Task Force']};
-  expect(codes(army)).toContain('rule-of-three');
+  expect(codes(army)).toContain('space-marines-ineligible');
  });
 });

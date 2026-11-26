@@ -24,7 +24,7 @@ describe('prepopulated cross-faction equipment choices',()=>{
   expect(()=>setEquipment(army,'Tyrannofex','Acid spray')).toThrow();
  });
  it('does not model squad-wide Eradicator multi-melta as a uniform weapon',()=>{
-  const army=addSelectionUnit(newSelection('Space Marines'),'Eradicator Squad');
-  expect(equipmentOption(army,'Eradicator Squad')).toBeUndefined();
+  const army=addSelectionUnit(newSelection('Space Marines'),'Eradicator Squad with Melta Rifles');
+  expect(equipmentOption(army,'Eradicator Squad with Melta Rifles')).toBeUndefined();
  });
 });

@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
+    outputs:
+      artifact: ${{ steps.revision.outputs.artifact }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,8 +22,14 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npm run build
+      - name: Record deployed revision
+        id: revision
+        run: |
+          printf '{"sha":"%s"}\n' "$GITHUB_SHA" > dist/revision.json
+          echo "artifact=github-pages-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v3
         with:
+          name: ${{ steps.revision.outputs.artifact }}
           path: dist
   deploy:
     environment:
@@ -32,3 +40,45 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact }}
+
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BASE_URL: https://bmckernan87.github.io/warhammer-40k-reminders/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deployed revision
+        run: |
+          node --input-type=module <<'NODE'
+          const url = new URL('revision.json', process.env.PLAYWRIGHT_BASE_URL);
+          url.searchParams.set('sha', process.env.GITHUB_SHA);
+          for(let i=0;i<12;i++){
+            try {
+              const response=await fetch(url,{cache:'no-store'});
+              if(response.ok && (await response.json()).sha===process.env.GITHUB_SHA) process.exit(0);
+            } catch(error){console.error(String(error));}
+            await new Promise(resolve=>setTimeout(resolve,5000));
+          }
+          throw new Error('Public Pages revision does not match the deployed commit');
+          NODE
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Upload shared core print evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-core-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            test-results/shared-core-instructions-*/reminders.pdf
+            test-results/shared-core-instructions-*/fight-reminders.png
+            test-results/persistent-rule-followups-*/reminders.pdf
+            test-results/persistent-rule-followups-*/phase-reminders.png
+          if-no-files-found: ignore
+          retention-days: 7
