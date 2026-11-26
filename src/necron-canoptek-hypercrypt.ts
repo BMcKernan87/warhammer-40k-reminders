@@ -17,7 +17,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
  const formations=necronFormationRoots(army,roster);
  const root=(s:RosterInstance)=>formations.find(f=>f.members.some(m=>m.id===s.id));
- const attached=(s:RosterInstance)=>root(s)?.id!==s.id&&!!root(s);
+ const attached=(s:RosterInstance)=>!!root(s)?.leading.some(m=>m.id===s.id);
  const matching=(predicate:(unit:string)=>boolean)=>formations.filter(f=>f.members.some(s=>predicate(s.unit))).map(f=>f.id);
  const cryptekModels=roster.filter(s=>k.CRYPTEK.has(s.unit)).map(s=>s.id);
  const crypteks=matching(u=>k.CRYPTEK.has(u)),constructs=matching(u=>canoptek.has(u));
@@ -25,7 +25,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  const armedFormations=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
  const armedCourtModels = formations.filter(f=>f.members.some(s=>(k.CRYPTEK.has(s.unit)||canoptek.has(s.unit))&&hasNecronRangedWeapon(s))).map(f=>f.id);
  const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units?:string[])=>result.push({id:'11e-necron-'+id,title,window,timing,summary,source:COURT_HYPERCRYPT_SOURCE,origin:'detachment',units});
- const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,timing,[s.id,...(attached(s)?[root(s)!.id]:[])]);
+ const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,timing,[...new Set([s.id,...(attached(s)?[root(s)!.id]:[])])]);
  if(selected.includes('Canoptek Court')){
   if(courtUnits.length){
    for(const phase of ['Command','Movement','Shooting','Charge','Fight'] as const)
@@ -72,7 +72,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
   for(const s of roster.filter(s=>HYPERCRYPT_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Dimensional Overseer':bearer(s,'hypercrypt-overseer','Dimensional Overseer','End of opponent turn','While this bearer is on the battlefield or in Strategic Reserves, increase your Hyperphasing selection limit by one (to '+(limit+1)+').','end');break;
-    case 'Arisen Tyrant':for(const phase of ['Shooting','Fight'] as const)bearer(s,'hypercrypt-tyrant-'+phase,'Arisen Tyrant',phase,'This formation re-rolls Hit rolls of 1; re-roll all Hit rolls if it was set up on the battlefield this turn.');break;
+    case 'Arisen Tyrant':for(const phase of ['Shooting','Fight'] as const)if(phase==='Fight'||armedFormations.has(root(s)?.id??s.id))bearer(s,'hypercrypt-tyrant-'+phase,'Arisen Tyrant',phase,'This formation re-rolls Hit rolls of 1; re-roll all Hit rolls if it was set up on the battlefield this turn.');break;
     case 'Hyperspatial Transfer Node':bearer(s,'hypercrypt-node','Hyperspatial Transfer Node','Movement','When this formation Advances, add 6″ to Move for the phase instead of rolling.');break;
     case 'Osteoclave Fulcrum':bearer(s,'hypercrypt-osteoclave','Osteoclave Fulcrum','Pre-battle','The bearer’s formation gains Deep Strike.','start');bearer(s,'hypercrypt-osteoclave-ingress','Osteoclave Fulcrum · arrival','Movement','The formation can use Deep Strike subject to normal arrival restrictions.');break;
    }

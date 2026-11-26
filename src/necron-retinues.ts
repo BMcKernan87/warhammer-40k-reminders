@@ -61,14 +61,42 @@ export function ghostArkPassengers(army:ArmySelection):RosterInstance[]{
  });
 }
 
-// Only a legally joined Leader, Support or retinue shares a formation root.
+export interface NecronFormation {
+ id:string;
+ body:RosterInstance;
+ members:RosterInstance[];
+ originalBody:RosterInstance;
+ /** Surviving Leader/Support units that legally started the battle attached. */
+ leading:RosterInstance[];
+}
+
+// Validate joins against the mustered army before filtering casualties. Retinues
+// join the Bodyguard until the end of the battle; Core 19.01/19.04 likewise retain
+// the surviving attached formation and its own leading abilities after losses.
 // Purchased squads retain separate identity and points.
-export function necronFormationRoots(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)) {
- const snapshot={...army,instances:[...roster]};
+export function necronFormationRoots(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):NecronFormation[] {
+ const original=expandRoster(army),byId=new Map(original.map(s=>[s.id,s]));
  const joined=new Map<string,string>();
- for(const s of roster){
-  if(s.attachedTo&&validSupportAttachment(snapshot,s))joined.set(s.id,s.attachedTo);
-  if(s.retinueTo&&eligibleRetinueBodies(snapshot,s.id).some(b=>b.id===s.retinueTo))joined.set(s.id,s.retinueTo);
+ for(const s of original){
+  if(s.attachedTo&&validSupportAttachment(army,s))joined.set(s.id,s.attachedTo);
+  if(s.retinueTo&&eligibleRetinueBodies(army,s.id).some(b=>b.id===s.retinueTo))joined.set(s.id,s.retinueTo);
  }
- return roster.filter(s=>!joined.has(s.id)).map(body=>({id:body.id,body,members:[body,...roster.filter(s=>joined.get(s.id)===body.id)]}));
+ const groups=new Map<string,{originalBody:RosterInstance;members:RosterInstance[]}>();
+ for(const [index,squad] of roster.entries()){
+  const start=byId.get(squad.id);
+  const unchanged=start?.unit===squad.unit&&start.attachedTo===squad.attachedTo&&start.retinueTo===squad.retinueTo;
+  const originalId=unchanged?(joined.get(squad.id)??squad.id):undefined;
+  // Changed identities or links do not inherit another unit's original membership.
+  const key=originalId===undefined?'current:'+index:'original:'+originalId;
+  const group=groups.get(key)??{originalBody:originalId===undefined?squad:byId.get(originalId)!,members:[]};
+  group.members.push(squad);groups.set(key,group);
+ }
+ const positions=new Map(roster.map((s,i)=>[s.id,i]));
+ return [...groups.values()].map(({originalBody,members}):NecronFormation=>{
+  const body=members.find(s=>s.id===originalBody.id)
+   ??members.find(s=>s.retinueTo===originalBody.id&&joined.get(s.id)===originalBody.id)
+   ??members[0];
+  return {id:body.id,body,originalBody,members:[body,...members.filter(s=>s!==body)],
+   leading:members.filter(s=>s.attachedTo===originalBody.id&&joined.get(s.id)===originalBody.id)};
+ }).sort((a,b)=>positions.get(a.id)!-positions.get(b.id)!);
 }

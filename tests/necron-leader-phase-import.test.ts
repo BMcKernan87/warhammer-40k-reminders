@@ -23,7 +23,8 @@ describe('imported Necron Leader rules follow attachments and phases',()=>{
   expect(generate11thReminders(base).find(r=>r.title.includes('Chronometron'))?.units).toEqual(['Chronomancer#1']);
   expect(generate11thReminders(attached).find(r=>r.title.includes('Chronometron'))?.units).toEqual(['Chronomancer#1','Immortals#1']);
   const defence=generate11thReminders(attached).filter(r=>r.title.includes('Timesplinter Mantle'));
-  expect(defence.map(r=>r.window)).toEqual(['Shooting','Fight']);
+  // Stealth also applies to permitted ranged reactions in Movement (core 24.33).
+  expect(defence.map(r=>r.window)).toEqual(['Shooting','Fight','Movement']);
   expect(defence.every(r=>r.units?.join(',')==='Chronomancer#1,Immortals#1')).toBe(true);
   expect(generate11thReminders(base).filter(r=>r.title.includes('Timesplinter Mantle')).every(r=>r.units?.join(',')==='Chronomancer#1')).toBe(true);
  });
