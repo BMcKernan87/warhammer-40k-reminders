@@ -1,6 +1,6 @@
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder} from './generated-reminders';
-import {transportMovementReminders} from './transport-movement';
+import {survivingTransportPassengers,transportMovementReminders} from './transport-movement';
 import {knightJoinedBodyguard} from './leader-eligibility';
 import type {RosterFinding} from './roster-findings';
 import {expandRoster,type RosterInstance} from './roster-instances';
@@ -103,5 +103,32 @@ export function votannTransportReminders(army:ArmySelection,roster=expandRoster(
   result.push({id:'11e-votann-cargo-'+transport.id,title:transport.unit+' · Declare passengers',window:'Pre-battle',turn:'either',timing:'during',origin:'unit',units:[transport.id],source,
    summary:special+split+' Capacity '+capacity[transport.unit]+'. '+(list?'Eligible passengers: '+list+'.':'No eligible passengers are available.')});
  }
- return [...result,...transportMovementReminders('11e-votann-',[...passengers],carriers)];
+ const original=expandRoster(army),originalGroups=formations(army,original);
+ const originalCarriers=original.filter(s=>Object.hasOwn(capacity,s.unit)&&!roster.some(now=>now.id===s.id&&now.unit!==s.unit));
+ const current=new Map(roster.map(s=>[s.id,s]));
+ const priorCargo=originalGroups.filter(g=>{
+  // A malformed original attachment must not be silently left out of cargo.
+  if(g.some(s=>s.retinueTo)||!original.filter(s=>s.attachedTo===g[0].id).every(s=>g.some(member=>member.id===s.id)))return false;
+  const survivors=g.flatMap(s=>current.has(s.id)?[current.get(s.id)!]:[]);
+  return originalCarriers.some(transport=>{
+   if(option(army,transport.unit,g,original)||survivors.length&&option(army,transport.unit,survivors,original))return true;
+   // Below the printed starting sizes, exact surviving mixed-model composition
+   // is unavailable. Preserve only the conditional prior-disembark check for
+   // known eligible member types; never infer a new embark or a seat count.
+   const partial=survivors.some(s=>!votannSheets.get(s.unit)?.compositionBySize?.[s.models??votannSheets.get(s.unit)?.sizes[0]??0]);
+   if(!partial)return false;
+   let minimumSeats=0;
+   for(const s of survivors){
+    const before=g.find(start=>start.id===s.id)!,initial=before.models??votannSheets.get(before.unit)?.sizes[0]??0;
+    const remaining=s.models??votannSheets.get(s.unit)?.sizes[0]??0;
+    const originalSeats=spaces(army,transport.unit,[before]);
+    if(!Number.isInteger(remaining)||remaining<1||remaining>initial||!originalSeats||remaining>originalSeats.length)return false;
+    minimumSeats+=total([...originalSeats].sort((a,b)=>a-b).slice(0,remaining));
+   }
+   // A lower bound can reject impossible cargo without selecting which models
+   // survived. An originally legal split is already covered by option above.
+   return minimumSeats<=capacity[transport.unit];
+  });
+ });
+ return [...result,...transportMovementReminders('11e-votann-',[...passengers],carriers,survivingTransportPassengers(priorCargo,roster))];
 }

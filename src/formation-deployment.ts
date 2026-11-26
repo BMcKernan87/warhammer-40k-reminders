@@ -23,7 +23,10 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  const entries=rosterCost2026(army).entries;
  const prices=new Map(entries.map(e=>[e.id,e.points]));
  const cost=(f:ArmyFormation)=>f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0);
- const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'||army.faction==='Adeptus Mechanicus'||army.faction==='T’au Empire'||army.faction==='Tyranids'||army.faction==='Drukhari'||army.faction==='Aeldari'||isSpaceMarineFaction(army.faction)?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
+ // Core 20.01/23.01: every actual Aircraft starts in Strategic Reserves and
+ // consumes the starting allowance unless a specific faction rule exempts it.
+ // In particular, Necron Doom Scythes count; Night Scythes no longer have Aircraft.
+ const mandatoryAircraft=formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT'));
  if(army.faction==='Orks'&&mandatoryAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',mandatoryAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
  const tyranidReserves=army.faction==='Tyranids'?tyranidReserveAccounting(army):undefined;
  const compulsory=isSpaceMarineFaction(army.faction)?spaceMarineMandatoryReservePoints(army,entries):army.faction==='Orks'?orkMandatoryReservePoints(army,entries):tyranidReserves?.minimumAircraftPoints??mandatoryAircraft.reduce((points,f)=>points+cost(f),0);

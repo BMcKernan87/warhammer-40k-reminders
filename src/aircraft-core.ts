@@ -10,7 +10,7 @@ export function aircraftCoreReminders(prefix:string,units:string[],freeReserves=
   card('deployment','compulsory reserves','Pre-battle','either','start',
    'Place each Aircraft in Strategic Reserves when declaring formations.'+(freeReserves?'':' Include its points in the starting allowance.')),
   card('ingress','movement','Movement','either','during',
-   'An Aircraft can only make ingress moves and cannot use Rapid Ingress. Other models may move through Aircraft. A unit engaged solely with Aircraft may make a Normal or Advance move.'),
+   'An Aircraft can only make ingress moves and cannot use Rapid Ingress. Other models may move through Aircraft. A unit engaged solely with Aircraft may make a Normal or Advance move. Plunging Fire does not apply to ranged attacks made by or targeting Aircraft, including normal Movement-phase reactions.'),
   card('shooting','Plunging Fire','Shooting','either','during',
    'Plunging Fire does not apply to ranged attacks made by or targeting Aircraft.'),
   card('charge','charge targets','Charge','either','during',

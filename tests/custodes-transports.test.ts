@@ -13,6 +13,19 @@ const build=(units:string[],detachment='Guardians of the Throne')=>individualArm
 const id=(unit:string)=>unit+'#1';
 const withLeader=(army:ArmySelection,leader:string,body:string)=>setInstanceAttachment(army,id(leader),id(body));
 
+// Core 20.01/23.01 and the current printed Aircraft keyword:
+// https://wahapedia.ru/wh40k11ed/factions/adeptus-custodes/Ares-Gunship
+// https://wahapedia.ru/wh40k11ed/factions/adeptus-custodes/Orion-Assault-Dropship
+it('counts Ares compulsory reserves while keeping the non-Aircraft Orion optional when its cost fits',()=>{
+ const ares=build(['Ares Gunship','Orion Assault Dropship','Shield-Captain']);
+ const reserve=(a:ArmySelection)=>generate11thReminders(a).find(r=>r.title==='Declare Strategic Reserves');
+ expect(rosterCost2026(ares).entries.find(e=>e.unit==='Ares Gunship')?.points).toBe(580);
+ expect(reserve(ares)).toMatchObject({units:[id('Shield-Captain')],summary:expect.stringContaining('After compulsory Aircraft, 420 points remain')});
+ const orion=reserve(build(['Orion Assault Dropship','Shield-Captain']))!;
+ expect(orion.units).toEqual(['Orion Assault Dropship','Shield-Captain'].map(id));
+ expect(orion.summary).not.toContain('After compulsory Aircraft');
+});
+
 it('resolves Orion mixed cargo and Coronus Jump Pack exclusions from unsplit legal formations',()=>{
  const orion='Orion Assault Dropship',coronus='Coronus Grav-Carrier',dread='Telemon Heavy Dreadnought',second='Contemptor-Galatus Dreadnought',body='Custodian Wardens',jump='Venatari with Kinetic Destroyers';
  const army=setInstanceModelCount(withLeader(build([orion,coronus,dread,second,'Trajann Valoris',body,jump,'Witchseeker Squad']),'Trajann Valoris',body),id(body),3);

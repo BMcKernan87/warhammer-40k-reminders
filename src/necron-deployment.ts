@@ -1,9 +1,8 @@
 import {aircraftCoreReminders} from './aircraft-core';
 import {transportMovementReminders} from './transport-movement';
-import {NECRON_SUPPORTS} from './attachments';
 import type {ArmySelection} from './catalog';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
-import {ghostArkPassengers,necronFormationRoots} from './necron-retinues';
+import {ghostArkPassengers,necronFormationRoots,necronTransportFormations} from './necron-retinues';
 import {necronKeywords} from './necron-wargear';
 import type {RosterInstance} from './roster-instances';
 
@@ -19,15 +18,32 @@ export function necronDeploymentReminders(army:ArmySelection,roster:RosterInstan
  const aircraft=formations.filter(f=>necronKeywords.AIRCRAFT.has(f.body.unit)).map(f=>f.id);
  out.push(...aircraftCoreReminders('11e-necron-',aircraft));
 
- const arks=roster.filter(s=>s.unit==='Ghost Ark');
- const scythes=roster.filter(s=>s.unit==='Night Scythe');
- const arkPassengers=arks.length?ghostArkPassengers(army).map(s=>s.id):[];
- const scythePassengers=scythes.length?formations.filter(f=>!NECRON_SUPPORTS.has(f.body.unit)&&f.members.some(s=>necronKeywords.INFANTRY.has(s.unit))).map(f=>f.id):[];
+ const transportFormations=necronTransportFormations(army,roster);
+ const originalFormations=necronTransportFormations(army);
+ const arks=transportFormations.filter(f=>f.body.unit==='Ghost Ark').map(f=>f.body);
+ const scythes=transportFormations.filter(f=>f.body.unit==='Night Scythe').map(f=>f.body);
+ const infantry=(f:typeof transportFormations[number])=>f.members.some(s=>necronKeywords.INFANTRY.has(s.unit));
+ const arkPassengers=arks.length?ghostArkPassengers(army,roster).map(s=>s.id):[];
+ const scythePassengers=scythes.length?transportFormations.filter(infantry).map(f=>f.id):[];
  add('night-scythe-embark','Night Scythe · embarkation','Pre-battle','start',
   'Each Night Scythe may start with one whole Necrons Infantry unit embarked. An attached formation with the Infantry keyword occupies that unit slot together.',scythePassengers,
   'https://wahapedia.ru/wh40k11ed/factions/necrons/Night-Scythe');
  const passengers=[...new Set([...arkPassengers,...scythePassengers])];
  const transports=[...(arkPassengers.length?arks:[]),...(scythePassengers.length?scythes:[])].map(s=>s.id);
- out.push(...transportMovementReminders('11e-necron-',passengers,transports));
+ // A previous disembark's charge restriction survives losing the carrier or
+ // the model that supplied the original unit's Infantry keyword. This names
+ // only surviving original formations and does not restore Movement options.
+ const hadArk=originalFormations.some(f=>f.body.unit==='Ghost Ark');
+ const hadScythe=originalFormations.some(f=>f.body.unit==='Night Scythe');
+ const originalPassengers=new Set([
+  ...(hadArk?ghostArkPassengers(army).map(s=>s.id):[]),
+  ...(hadScythe?originalFormations.filter(infantry).map(f=>f.id):[]),
+ ]);
+ const chargePassengers=[...new Set([
+  ...transportFormations.filter(f=>originalPassengers.has(f.originalBody.id)).map(f=>f.id),
+  ...(hadArk?ghostArkPassengers(army,roster).map(s=>s.id):[]),
+  ...(hadScythe?transportFormations.filter(infantry).map(f=>f.id):[]),
+ ])];
+ out.push(...transportMovementReminders('11e-necron-',passengers,transports,chargePassengers));
  return out;
 }

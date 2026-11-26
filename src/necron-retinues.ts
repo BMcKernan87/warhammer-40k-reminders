@@ -50,15 +50,36 @@ export function formationBodyguardStrength(army:ArmySelection,id:string):number{
  return size(body)+roster.filter(s=>s.retinueTo===id&&eligibleRetinueBodies(army,s.id).some(b=>b.id===id)).reduce((n,s)=>n+size(s),0);
 }
 const infantryCharacter=(unit:string)=>necronKeywords.INFANTRY.has(unit)&&necronKeywords.CHARACTER.has(unit);
-// A whole formation must fit; a Warriors squad with two attached characters or a retinue cannot embark.
-export function ghostArkPassengers(army:ArmySelection):RosterInstance[]{
- const roster=expandRoster(army);
- return roster.filter(s=>{
-  if(s.attachedTo||s.retinueTo)return false;
-  const members=[s,...roster.filter(m=>m.attachedTo===s.id||m.retinueTo===s.id)];
-  if(s.unit==='Necron Warriors')return (s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??0)<=10&&members.length<=2&&members.slice(1).every(m=>infantryCharacter(m.unit));
-  return members.length===1&&infantryCharacter(s.unit)&&!NECRON_SUPPORTS.has(s.unit);
- });
+// Transport candidates keep the original legal attached unit (Core 19.01),
+// including a surviving Support after its Bodyguard dies. Invalid or changed
+// joins do not become independent passengers merely because casualties removed
+// their original Bodyguard.
+export function necronTransportFormations(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):NecronFormation[]{
+ if(army.faction!=='Necrons')return [];
+ const original=new Map(expandRoster(army).map(s=>[s.id,s]));
+ return necronFormationRoots(army,roster).filter(f=>f.members.every(s=>{
+  const start=original.get(s.id);
+  if(!start||start.unit!==s.unit||start.attachedTo!==s.attachedTo||start.retinueTo!==s.retinueTo)return false;
+  if((s.attachedTo||NECRON_SUPPORTS.has(s.unit))&&!f.leading.some(m=>m.id===s.id))return false;
+  if(s.retinueTo&&f.originalBody.id!==s.retinueTo)return false;
+  return true;
+ }));
+}
+// The card has separate capacities: ten actual Warrior models and one actual
+// Necrons Infantry Character model. Unit-level keywords do not turn a joined
+// model into either type (Core 18.01/19.03).
+export function ghostArkPassengers(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):RosterInstance[]{
+ return necronTransportFormations(army,roster).filter(f=>{
+  let warriors=0,characters=0;
+  for(const s of f.members){
+   const models=s.models??verifiedUnitSizes2026(army,s.unit)?.[0]??0;
+   if(!Number.isInteger(models)||models<1)return false;
+   if(s.unit==='Necron Warriors')warriors+=models;
+   else if(infantryCharacter(s.unit))characters+=models;
+   else return false;
+  }
+  return warriors<=10&&characters<=1&&warriors+characters>0;
+ }).map(f=>f.body);
 }
 
 export interface NecronFormation {
