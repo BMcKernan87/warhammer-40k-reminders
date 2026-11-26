@@ -1,3 +1,4 @@
+import {currentNecronDetachment} from './necron-detachment-names';
 import {spaceMarineAvailableDetachments,spaceMarineDetachmentGroups} from './space-marines-detachment-data';
 import {isSpaceMarineFaction} from './space-marines-factions';
 import {SM_DETACHMENTS} from './space-marines-detachments.generated';
@@ -99,7 +100,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
  'Grey Knights':GK_DETACHMENTS,
  Necrons:[
  {name:'Hand of the Dynasty',disposition:'Take and Hold',dp:1},
- {name:'Skysword Spearhead',disposition:'Reconnaissance',dp:1},
+ {name:'Skyshroud Spearhead',disposition:'Reconnaissance',dp:1},
  {name:"The Phaeron's Armoury",disposition:'Priority Assets',dp:1},
  {name:'Annihilation Legion',disposition:'Purge the Foe',dp:2},
  {name:'Awakened Dynasty',disposition:'Take and Hold',additionalDispositions:['Priority Assets'],dp:3},
@@ -136,7 +137,7 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=isSpaceMarineFaction(faction)?selected.map(currentSpaceMarineDetachment):faction==='Aeldari'?selected.map(currentAeldariDetachment):faction==='Drukhari'?selected.map(currentDrukhariDetachment):faction==='Chaos Space Marines'?selected.map(currentCsmDetachment):faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Necrons'?selected.map(currentNecronDetachment):isSpaceMarineFaction(faction)?selected.map(currentSpaceMarineDetachment):faction==='Aeldari'?selected.map(currentAeldariDetachment):faction==='Drukhari'?selected.map(currentDrukhariDetachment):faction==='Chaos Space Marines'?selected.map(currentCsmDetachment):faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
  const groups=isSpaceMarineFaction(faction)?spaceMarineDetachmentGroups(faction):faction==='Aeldari'?[['Fateful Performance','Twilight Flickers']]:faction==='Drukhari'?[['Spectacle of Spite','Exhibition of Slaughter'],['Covenite Coterie','Tools of Torment'],['Kabalite Cartel','Kabalite Agonysts']]:faction==='Chaos Space Marines'?[['Murdertalon Raiders','Nightmare Hunt']]:faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];

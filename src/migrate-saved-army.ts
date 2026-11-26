@@ -1,3 +1,4 @@
+import {currentNecronDetachment} from './necron-detachment-names';
 import {SPACE_MARINE_FACTIONS} from './space-marines-factions';
 import {currentSpaceMarineDetachment} from './space-marines-upgrades';
 import {currentAeldariDetachment} from './aeldari-upgrades';
@@ -15,7 +16,7 @@ import {migrateOrkArmy} from './ork-saved-army';
 import {renameSavedUnit} from './saved-unit-name';
 
 export function migrateSavedArmy(value:unknown):unknown{
- let marines=value;
+ let marines=migrateSavedDetachments(value,'Necrons',currentNecronDetachment);
  for(const faction of SPACE_MARINE_FACTIONS)marines=migrateSavedDetachments(marines,faction,currentSpaceMarineDetachment);
  for(const faction of SPACE_MARINE_FACTIONS)for(const [before,after] of [['Eradicator Squad','Eradicator Squad with Melta Rifles'],['Invader ATV','Invader ATVs'],['Captain in Gravis Armour','Captain In Gravis Armour'],['Captain in Phobos Armour','Captain In Phobos Armour'],['Captain in Terminator Armour','Captain In Terminator Armour'],['Captain with Jump Pack','Captain With Jump Pack'],['Chaplain on Bike','Chaplain On Bike'],['Librarian in Terminator Armour','Librarian In Terminator Armour']])marines=renameSavedUnit(marines,faction,before,after);
  marines=renameSavedUnit(marines,'Black Templars','Primaris Crusader Squad','Crusader Squad');

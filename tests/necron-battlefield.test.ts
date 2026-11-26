@@ -24,7 +24,7 @@ const examples:Example[]=[
  {unit:'The Silent King',rule:'command-king',phase:'Command',signal:'phaseStart'},
  {unit:'Chronomancer',rule:'chronometron',phase:'Shooting',signal:'shot',facts:{unengaged:true}},
  {unit:'Geomancer',rule:'geomancer',phase:'Movement',signal:'phaseStart'},
- {unit:'Hexmark Destroyer',rule:'hex-hits',phase:'Charge',player:'B',signal:'overwatch'},
+ {unit:'Hexmark Destroyer',rule:'hex-hits',phase:'Movement',player:'B',signal:'overwatch'},
  {unit:'Overlord',rule:'overlord',phase:'Fight',signal:'allocated'},
  {unit:'Overlord with translocation shroud',rule:'shroud',phase:'Movement',signal:'advance'},
  {unit:'Plasmancer',rule:'lightning',phase:'Shooting',signal:'phaseStart'},
@@ -61,7 +61,7 @@ const examples:Example[]=[
  {unit:'Annihilation Barge',rule:'arcing',phase:'Shooting',signal:'tesla'},
  {unit:'Canoptek Spyders',other:'Canoptek Scarab Swarms',rule:'spyder-swarm',phase:'Command',signal:'phaseStart'},
  {unit:'Doomsday Ark',rule:'doomsday-still',phase:'Movement',signal:'stationary'},
- {unit:'Canoptek Doomstalker',rule:'sentinel',phase:'Charge',player:'B',signal:'overwatch'},
+ {unit:'Canoptek Doomstalker',rule:'sentinel',phase:'Movement',player:'B',signal:'overwatch'},
  {unit:'Canoptek Reanimator',rule:'reanimation-beam',phase:'Command',signal:'reanimate'},
  {unit:'Triarch Stalker',rule:'relay',phase:'Shooting',signal:'shotHit'},
  {unit:'Convergence Of Dominion',rule:'nodes',phase:'Fight',signal:'allocated',other:'Immortals'},
@@ -86,6 +86,22 @@ describe('battlefield rules on the selectable Necron datasheets',()=>{
  });
 });
 describe('battle actions, usage and persistence',()=>{
+ // Core Rules 15.08, p.57: Fire Overwatch is at the end of the opponent's Movement phase.
+ // https://assets.warhammer-community.com/eng_01-06_warhammer40k_new40k_core_rules-was6fbu1ix-hfewhmxyiy.pdf
+ it.each([['Hexmark Destroyer','hex-hits'],['Canoptek Doomstalker','sentinel']])('%s uses its Overwatch rule only in the current legal phase', (unit,ruleId)=>{
+   const army=roster(unit),squadId=unit+'#1';
+   const observation:Observation={action:'overwatch',squadId};
+   expect(generate11thReminders(army).find(r=>r.id==='11e-core-overwatch')).toMatchObject({window:'Movement',timing:'end',turn:'opponent',units:[squadId]});
+   expect(battlefieldReminders(army,at('Movement','B'),'overwatch',observation).map(r=>r.ruleId)).toContain(ruleId);
+   expect(validateBattleState(observe(army,at('Movement','B'),observation))).toBe(true);
+   for(const phase of ['Command','Shooting','Charge','Fight'] as const){
+     expect(battlefieldReminders(army,at(phase,'B'),'overwatch',observation)).toEqual([]);
+     expect(()=>observe(army,at(phase,'B'),observation)).toThrow();
+   }
+   expect(battlefieldReminders(army,at('Movement','A'),'overwatch',observation)).toEqual([]);
+   expect(()=>observe(army,at('Movement','A'),observation)).toThrow();
+   expect(battlefieldReminders(army,{...at('Movement','A'),rosterPlayer:'B'},'overwatch',observation).map(r=>r.ruleId)).toContain(ruleId);
+ });
  it('only reacts to a visible arrival within 18 inches on the enemy turn, separately for each squad',()=>{
    const a=roster('Deathmarks','Deathmarks'),b=at('Movement','B');
    const first='Deathmarks#1',second='Deathmarks#2';

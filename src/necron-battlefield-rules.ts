@@ -69,7 +69,7 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('charge-reroll','Relentless Combatants','Triarch Praetorians','chargeRoll','You may re-roll this squad’s Charge roll.'),
   rule('praetorian-fallback','Relentless Combatants','Triarch Praetorians','fallback','This squad may still declare a charge this turn.'),
   rule('tomb-evasion','Evasion Engrams','Tomb Blades',['shot','shotHit'],'You may make a Normal move of up to 6″. Taking the move prevents this squad from declaring a charge this turn.',{turn:'own',phase:'Shooting'}),
-  rule('nebuloscope','Nebuloscope','Tomb Blades','shoot',({bearer})=>{
+  rule('nebuloscope','Nebuloscope','Tomb Blades',['shoot','overwatch'],({bearer})=>{
     const weapons=bearer.modelLoadouts?.filter(row=>row.gear.includes('Nebuloscope')).map(row=>row.primary);
     const assignment=weapons?' Weapons on those bearers: '+weapons.join(', ')+'.':'';
     return 'The ranged weapons of surviving Nebuloscope bearers have Ignores Cover ('+bearer.wargear!.Nebuloscope+' originally equipped).'+assignment;
@@ -78,7 +78,7 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('flesh-hunger','Flesh Hunger','Flayed Ones','fight','Against this below-half-strength target, every successful melee hit is a Critical Hit.',{when:c=>!!c.observation?.belowHalf}),
   rule('tomb-shield-move','Shieldvanes','Tomb Blades','phaseStart','Surviving shieldvane bearers have Move 8″, not 12″.',{phase:'Movement',gear:has('Shieldvanes')}),
   rule('tomb-shield-save','Shieldvanes','Tomb Blades','allocated','Surviving shieldvane bearers have a 3+ Save.',{gear:has('Shieldvanes')}),
-  rule('tomb-shadowloom','Shadowloom','Tomb Blades','targeted','Surviving shadowloom bearers have Stealth; the ranged target gains its Stealth cover benefit only if every model in the unit has Stealth.',{phase:'Shooting',gear:has('Shadowloom')}),
+  rule('tomb-shadowloom','Shadowloom','Tomb Blades','targeted','Surviving shadowloom bearers have Stealth; the ranged target gains its Stealth cover benefit only if every model in the unit has Stealth.',{gear:has('Shadowloom')}),
   rule('thrall-fight','Systematic Vigour','Cryptothralls','meleeCasualty','If the destroyed Cryptothrall has not fought this phase, roll D6. On 2+, it fights after the enemy unit finishes its attacks, then is removed.'),
   rule('scarab','Self-destruction','Canoptek Scarab Swarms',atStart,'If engaged, one Scarab can be destroyed. Choose an enemy in that model’s Engagement Range. Add 1 to the die against a Vehicle. A 2–5 deals D3 mortal wounds and a 6+ deals 3.',{phase:'Fight'}),
   rule('harassment','Harassment Swarm','Canoptek Macrocytes','enemyAttacks','Subtract 1 from the attacking unit’s Hit rolls while it is within this aura.',{scope:'nearby',within:3,when:c=>c.observation?.target==='other'}),
@@ -98,7 +98,7 @@ export const BATTLEFIELD_RULES: readonly TriggerRule[] = [
   rule('relay','Targeting Relay','Triarch Stalker','shotHit','Choose one enemy this Stalker hit. It cannot receive the Benefit of Cover for the rest of this phase.',{phase:'Shooting',turn:'own'}),
   rule('monolith','Eternity Gate','Monolith',atStart,'During Movement, choose friendly Necrons Infantry on the field or in Strategic Reserves. Put an on-field selection into Strategic Reserves first. The unit can ingress wholly within 6″ of the Monolith, unengaged, including in the enemy deployment zone, without needing a battlefield edge. It cannot make a Charge move this turn.',{phase:'Movement',turn:'own',when:c=>c.battle.round>1&&c.eligibleRoster.some(eligibleInfantry)}),
   rule('gravitic','Gravitic Pulse','Obelisk',atStart,'Choose a visible enemy within 18″. Halve its Move, Advance and Charge rolls this turn. If it can Fly, each time it finishes moving before your next Movement phase, a 4+ inflicts D3 mortal wounds.',{phase:'Movement',turn:'opponent'}),
-  rule('vault','Powers of the C’tan','Tesseract Vault','shoot','Choose up to two different C’tan Powers weapons before resolving shooting (only one with 1–8 wounds remaining); include the other equipped weapons.'),
+  rule('vault','Powers of the C’tan','Tesseract Vault','shoot','When selected to shoot in your Shooting phase, choose up to two different C’tan Powers weapons (only one with 1–8 wounds remaining). This model is equipped with those chosen powers in addition to its other weapons until this phase ends.',{phase:'Shooting',turn:'own'}),
   rule('seraptek','Terrifying Monstrosity','Seraptek Heavy Construct',atStart,'Each enemy engaged with any Seraptek with this ability takes one Battle-shock test.',{phase:'Fight'}),
   rule('cover','Ancient Cover','Convergence Of Dominion','allocated','For a ranged attack, the defending model gains cover if this fortification prevents it being fully visible to every model in the attacking unit.',{scope:'nearby',when:c=>!!c.observation?.measurements?.[c.bearer.id]?.blocksSight}),
   rule('necroadjust','Necrodermis',ctan,'allocated','Reduce the Damage characteristic of the attack allocated to this C’tan by 1.'),

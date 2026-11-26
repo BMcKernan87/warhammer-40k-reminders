@@ -24,13 +24,13 @@ describe('11e source reconciled vehicle and weapon reminders',()=>{
  });
  it('uses source-specific Seraptek and vehicle defenses, damage states and Deadly Demise',()=>{
   const a=army('Seraptek Heavy Construct','Doom Scythe','Annihilation Barge','Canoptek Spyders','Triarch Stalker','Doomsday Ark','Canoptek Doomstalker');
-  expect(named(a,'5+ invulnerable save').filter(r=>r.title.startsWith('Seraptek'))).toHaveLength(2);
+  expect(named(a,'5+ invulnerable save').filter(r=>r.title.startsWith('Seraptek'))).toHaveLength(3);
   expect(named(a,'4+ invulnerable save').filter(r=>r.title.startsWith('Seraptek'))).toHaveLength(0);
   expect(named(a,'Deadly Demise D6+2').map(r=>r.window)).toEqual(phases);
   expect(named(a,'Super-heavy Walker')[0].summary).toContain('Mobile');
   expect(named(a,'Damaged profile · OC').find(r=>r.title.startsWith('Seraptek'))?.summary).toContain('subtract 5');
   expect(named(a,'Damaged profile').find(r=>r.title.startsWith('Doom Scythe'))?.summary).toContain('1–4');
-  for(const unit of ['Annihilation Barge','Triarch Stalker','Doomsday Ark','Canoptek Doomstalker'])expect(named(a,'4+ invulnerable save').filter(r=>r.title.startsWith(unit))).toHaveLength(2);
+  for(const unit of ['Annihilation Barge','Triarch Stalker','Doomsday Ark','Canoptek Doomstalker'])expect(named(a,'4+ invulnerable save').filter(r=>r.title.startsWith(unit))).toHaveLength(3);
  });
  it('keeps mode alternatives explicit and only includes equipped profiles',()=>{
   let a=army('Triarch Stalker','Geomancer','C’tan Shard of the Nightbringer');

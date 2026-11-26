@@ -22,7 +22,7 @@ const detachments:Record<string,string[]> = {
 };
 describe('matched-play Stratagem timing on an eligible Necron roster',()=>{
   for(const [detachment,units] of Object.entries(detachments))it(detachment,()=>{
-    const key=detachment.replace('Skyshroud','Skysword');
+    const key=detachment;
     let army=individualArmy({...newSelection(),detachments2026:[key],units:Object.fromEntries(
       [...new Set(['Overlord','Immortals','Technomancer',...units])].map(unit=>[unit,1])
     ),warlordId:'Overlord#1'});

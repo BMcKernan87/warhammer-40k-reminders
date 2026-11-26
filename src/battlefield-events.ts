@@ -60,7 +60,8 @@ const ownActions: Partial<Record<Action,Phase>> = {
 export function actionAvailable(action: Action, phase: Phase, ownTurn: boolean): boolean {
   if (ownActions[action]) return ownTurn && phase === ownActions[action];
   if (action === 'arrival') return !ownTurn && phase === 'Movement';
-  if (action === 'overwatch') return !ownTurn && (phase === 'Movement' || phase === 'Charge');
+  // Core 15.08: Fire Overwatch is an end-of-opponent-Movement reaction.
+  if (action === 'overwatch') return !ownTurn && phase === 'Movement';
   if (['fight','meleeCasualty','meleeKill'].includes(action)) return phase === 'Fight';
   return true;
 }

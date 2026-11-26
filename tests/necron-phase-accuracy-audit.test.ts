@@ -14,7 +14,7 @@ describe('11e source-checked missing phase cues',()=>{
   for(const unit of ['C’tan Shard of the Deceiver','C’tan Shard of the Nightbringer','C’tan Shard of the Void Dragon','Transcendent C’tan']){
    const a=army(unit);
    expect(named(a,'Feel No Pain 5+').map(r=>r.window)).toEqual(phases);
-   expect(named(a,'4+ invulnerable save').map(r=>r.window)).toEqual(['Shooting','Fight']);
+   expect(named(a,'4+ invulnerable save').map(r=>r.window)).toEqual(['Shooting','Fight','Movement']);
    expect(named(a,'Deadly Demise D6').map(r=>r.window)).toEqual(phases);
    expect(named(a,'Deep Strike').map(r=>r.window)).toEqual(['Pre-battle','Movement']);
   }
@@ -29,17 +29,17 @@ describe('11e source-checked missing phase cues',()=>{
   expect(named(army('C’tan Shard of the Nightbringer'),'Grand Illusion')).toHaveLength(0);
  });
  it('includes source-specific invulnerable saves and conditional defensive auras',()=>{
-  expect(named(army('Canoptek Wraiths'),'4+ invulnerable save')).toHaveLength(2);
+  expect(named(army('Canoptek Wraiths'),'4+ invulnerable save')).toHaveLength(3);
   expect(named(army('Canoptek Reanimator'),'Feel No Pain 4+')).toHaveLength(5);
   expect(named(army('Hexmark Destroyer'),'Lone Operative')[0].summary).toContain('12″');
   expect(named(army('Illuminor Szeras'),'· Illuminor')).toHaveLength(0);
-  expect(named(army('Illuminor Szeras','Immortals'),'· Illuminor')).toHaveLength(1);
+  expect(named(army('Illuminor Szeras','Immortals'),'· Illuminor')).toHaveLength(2);
   expect(named(army('Nekrosor Ammentar','Immortals'),'Protective Disciples')).toHaveLength(0);
-  expect(named(army('Nekrosor Ammentar','Skorpekh Destroyers'),'Protective Disciples')).toHaveLength(1);
+  expect(named(army('Nekrosor Ammentar','Skorpekh Destroyers'),'Protective Disciples')).toHaveLength(2);
  });
  it('places the Silent King auras in correct phases and distinguishes Szarekh from Menhirs',()=>{
   const a=army('The Silent King');
-  expect(named(a,'Phaeron of the Stars').map(r=>r.window)).toEqual(['Shooting','Fight']);
+  expect(named(a,'Phaeron of the Stars').map(r=>r.window)).toEqual(['Shooting','Fight','Movement']);
   expect(named(a,'Phaeron of the Blades').map(r=>r.window)).toEqual(['Charge','Fight']);
   expect(named(a,'Relentless March')[0].window).toBe('Movement');
   expect(named(a,'Triarch Abilities')[0].summary).toContain('battle round');

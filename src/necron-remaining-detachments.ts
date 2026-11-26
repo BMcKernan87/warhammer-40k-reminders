@@ -22,22 +22,23 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
  // Invalid imported attachments must not manufacture a formation keyword or a leading bonus.
  const formations=necronFormationRoots(army,roster);
- const legal=new Map(formations.flatMap(f=>f.members.filter(s=>s.id!==f.id&&s.attachedTo===f.id).map(s=>[s.id,f.id] as const)));
+ const legal=new Map(formations.flatMap(f=>f.leading.map(s=>[s.id,f.id] as const)));
  const matching=(predicate:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(predicate)).map(f=>f.id);
  const all=formations.map(f=>f.id);
  const shooters=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
  const armed=(ids:string[])=>ids.filter(id=>shooters.has(id));
+ const bearerAttackPhases=(s:RosterInstance)=>attackPhases.filter(phase=>phase==='Fight'||shooters.has(legal.get(s.id)??s.id));
  const led=formations.filter(f=>f.members.some(s=>legal.has(s.id)&&characters.has(s.unit))).map(f=>f.id);
  const characterUnits=matching(s=>characters.has(s.unit));
  const infantryCharacters=roster.filter(s=>characters.has(s.unit)&&k.INFANTRY.has(s.unit)).map(s=>s.id);
- const targetIds=(s:RosterInstance)=>[s.id,...(legal.has(s.id)?[legal.get(s.id)!]:[])];
+ const targetIds=(s:RosterInstance)=>[...new Set([s.id,...(legal.has(s.id)?[legal.get(s.id)!]:[])])];
  const emit=(id:string,title:string,window:ReminderWindow,summary:string,units?:string[],timing:'start'|'during'|'end'='during')=>{
   if(units&&!units.length)return;
   result.push({id:'11e-necron-'+id,title,window,timing,summary,source:REMAINING_NECRON_SOURCE,origin:'detachment',units});
  };
  const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',modelOnly=false)=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,modelOnly?[s.id]:targetIds(s),timing);
  if(selected.includes('Awakened Dynasty')){
-  const undyingTargets=formations.filter(f=>f.members.length>1||(f.body.models??verifiedUnitSizes2026(army,f.body.unit)?.[0]??1)>1).map(f=>f.id);
+  const undyingTargets=formations.filter(f=>f.members.length>1||(f.originalBody.models??verifiedUnitSizes2026(army,f.originalBody.unit)?.[0]??1)>1).map(f=>f.id);
   for(const phase of attackPhases){
    emit('awakened-command-'+phase,'Command Protocols',phase,'While a Necron Character is attached and leading the formation, add 1 to its attacks’ Hit rolls.',phase==='Shooting'?armed(led):led);
    emit('awakened-undying-'+phase,'Protocol of the Undying Legions · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After an enemy finishes its attacks, select a surviving unit that lost a model to those attacks. Activate Reanimation for D3 wounds, or D3+1 if a Necron Character leads it. Apply active Reanimation abilities. An attached Leader or Support can restore lost Bodyguards even if it is the last model in the formation.',undyingTargets);
@@ -85,7 +86,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
   for(const s of roster.filter(s=>NECRON_CHARACTER_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Eternal Madness':bearer(s,'annihilation-madness','Eternal Madness','Fight','For each destroyed model in this formation that has not fought, roll D6; on 4+ it fights after the attacker finishes, then remove it.');break;
-    case 'Ingrained Superiority':for(const phase of attackPhases)bearer(s,'annihilation-superiority-'+phase,'Ingrained Superiority',phase,'Improve AP by 1 on critical wounds made by this formation.');break;
+    case 'Ingrained Superiority':for(const phase of bearerAttackPhases(s))bearer(s,'annihilation-superiority-'+phase,'Ingrained Superiority',phase,'Improve AP by 1 on critical wounds made by this formation.');break;
     case 'Soulless Reaper':if(destroyer(s))bearer(s,'annihilation-reaper','Soulless Reaper','Movement','When an enemy engaged with the bearer’s unit is selected to Fall Back, roll D6; on 3+ it cannot Fall Back and must remain stationary this phase.');break;
     case 'Eldritch Nightmare':if(destroyer(s))bearer(s,'annihilation-nightmare','Eldritch Nightmare','Fight','Each enemy unit engaged with the bearer model (not merely its Bodyguard) takes a Battle-shock test at the start of either Fight phase.','start',true);break;
    }
@@ -113,7 +114,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
     case 'Honourable Combatant':for(const phase of attackPhases)bearer(s,'obeisance-combatant-'+phase,'Honourable Combatant',phase,'If this formation destroys an enemy Character unit, the opponent loses 1 CP if available.');break;
     case 'Unflinching Will':bearer(s,'obeisance-will','Unflinching Will','Fight','The bearer’s melee weapons gain Precision and Anti-Infantry 5+.','during',true);break;
     case 'Warrior Noble':bearer(s,'obeisance-noble','Warrior Noble','Fight','Incoming melee attacks against this formation suffer −1 to Hit.');break;
-    case 'Eternal Conqueror':for(const phase of attackPhases)bearer(s,'obeisance-conqueror-'+phase,'Eternal Conqueror',phase,'Re-roll Hits when this formation attacks an enemy unit within range of an objective marker.');break;
+    case 'Eternal Conqueror':for(const phase of bearerAttackPhases(s))bearer(s,'obeisance-conqueror-'+phase,'Eternal Conqueror',phase,'Re-roll Hits when this formation attacks an enemy unit within range of an objective marker.');break;
    }
   }
  }

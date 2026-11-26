@@ -66,7 +66,7 @@ describe('datasheet rules target the formation that has the keyword',()=>{
   it('grants Destroyer Cult to the Ankh bearer for Nekrosor’s other-unit effects only in Cursed Legion',()=>{
     const a=roster(unit('nekrosor','Nekrosor Ammentar'),unit('body','Immortals'),{...unit('noble','Overlord'),attachedTo:'body'});
     const enhanced={...a,detachments2026:['Cursed Legion'],upgrades2026:{noble:'Destroyer Ankh'}};
-    expect(cues(enhanced,'Protective Disciples')).toHaveLength(1);
+    expect(cues(enhanced,'Protective Disciples').map(r=>r.window)).toEqual(['Shooting','Movement']);
     expect(cues(enhanced,'Prophet of Destruction').every(r=>r.units?.join()==='body')).toBe(true);
     expect(cues({...enhanced,detachments2026:[]},'Prophet of Destruction')).toEqual([]);
   });

@@ -18,7 +18,7 @@ describe('October Necron character and fortification datasheets',()=>{
     for(const card of cards){
       const cues=sheet({...squad(card),attachedTo:'body'},squad('Immortals','body'));
       const saves=named(cues,'4+ invulnerable save');
-      expect(saves.map(r=>r.window)).toEqual(['Shooting','Fight']);
+      expect(saves.map(r=>r.window)).toEqual(['Shooting','Fight','Movement']);
       expect(saves.every(r=>r.units?.join()===card)).toBe(true);
     }
     expect(named(sheet(squad('Plasmancer')),'4+ invulnerable save')).toEqual([]);
