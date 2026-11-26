@@ -42,7 +42,6 @@ export function tauProfileReminders(army:ArmySelection,roster:readonly RosterIns
    if(title==='Ranged weapon profiles'||title==='Melee weapon profiles')summary=(stage[0]==='Movement'?'When firing Overwatch, use snap shooting. ':'')+fullWeapons(squad,card,title==='Melee weapon profiles'?'Fight':'Shooting',stage[0]==='Movement');
    emit(title,stage,summary,units);
   });
-  if(card.save)emit('Invulnerable save',['Shooting','own','during'],'When permitted enemy return fire allocates an attack to a model from '+squad.id+', that model can use its '+card.save+'+ invulnerable save.');
   if(['Strike Team','Breacher Team'].includes(squad.unit)){
    const turret=(s:RosterInstance,name:string)=>key(name)==='supportturret'?1:0;
    for(const stage of [['Shooting','own','during'],['Movement','opponent','end']] as const){

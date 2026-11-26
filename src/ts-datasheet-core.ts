@@ -49,7 +49,7 @@ export function tsProfileReminders(army:ArmySelection,roster:readonly RosterInst
   if(group){
    const ids=group.members.map(s=>s.id),all=(ability:string)=>group.members.every(s=>TS_CARDS[s.unit]?.core?.includes(ability));
    printFormationDeployment(ids,all('Deep Strike'),scouts(army,group.members),all('Infiltrators'),emit);
-   if(all('Stealth'))for(const stage of [['Shooting','opponent','during'],['Movement','own','end']] as const)emit('Stealth',stage,'While every model in this formation has Stealth, ranged attacks targeting it give its models the Benefit of Cover.',ids);
+   if(all('Stealth'))for(const stage of [['Shooting','opponent','during'],['Movement','own','end'],['Shooting','own','during']] as const)emit('Stealth',stage,'While every model in this formation has Stealth, ranged attacks targeting it give its models the Benefit of Cover.',ids);
   }
   if(squad.unit==='Pink Horrors'||squad.unit==='Blue Horrors'){
    const profiles=HORROR_SPLIT_PROFILES[squad.unit];

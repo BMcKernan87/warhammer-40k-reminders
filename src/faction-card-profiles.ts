@@ -16,7 +16,7 @@ export function printCombatProfiles(squad:RosterInstance,stats:KnightCardStats,t
    const melee=stage===fight,text=equippedWeaponText(squad,stats,melee?'Fight':'Shooting',stage===snap,count);
    if(text)emit(melee?'Melee weapon profiles':'Ranged weapon profiles',stage,(stage===snap?'When firing Overwatch, use snap shooting. ':'')+text);
   }
-  if(stats.save)for(const stage of [enemyShooting,enemySnap,fight])emit('Invulnerable save',stage,'When an attack is allocated to a model from '+squad.id+', that model can use its '+stats.save+'+ invulnerable save.');
+  if(stats.save)for(const stage of [enemyShooting,enemySnap,fight,shoot])emit('Invulnerable save',stage,(stage===shoot?'When permitted enemy return fire allocates an attack to a model from ':'When an attack is allocated to a model from ')+squad.id+', that model can use its '+stats.save+'+ invulnerable save.'+(stage===shoot?' Models from a different attached datasheet use their own saves.':''));
   const fnp=stats.core?.find(c=>c.startsWith('Feel No Pain '));
   if(fnp)for(const phase of PHASES)emit(fnp,[phase,'either','during'],'Each time a model from '+squad.id+' would lose a wound, roll a D6. On a '+fnp.slice('Feel No Pain '.length)+', it keeps that wound.');
   if(stats.demise)for(const phase of PHASES)emit('Deadly Demise '+stats.demise,[phase,'either','during'],'When a model in this unit is destroyed, after any emergency disembarkation roll one D6. On a 6, each unit within 6″ suffers '+stats.demise+' mortal wound'+(stats.demise==='1'?'':'s')+'.'+(stats.demise.includes('D')?' Roll the number separately for each affected unit.':''));

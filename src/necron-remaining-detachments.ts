@@ -22,6 +22,8 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
  // Invalid imported attachments must not manufacture a formation keyword or a leading bonus.
  const formations=necronBattleFormations(army,roster);
+ const originalFormations=necronBattleFormations(army);
+ const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo;
  const legal=new Map(formations.flatMap(f=>f.leading.map(s=>[s.id,f.id] as const)));
  const matching=(predicate:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(predicate)).map(f=>f.id);
  const all=formations.map(f=>f.id);
@@ -33,9 +35,9 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const characterUnits=matching(s=>characters.has(s.unit));
  const infantryCharacters=roster.filter(s=>characters.has(s.unit)&&k.INFANTRY.has(s.unit)).map(s=>s.id);
  const targetIds=(s:RosterInstance)=>[...new Set([s.id,...(legal.has(s.id)?[legal.get(s.id)!]:[])])];
- const emit=(id:string,title:string,window:ReminderWindow,summary:string,units?:string[],timing:'start'|'during'|'end'='during')=>{
+ const emit=(id:string,title:string,window:ReminderWindow,summary:string,units?:string[],timing:'start'|'during'|'end'='during',turn?:GeneratedReminder['turn'])=>{
   if(units&&!units.length)return;
-  result.push({id:'11e-necron-'+id,title,window,timing,summary,source:REMAINING_NECRON_SOURCE,origin:'detachment',units});
+  result.push({id:'11e-necron-'+id,title,window,timing,summary,source:REMAINING_NECRON_SOURCE,origin:'detachment',units,...(turn?{turn}:{})});
  };
  const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',modelOnly=false)=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,modelOnly?[s.id]:targetIds(s),timing);
  if(selected.includes('Awakened Dynasty')){
@@ -111,9 +113,17 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
   }
   const warlord=resolvedWarlord(army);
   if(warlord&&roster.some(s=>s.id===warlord.id&&s.unit===warlord.unit))for(const phase of phases)emit('obeisance-time-'+phase,'Your Time Is Nigh · 1CP',phase,'Immediately after the enemy Warlord dies, target your surviving Necron Warlord. Enemy Battle-shock and Leadership tests suffer −1 for the remainder of the battle.',[warlord.id]);
+  if(warlord&&!roster.some(s=>s.id===warlord.id&&!sameMember(warlord,s)))for(const phase of phases)emit('obeisance-enemy-tests-'+phase,'Your Time Is Nigh · enemy tests',phase,
+   'Only if Your Time Is Nigh was previously used after the enemy Warlord was destroyed: subtract 1 from every enemy Battle-shock or Leadership test for the rest of the battle, including required tests outside the Command phase. This prior effect continues if your Warlord is later destroyed; it does not permit using the Stratagem again without its eligible target.',[warlord.id],'during','either');
   emit('obeisance-sentinels','Sentinels of Eternity · 1CP','Fight','After enemy target selection, when any model in the targeted Lychguard or Triarch Praetorians unit dies before fighting, on 4+ it fights after the attacker finishes; then remove it. Lasts this phase.',sentinels);
   emit('obeisance-rival','Suffer No Rival · 1CP','Fight','Before a Lychguard or Triarch unit fights, its melee weapons gain Precision this phase.',guards);
   emit('obeisance-territory','Territorial Obsession · 1CP','Command','Your Command: select a Lychguard or Triarch unit; its models gain +1 OC, or +3 OC if the unit is a Vehicle, until your next Command phase.',guards);
+  const selectedGuards=originalFormations.filter(f=>f.members.some(s=>triarch.has(s.unit)||s.unit==='Lychguard')).flatMap(start=>{
+   const current=formations.find(f=>f.originalBody.id===start.originalBody.id&&f.members.every(s=>start.members.some(original=>sameMember(original,s))));
+   return current?[current.id]:[];
+  });
+  for(const window of [...phases,'End of your turn','End of opponent turn'] as const)emit('obeisance-control-'+window,'Territorial Obsession · objective control',window,
+   'Only the original unit selected for Territorial Obsession in your Command phase gains the bonus: its models retain +1 OC, or +3 OC if it was a Vehicle unit when selected, until the start of your next Command phase. Apply it when checking control at the end of each phase and turn, before other end-of-phase or end-of-turn rules. The selected effect continues through losses of its original Lychguard or Triarch models. Battle-shocked models retain OC “–”.',selectedGuards,'end','either');
   for(const s of roster.filter(s=>OVERLORD_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Honourable Combatant':for(const phase of bearerWoundPhases(s))bearer(s,'obeisance-combatant-'+phase,'Honourable Combatant',phase,'If this formation destroys an enemy Character unit, including through permitted Movement-phase shooting, the opponent loses 1 CP if available.');break;

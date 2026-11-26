@@ -1,7 +1,7 @@
 import type {ArmySelection} from './catalog';
 import {necronBattleFormations} from './necron-battle-units';
 import {resolvedWarlord} from './necron-muster-legality';
-import type {RosterInstance} from './roster-instances';
+import {expandRoster, type RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {hasNecronRangedWeapon,necronKeywords as k} from './necron-wargear';
 
@@ -16,6 +16,9 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  const selected=army.detachments2026??[];
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
  const formations=necronBattleFormations(army,roster);
+ const originalRoster=expandRoster(army),originalFormations=necronBattleFormations(army);
+ const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo;
+ const unchangedOriginal=originalRoster.filter(start=>{const current=roster.find(s=>s.id===start.id);return !current||sameMember(start,current);});
  const root=(s:RosterInstance)=>formations.find(f=>f.members.some(m=>m.id===s.id));
  const attached=(s:RosterInstance)=>!!root(s)?.leading.some(m=>m.id===s.id);
  const matching=(predicate:(unit:string)=>boolean)=>formations.filter(f=>f.members.some(s=>predicate(s.unit))).map(f=>f.id);
@@ -24,7 +27,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
  const courtUnits=[...new Set([...crypteks,...constructs])];
  const armedFormations=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
  const armedCourtModels = formations.filter(f=>f.members.some(s=>(k.CRYPTEK.has(s.unit)||canoptek.has(s.unit))&&hasNecronRangedWeapon(s))).map(f=>f.id);
- const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units?:string[])=>result.push({id:'11e-necron-'+id,title,window,timing,summary,source:COURT_HYPERCRYPT_SOURCE,origin:'detachment',units});
+ const emit=(id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during',units?:string[],turn?:GeneratedReminder['turn'])=>result.push({id:'11e-necron-'+id,title,window,timing,summary,source:COURT_HYPERCRYPT_SOURCE,origin:'detachment',units,...(turn?{turn}:{})});
  const bearer=(s:RosterInstance,id:string,title:string,window:ReminderWindow,summary:string,timing:'start'|'during'|'end'='during')=>emit(id+'-'+s.id,s.id+' · '+title,window,summary,timing,[...new Set([s.id,...(attached(s)?[root(s)!.id]:[])])]);
  if(selected.includes('Canoptek Court')){
   if(courtUnits.length){
@@ -37,6 +40,14 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
     if(beneficiaries.length)emit('court-cynosure-'+phase,'Cynosure of Eradication · 2CP',phase,(phase==='Shooting'?'Your Shooting phase: ':'Either Fight phase: ')+'Choose a qualifying unit wholly inside the matrix. Only its Cryptek or Canoptek models gain Devastating Wounds for this phase.','start',beneficiaries);
     if(crypteks.length&&constructs.length)emit('court-curse-'+phase,'Curse of the Cryptek · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting phase: ':'Either Fight phase: ')+'After the attacker resolves attacks that destroyed a friendly Cryptek model, target that destroyed model and mark the attacker. Friendly Canoptek models gain +1 to Hit and Wound against it for the rest of the battle.','during',cryptekModels);
    }
+  }
+  // Spending CP marks the attacker for the whole battle. Its later effect is
+  // distinct from the activation and no longer needs a living Cryptek source.
+  if(unchangedOriginal.some(s=>k.CRYPTEK.has(s.unit)))for(const phase of ['Movement','Shooting','Fight'] as const){
+   const recipients=formations.filter(f=>f.members.some(s=>canoptek.has(s.unit)&&(phase==='Fight'||hasNecronRangedWeapon(s)))).map(f=>f.id);
+   if(recipients.length)emit('court-marked-attacker-'+phase,'Curse of the Cryptek · marked attacker',phase,
+    'Only if Curse of the Cryptek was previously used after an enemy destroyed a Cryptek model: for the rest of the battle, only Canoptek models gain +1 to Hit and +1 to Wound when attacking that marked enemy. Attached non-Canoptek models do not gain this bonus. Losing the Cryptek does not end the mark or grant a new activation.'+(phase==='Fight'?'':' During permitted snap shooting, including Fire Overwatch, ignore the Hit modifier but retain the Wound modifier. This effect does not itself permit shooting.'),
+    'during',recipients,'either');
   }
   if(crypteks.length)emit('court-solar','Solar Pulse · 1CP','Shooting','Start of your Shooting phase: target a surviving Cryptek model and choose an objective within 18″ of it. Necron ranged attacks against units in range of that objective gain Ignores Cover for the phase.','start',cryptekModels);
   if(constructs.length){
@@ -65,9 +76,13 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
    if(vehicles.length)emit('hypercrypt-deflection-'+phase,'Quantum Deflection · 1CP',phase,enemy+'After enemy target selection, a targeted Vehicle unit gains a 4+ invulnerable save until phase end.','during',vehicles);
   }
   const warlord=resolvedWarlord(army);
-  if(warlord)emit('hypercrypt-crypts','Reanimation Crypts · 1CP','Command','Your Command phase: target your Necron Warlord; activate Reanimation Protocols for each friendly Necron unit in Reserves, applying applicable modifiers and surviving Bodyguard requirements.','during',[warlord.id]);
+  if(warlord&&roster.some(s=>sameMember(warlord,s)))emit('hypercrypt-crypts','Reanimation Crypts · 1CP','Command','Your Command phase: target your surviving Necron Warlord; activate Reanimation Protocols for each friendly Necron unit in Reserves, applying applicable modifiers and surviving Bodyguard requirements.','during',[warlord.id]);
   if(nonmonsters.length)emit('hypercrypt-precision','Cosmic Precision · 1CP','Movement','Your turn: a non-Monster unit arriving by an ingress move (including ordinary Strategic Reserves) may set up anywhere more than 6″ horizontally from enemy models. It cannot charge this turn; large-model setup rules still apply. This stratagem does not require Deep Strike or prior Hyperphasing.','during',nonmonsters);
-  if(monolith&&infantry.length)emit('hypercrypt-corridor','Dimensional Corridor · 2CP','Charge','Your Charge phase: select a unit set up via Eternity Gate this turn. It may charge if the Monolith that transported it began the turn on the battlefield.','during',infantry);
+  const gateRecipients=originalFormations.filter(f=>f.members.some(s=>k.INFANTRY.has(s.unit))).flatMap(start=>{
+   const current=formations.find(f=>f.originalBody.id===start.originalBody.id&&f.members.every(s=>start.members.some(original=>sameMember(original,s))));
+   return current?[current.id]:[];
+  });
+  if(unchangedOriginal.some(s=>s.unit==='Monolith')&&gateRecipients.length)emit('hypercrypt-corridor','Dimensional Corridor · 2CP','Charge','Your Charge phase: select only the original formation that used a Monolith’s Eternity Gate this turn, and only if that Monolith began the turn on the battlefield. That formation may charge this phase even if the Monolith was subsequently destroyed or the formation lost its Infantry keyword. This does not grant another ingress move; other charge restrictions still apply.','during',gateRecipients);
   if(titanic.length)emit('hypercrypt-damping','Entropic Damping · 1CP','Shooting','Opponent’s turn: after target selection, if a targeted Titanic model is within 18″ of the attacker, that attacking unit’s weapons gain Hazardous for this phase.','during',titanic);
   for(const s of roster.filter(s=>HYPERCRYPT_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){

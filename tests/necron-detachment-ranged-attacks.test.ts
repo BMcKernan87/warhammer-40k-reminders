@@ -41,7 +41,11 @@ describe('Detachment buffs for units or models with ranged weapons', () => {
   it('restricts an offensive Cryptek choice without discarding defensive triggers on a melee roster', () => {
     const a=force('Cryptek Conclave','Orikan the Diviner','Lychguard');
     expect(phases(a,'Molecular Targeting')).toEqual(['Fight']);
-    expect(phases(a,'Animus Curse')).toEqual(['Shooting','Fight']);
+    const curse=generate11thReminders(a).filter(r=>r.title.includes('Animus Curse'));
+    expect(curse.filter(r=>r.title.includes('1CP')).map(r=>r.window)).toEqual(['Shooting','Fight']);
+    expect(curse.filter(r=>r.title==='Animus Curse · marked enemy')).toMatchObject([
+      {window:'Fight',summary:expect.stringContaining('Only against an enemy unit previously marked')},
+    ]);
     const b=setInstanceAttachment(force('Cryptek Conclave','Orikan the Diviner','Immortals'),'Orikan the Diviner#1','Immortals#1');
     expect(phases(b,'Molecular Targeting')).toEqual(['Shooting','Fight']);
     expect(phases(b,'Synergistic Empowerment · attached models')).toEqual(['Shooting']);

@@ -51,7 +51,7 @@ it('requires Deep Strike on each member and only gives Cacophonic Accompaniment 
 it('prints a whole unjoined Lucius’s Lone Operative, actual recipient saves and the v1.3 5+ Defiler save',()=>{
  const lucius=squad('Lucius the Eternal'),b=squad('Flawless Blades'),defiler=squad('Defiler');
  const solo=rows(lucius),attached=rows(b,{...lucius,attachedTo:b.id},defiler);
- expect(solo.filter(r=>r.title.includes('Lone Operative'))).toHaveLength(2);
+ expect(solo.filter(r=>r.title.includes('Lone Operative'))).toHaveLength(3);
  expect(attached.some(r=>r.title.includes('Lone Operative'))).toBe(false);
  expect(attached.filter(r=>r.title.endsWith('Feel No Pain 5+')).every(r=>r.units?.join()===lucius.id)).toBe(true);
  expect(attached.find(r=>r.title===defiler.id+' · Invulnerable save')?.summary).toContain('5+');

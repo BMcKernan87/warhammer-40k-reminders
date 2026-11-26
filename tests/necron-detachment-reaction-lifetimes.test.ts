@@ -159,7 +159,7 @@ describe('selected effects and living-source requirements', () => {
 
   it('requires the original surviving Warlord for Your Time Is Nigh', () => {
     const army = {...force('Obeisance Phalanx', 'Overlord', 'Immortals'), warlordId: 'Overlord#1'};
-    const rows = (live: ReturnType<typeof expandRoster>) => remainingNecronReminders(army, live).filter(rule => rule.title.includes('Your Time Is Nigh'));
+    const rows = (live: ReturnType<typeof expandRoster>) => remainingNecronReminders(army, live).filter(rule => rule.id.startsWith('11e-necron-obeisance-time-'));
     expect(rows(expandRoster(army))).toHaveLength(5);
     expect(rows(expandRoster(army).filter(model => model.unit !== 'Overlord'))).toEqual([]);
     expect(rows(expandRoster(army).map(model => model.unit === 'Overlord' ? {...model, unit: 'Royal Warden'} : model))).toEqual([]);

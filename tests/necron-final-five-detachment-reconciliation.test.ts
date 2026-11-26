@@ -42,7 +42,8 @@ describe('five detachment source reconciliation',()=>{
   const t=id(a,'Technomancer'),b=id(a,'Immortals'),w=id(a,'Canoptek Wraiths');
   a=setInstanceAttachment(a,t,b);
   expect(named(a,'Solar Pulse')[0].units).toEqual([t]);
-  expect(named(a,'Curse of the Cryptek').every(r=>r.units?.join(',')===t)).toBe(true);
+  expect(named(a,'Curse of the Cryptek').filter(r=>r.id.startsWith('11e-necron-court-curse-')).every(r=>r.units?.join(',')===t)).toBe(true);
+  expect(named(a,'Curse of the Cryptek').filter(r=>r.id.startsWith('11e-necron-court-marked-attacker-')).every(r=>r.units?.join(',')===w)).toBe(true);
   expect(named(a,'Cynosure of Eradication').find(r=>r.window==='Shooting')?.units).toEqual([b]);
   expect(named(a,'Cynosure of Eradication').find(r=>r.window==='Fight')?.units).toEqual([b,w]);
   expect(named(a,'Canoptek Court · Power Matrix').every(r=>r.summary.includes('every model'))).toBe(true);

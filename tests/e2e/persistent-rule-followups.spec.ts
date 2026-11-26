@@ -1,0 +1,104 @@
+import {test,expect,type Page} from '@playwright/test';
+import {verifyPrint} from './printed-phases';
+
+async function add(page:Page,units:string[]){
+ for(const unit of units){
+  await page.getByLabel('Select unit',{exact:true}).selectOption(unit);
+  await page.getByRole('button',{name:'Add',exact:true}).click();
+ }
+}
+const sheet=(page:Page)=>page.getByRole('heading',{name:'Phase reminders',exact:true}).locator('..');
+const card=(page:Page,title:string)=>sheet(page).locator('.check').filter({has:page.getByText(title,{exact:true})});
+const turnCard=(page:Page,title:string,turn:string)=>card(page,title).filter({has:page.getByRole('checkbox',{name:title+' · '+turn+' · during',exact:true})});
+
+test('mobile Necron saves Gate and Mandible choices without completing lasting Animus effects',async({page},info)=>{
+ test.setTimeout(90_000);
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('./');
+ await page.getByLabel('Army faction',{exact:true}).selectOption('Necrons');
+ await page.getByRole('checkbox',{name:/Cryptek Conclave/}).check();
+ await page.getByRole('checkbox',{name:/Phaeron/}).check();
+ await add(page,['Immortals','Plasmancer','Deathmarks','Canoptek Macrocytes','Monolith']);
+ await page.getByLabel('Attach squad Plasmancer#1',{exact:true}).selectOption('Immortals#1');
+ await page.getByLabel('11th upgrade for squad Plasmancer#1',{exact:true}).selectOption('Prelocational Optimiser');
+ await page.getByLabel('Accelerator mandible in Canoptek Macrocytes#1',{exact:true}).selectOption('1');
+ await expect(page.getByText('Warlord: Plasmancer#1',{exact:true})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Roster validation findings'}).getByText('ERROR',{exact:true})).toHaveCount(0);
+ await page.reload();
+ await expect(page.getByLabel('Attach squad Plasmancer#1',{exact:true})).toHaveValue('Immortals#1');
+ await expect(page.getByLabel('11th upgrade for squad Plasmancer#1',{exact:true})).toHaveValue('Prelocational Optimiser');
+ await expect(page.getByLabel('Accelerator mandible in Canoptek Macrocytes#1',{exact:true})).toHaveValue('1');
+ await page.getByRole('button',{name:'Play reminders',exact:true}).click();
+ await sheet(page).getByLabel('Show phase').selectOption('Shooting');
+ await expect(card(page,'Plasmancer#1 · Prelocational Optimiser')).toContainText('The Monolith need not still be alive');
+ await expect(card(page,'Animus Curse · marked enemy')).toContainText('until the battle ends');
+ await expect(card(page,'Animus Curse · marked enemy')).toContainText('Snap shooting cannot re-roll Hit rolls');
+ await card(page,'Animus Curse · 1CP').getByRole('checkbox').click();
+ await expect(card(page,'Animus Curse · 1CP')).toHaveCount(0);
+ await expect(card(page,'Animus Curse · marked enemy').getByRole('checkbox')).not.toBeChecked();
+ await page.reload();
+ await page.getByRole('button',{name:'Play reminders',exact:true}).click();
+ await sheet(page).getByLabel('Show phase').selectOption('Shooting');
+ await expect(card(page,'Animus Curse · 1CP')).toHaveCount(0);
+ await expect(card(page,'Animus Curse · marked enemy').getByRole('checkbox')).not.toBeChecked();
+ await sheet(page).getByLabel('Show phase').selectOption('Movement');
+ await expect(card(page,'Animus Curse · marked enemy').locator('.rule-subjects')).toHaveText('Roster: Deathmarks#1');
+ await expect(card(page,'Animus Curse · marked enemy')).toContainText('normal Hyperspace Hunters shooting');
+ await sheet(page).getByLabel('Show phase').selectOption('Fight');
+ await expect(card(page,'Canoptek Macrocytes#1 · Accelerator Mandible')).toContainText('within 3″ of its unit');
+ await expect(card(page,'Canoptek Macrocytes#1 · Accelerator Mandible')).toContainText('for this phase');
+ await expect(card(page,'Animus Curse · marked enemy').getByRole('checkbox')).not.toBeChecked();
+ await page.screenshot({path:info.outputPath('phase-reminders.png'),fullPage:true});
+ await page.emulateMedia({media:'print'});
+ const printed=page.getByRole('region',{name:'Printable army reminders'});
+ await expect(printed.getByText('Animus Curse · marked enemy',{exact:true})).toHaveCount(3);
+ await expect(printed.getByText('Animus Curse · 1CP',{exact:true})).toHaveCount(2);
+ await expect(printed.getByText('Plasmancer#1 · Prelocational Optimiser',{exact:true})).toHaveCount(1);
+ await verifyPrint(page,info);
+ expect(errors).toEqual([]);
+});
+
+test('desktop Thousand Sons saves separate incoming-fire defenses and prints both turns',async({page},info)=>{
+ test.setTimeout(90_000);
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.setViewportSize({width:1280,height:900});
+ await page.goto('./');
+ await page.getByLabel('Army faction',{exact:true}).selectOption('Thousand Sons');
+ await page.getByRole('checkbox',{name:/Rubricae Phalanx/}).check();
+ await add(page,['Exalted Sorcerer','Rubric Marines','Sekhetar Robots']);
+ await page.getByLabel('Attach squad Exalted Sorcerer#1',{exact:true}).selectOption('Rubric Marines#1');
+ await expect(page.getByRole('region',{name:'Roster validation findings'}).getByText('ERROR',{exact:true})).toHaveCount(0);
+ await page.reload();
+ await expect(page.getByLabel('Attach squad Exalted Sorcerer#1',{exact:true})).toHaveValue('Rubric Marines#1');
+ await page.getByRole('button',{name:'Play reminders',exact:true}).click();
+ await sheet(page).getByLabel('Show phase').selectOption('Shooting');
+ const save='Exalted Sorcerer#1 · Invulnerable save';
+ await expect(turnCard(page,save,'Your turn')).toContainText('permitted enemy return fire');
+ await expect(turnCard(page,save,'Your turn')).toContainText('Models from a different attached datasheet use their own saves');
+ await expect(turnCard(page,'Sekhetar Robots#1 · Stealth','Your turn')).toContainText('Benefit of Cover');
+ await expect(turnCard(page,'Arcane Shield','Your turn')).toContainText('every model in it has a 4+ invulnerable save');
+ await expect(turnCard(page,'Arcane Shield','Your turn').locator('.rule-subjects')).toContainText('Rubric Marines#1');
+ await expect(turnCard(page,'Arcane Shield','Your turn').locator('.rule-subjects')).not.toContainText('Sekhetar Robots#1');
+ await expect(turnCard(page,'All is Dust','Your turn')).toContainText('unmodified Damage 1');
+ await expect(turnCard(page,'All is Dust','Your turn').locator('.rule-subjects')).toContainText('Rubric Marines#1');
+ await expect(turnCard(page,'All is Dust','Your turn').locator('.rule-subjects')).not.toContainText('Exalted Sorcerer#1');
+ await turnCard(page,save,'Your turn').getByRole('checkbox').click();
+ await expect(turnCard(page,save,'Your turn')).toHaveCount(0);
+ await expect(turnCard(page,save,'Opponent’s turn').getByRole('checkbox')).not.toBeChecked();
+ await page.reload();
+ await page.getByRole('button',{name:'Play reminders',exact:true}).click();
+ await sheet(page).getByLabel('Show phase').selectOption('Shooting');
+ await sheet(page).getByLabel('Show completed reminders').check();
+ await expect(turnCard(page,save,'Your turn').getByRole('checkbox')).toBeChecked();
+ await expect(turnCard(page,save,'Opponent’s turn').getByRole('checkbox')).not.toBeChecked();
+ await page.screenshot({path:info.outputPath('phase-reminders.png'),fullPage:true});
+ await page.emulateMedia({media:'print'});
+ const printed=page.getByRole('region',{name:'Printable army reminders'});
+ await expect(printed.getByText(save,{exact:true})).toHaveCount(4);
+ await expect(printed.getByText('Sekhetar Robots#1 · Stealth',{exact:true})).toHaveCount(3);
+ await expect(printed.getByText('All is Dust',{exact:true})).toHaveCount(4);
+ await expect(printed.getByText('Arcane Shield',{exact:true})).toHaveCount(4);
+ await verifyPrint(page,info);
+ expect(errors).toEqual([]);
+});
