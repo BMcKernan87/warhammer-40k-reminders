@@ -1,3 +1,4 @@
+import {isSpaceMarineFaction} from './space-marines-factions';
 import {spaceMarineAgentName} from './space-marines-data';
 import {canFillTransports} from './transport-matching';
 import type {ArmySelection} from './catalog';
@@ -15,7 +16,7 @@ interface Transport {id:string;unit:string}
 
 export function agentTransports(army:ArmySelection){
   const roster=expandRoster(army);
-  const transportName=(s:Transport)=>army.faction==='Space Marines'?(spaceMarineAgentName(s.unit)??''):s.unit;
+  const transportName=(s:Transport)=>isSpaceMarineFaction(army.faction)?(spaceMarineAgentName(s.unit)??''):s.unit;
   const vehicles=roster.filter(s=>Object.hasOwn(capacity,transportName(s)));
   if(!vehicles.length)return {cues:[] as GeneratedReminder[],eligible:new Map<string,string[]>(),dedicatedSatisfied:true,required:[] as string[]};
   const required=vehicles.filter(s=>transportName(s)!==corvus);

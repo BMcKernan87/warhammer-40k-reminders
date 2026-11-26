@@ -2,10 +2,10 @@ import type {ArmyFormation} from './core-stratagems-11th';
 import type {GeneratedReminder} from './generated-reminders';
 import type {RosterInstance} from './roster-instances';
 
-export function formationShootingReminders(formations:ArmyFormation[],keywords:(unit:string)=>readonly string[],hasGun:(s:RosterInstance)=>boolean):GeneratedReminder[]{
+export function formationShootingReminders(formations:ArmyFormation[],keywords:(unit:string,id?:string)=>readonly string[],hasGun:(s:RosterInstance)=>boolean):GeneratedReminder[]{
   const out:GeneratedReminder[]=[];
   function add(id:string,title:string,summary:string,applies:(tags:readonly string[])=>boolean){
-    const units=formations.filter(f=>f.members.some(s=>hasGun(s)&&applies(keywords(s.unit)))).map(f=>f.id);
+    const units=formations.filter(f=>f.members.some(s=>hasGun(s)&&applies(keywords(s.unit,s.id)))).map(f=>f.id);
     if(units.length)out.push({id:'11e-formation-'+id,title,window:'Shooting',timing:'during',turn:'own',units,
       summary,source:'https://wahapedia.ru/wh40k11ed/the-rules/core-rules/',origin:'army'});
   }
