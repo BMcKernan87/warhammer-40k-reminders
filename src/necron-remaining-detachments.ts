@@ -1,6 +1,6 @@
 import type {ArmySelection} from './catalog';
 import {verifiedUnitSizes2026} from './datasheets-2026';
-import {necronFormationRoots} from './necron-retinues';
+import {necronBattleFormations} from './necron-battle-units';
 import {resolvedWarlord} from './necron-muster-legality';
 import type {RosterInstance} from './roster-instances';
 import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
@@ -21,7 +21,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const selected=army.detachments2026??[];
  const upgrade=(s:RosterInstance)=>army.upgrades2026?.[s.id]??army.upgrades2026?.[s.unit];
  // Invalid imported attachments must not manufacture a formation keyword or a leading bonus.
- const formations=necronFormationRoots(army,roster);
+ const formations=necronBattleFormations(army,roster);
  const legal=new Map(formations.flatMap(f=>f.leading.map(s=>[s.id,f.id] as const)));
  const matching=(predicate:(s:RosterInstance)=>boolean)=>formations.filter(f=>f.members.some(predicate)).map(f=>f.id);
  const all=formations.map(f=>f.id);

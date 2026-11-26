@@ -55,9 +55,13 @@ describe('October Necron character and fortification datasheets',()=>{
     const cues=sheet({...unit,models:3});
     expect(named(cues,'Starsteles')[0]).toMatchObject({window:'Pre-battle',summary:expect.stringMatching(/wholly within 12″.*separate unit/)});
     const fort=named(cues,'Fortification');
-    expect(fort.map(r=>r.window)).toEqual(['Movement','Shooting']);
-    expect(fort[0].summary).toMatch(/Desperate Escape.*moving over enemies/);
-    expect(fort[1].summary).toMatch(/Fortifications.*1.*Pistol/);
+    for(const n of [1,2,3]){
+      const individual=fort.filter(r=>r.units?.includes(unit.id+' · Starstele '+n));
+      expect(individual.map(r=>r.window)).toEqual(['Movement','Shooting']);
+      expect(individual[0].summary).toMatch(/Desperate Escape.*moving over enemies/);
+      expect(individual[1].summary).toMatch(/Fortifications.*1.*Pistol/);
+    }
+    expect(fort).toHaveLength(6);
   });
 });
 describe('printed weapon effects depend on the equipped weapon and shooting type',()=>{

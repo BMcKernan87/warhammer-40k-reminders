@@ -1,4 +1,6 @@
-// Core 10.05–10.07, 15.09 and chapter 24. The text differs by shooting type:
+// Publisher Core 10.05–10.07 (p.35), 15.09 (p.57) and chapter 24 (pp.78–85):
+// https://assets.warhammer-community.com/eng_01-06_warhammer40k_new40k_core_rules-was6fbu1ix-hfewhmxyiy.pdf
+// The text differs by shooting type:
 // snap shots cannot generate critical hits or take a Heavy hit modifier.
 export function weaponAbilityText(keyword:string,snap:boolean):string|undefined{
   if(keyword==='Lethal Hits: Non-Monster/vehicle')return snap?undefined:'Lethal Hits (against targets with neither Monster nor Vehicle, critical hits can wound automatically)';
@@ -19,23 +21,30 @@ export function weaponAbilityText(keyword:string,snap:boolean):string|undefined{
   switch(keyword){
     case 'Overcharge': return 'Overcharge (subtract 2 from the bearer’s Hazardous test for this weapon profile)';
     case 'One Shot': return 'One Shot (each weapon may attack once per battle, including after its bearer is returned)';
-    case 'Close-Quarters': return snap?'Close-Quarters (each non-Monster, non-Vehicle model chooses its Close-Quarters weapons or its other guns)':'Close-Quarters (if the unit did not Advance, use close-quarters shooting against an engaged target. For other shooting types, each non-Monster, non-Vehicle model chooses its Close-Quarters weapons or other guns)';
-    case 'Hazardous': return 'Hazardous (after resolving attacks, roll a hazard die for each selected Hazardous weapon. On 1–2 the unit suffers 1 mortal wound, or 3 if all its models are Monsters or Vehicles)';
+    case 'Close-Quarters': return closeQuartersText('Close-Quarters',snap);
+    case 'Hazardous': return 'Hazardous (after resolving all of the unit’s attacks, roll together one hazard die per selected Hazardous weapon. Each 1–2 inflicts 1 mortal wound on the unit, or 3 if every model is a Monster or Vehicle. Allocate these as normal mortal wounds; they are not restricted to the weapon bearers)';
     case 'Lance': return 'Lance (+1 to Wound if the attacking unit charged this turn)';
     case 'Heavy': return snap?undefined:'Heavy (+1 to Hit in your Shooting phase if unengaged, no models moved more than 3″ this turn, and the unit was not set up this turn)';
     case 'Lethal Hits': return snap?undefined:'Lethal Hits (on a critical hit, you may skip the Wound roll and wound automatically)';
     case 'Assault': return snap?undefined:'Assault (after an Advance, an unengaged unit can use assault shooting with Assault weapons only and cannot then start an action this phase)';
-    case 'Indirect Fire': return snap?undefined:'Indirect Fire (if unengaged and you did not Advance, indirect shooting can target unseen enemies. The target gets cover, Hit rolls cannot be re-rolled, and unmodified 1–5 fails, or 1–3 if stationary with a friendly spotter)';
+    case 'Indirect Fire': return snap?undefined:'Indirect Fire (if unengaged and you did not Advance, indirect shooting can target unseen enemies. The target gets cover and Hit rolls cannot be re-rolled. Unmodified 1–5 fails, or 1–3 if the firing unit Remained Stationary and the target is visible to a friendly unit. Other guns still require visible targets. After shooting, the unit cannot start an action this phase)';
     case 'Blast': return 'Blast (+1 attack per five models in the target when selected)';
     case 'Devastating Wounds: Monster/vehicle': return 'Devastating Wounds (against a Monster or Vehicle only, a critical wound inflicts this weapon’s Damage as mortal wounds on one model after normal damage)';
-    case 'Psychic': return 'Psychic (these attacks are psychic attacks for rules that affect them)';
+    case 'Psychic': return snap?'Psychic (these attacks are psychic attacks for rules that affect them)':'Psychic (these are psychic attacks; you may ignore any or all modifiers to their Ballistic Skill or Weapon Skill and Hit roll)';
     case 'Devastating Wounds': return 'Devastating Wounds (on a critical wound, deal the weapon’s Damage as mortal wounds to one model after normal damage)';
-    case 'Extra Attacks': return 'Extra Attacks (fight with this weapon in addition to your chosen melee weapon)';
+    case 'Extra Attacks': return 'Extra Attacks (select all of the model’s Extra Attacks weapons and one of its other melee weapons if available)';
     case 'Ignores Cover': return 'Ignores Cover (deny the target the Benefit of Cover)';
-    case 'Pistol': return snap?'Pistol (each non-Monster, non-Vehicle firing model chooses Pistols or other ranged weapons)':'Pistol (can use close-quarters shooting against an engaged target if the unit did not Advance. With other shooting types, a non-Monster, non-Vehicle model chooses Pistols or other ranged weapons)';
+    case 'Pistol': return closeQuartersText('Pistol',snap);
     case 'Precision': return 'Precision (when allocating attacks, the active player may select the allocation group containing a visible enemy Character)';
     case 'Torrent': return 'Torrent (hits automatically)';
     case 'Twin-Linked': return 'Twin-Linked (may re-roll the Wound roll)';
     default: return keyword;
   }
+}
+
+// Core 24.27 makes Pistol and Close-Quarters identical for all rules purposes.
+// Their shared weapon group must not be mistaken for two competing categories.
+function closeQuartersText(name:'Pistol'|'Close-Quarters',snap:boolean):string{
+  const choice='each non-Monster, non-Vehicle model chooses its Pistol/Close-Quarters weapons together or its other ranged weapons';
+  return name+' ('+(snap?choice:'if engaged and the unit did not Advance, it can use close-quarters shooting. Non-Monster, non-Vehicle models then fire only Pistol/Close-Quarters weapons and only at enemies engaged with their unit. With other shooting types, '+choice+'. After close-quarters shooting, the unit cannot start an action this phase')+')';
 }
