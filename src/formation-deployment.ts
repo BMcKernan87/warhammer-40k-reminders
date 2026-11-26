@@ -1,3 +1,5 @@
+import {spaceMarineMandatoryReservePoints} from './space-marines-muster';
+import {spaceMarineMinimumPodPassengerPoints} from './space-marines-transports';
 import {aircraftCoreReminders} from './aircraft-core';
 import {rosterCost2026} from './datasheets-2026';
 import {orkMandatoryReservePoints} from './ork-muster';
@@ -19,16 +21,18 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  const entries=rosterCost2026(army).entries;
  const prices=new Map(entries.map(e=>[e.id,e.points]));
  const cost=(f:ArmyFormation)=>f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0);
- const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'||army.faction==='Adeptus Mechanicus'||army.faction==='T’au Empire'||army.faction==='Tyranids'||army.faction==='Drukhari'||army.faction==='Aeldari'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
+ const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'||army.faction==='Adeptus Mechanicus'||army.faction==='T’au Empire'||army.faction==='Tyranids'||army.faction==='Drukhari'||army.faction==='Aeldari'||army.faction==='Space Marines'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
  if(army.faction==='Orks'&&mandatoryAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',mandatoryAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
  const tyranidReserves=army.faction==='Tyranids'?tyranidReserveAccounting(army):undefined;
- const compulsory=army.faction==='Orks'?orkMandatoryReservePoints(army,entries):tyranidReserves?.minimumAircraftPoints??mandatoryAircraft.reduce((points,f)=>points+cost(f),0);
+ const compulsory=army.faction==='Space Marines'?spaceMarineMandatoryReservePoints(army,entries):army.faction==='Orks'?orkMandatoryReservePoints(army,entries):tyranidReserves?.minimumAircraftPoints??mandatoryAircraft.reduce((points,f)=>points+cost(f),0);
  const available=Math.max(0,reserveLimit-compulsory);
- const startingReserves=formations.filter(f=>!(army.faction==='Tyranids'&&f.body.unit==='Tyrannocyte')&&reserveEligible.includes(f.id)&&!mandatoryAircraft.includes(f)&&cost(f)<=available).map(f=>f.id);
+ const startingReserves=formations.filter(f=>!(army.faction==='Space Marines'&&f.body.unit==='Drop Pod')&&!(army.faction==='Tyranids'&&f.body.unit==='Tyrannocyte')&&reserveEligible.includes(f.id)&&!mandatoryAircraft.includes(f)&&cost(f)<=available).map(f=>f.id);
  const seedingAllowance=army.faction==='Tyranids'&&formations.some(f=>f.body.unit==='Tyrannocyte')?' Tyrannocytes must start in Reserves; they and their actual embarked passengers are exempt from this starting allowance.':'';
- const aircraftAllowance=tyranidReserves?.possibleExemption?' If you start '+tyranidReserves.exemptible.join(', ')+' embarked in separate Tyrannocytes, '+tyranidReserves.possibleExemption+' Aircraft points are exempt and '+available+' points remain in the allowance. Otherwise count those Aircraft normally.':compulsory?' After compulsory Aircraft, '+available+' points remain.':'';
+ const aircraftAllowance=tyranidReserves?.possibleExemption?' If you start '+tyranidReserves.exemptible.join(', ')+' embarked in separate Tyrannocytes, '+tyranidReserves.possibleExemption+' Aircraft points are exempt and '+available+' points remain in the allowance. Otherwise count those Aircraft normally.':compulsory?army.faction==='Space Marines'?' Compulsory Aircraft and Drop Pods themselves cost '+compulsory+' points; '+available+' points remain for their passengers and other reserves.':' After compulsory Aircraft, '+available+' points remain.':'';
+ const minimumPodPassengers=army.faction==='Space Marines'?spaceMarineMinimumPodPassengerPoints(army,undefined,entries):null;
+ const podAllowance=minimumPodPassengers?' At least '+minimumPodPassengers+' points of passengers must begin aboard Drop Pods while the other Dedicated Transports are occupied, making the minimum starting reserve cost '+(compulsory+minimumPodPassengers)+' points. Declare the actual passengers before deployment and count their full costs.':'';
  add('reserve-declaration','Declare Strategic Reserves','Pre-battle','start',
-  'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.'+aircraftAllowance+seedingAllowance,startingReserves);
+  'Declare whole formations in Strategic Reserves before deployment. The starting allowance is '+reserveLimit+' points, including units embarked in reserved transports. This cap ends when the battle starts.'+aircraftAllowance+podAllowance+seedingAllowance,startingReserves);
  add('reserve-arrival','Strategic Reserves · ingress','Movement','during',
   'In your Move Units step, select a unit in Strategic Reserves to arrive, normally from round two. Set it up wholly within 6″ of a battlefield edge and more than 8″ horizontally from enemies. Until round three, stay outside the enemy deployment zone. Apply any specific alternative placement or first-turn ability. An arriving unit normally cannot move again until the Charge phase. Embarked units arrive aboard their transport.',reserveEligible);
  add('reserve-deadline','Strategic Reserves · round three deadline','End of battle round','end',

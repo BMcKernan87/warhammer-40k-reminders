@@ -1,3 +1,4 @@
+import {spaceMarineAgentName} from './space-marines-data';
 import {sororitasAgentName} from './sororitas-army-data';
 import {astraAgentName} from './astra-army-data';
 import type {ArmySelection} from './catalog';
@@ -21,7 +22,7 @@ export function assignedAgentHasRanged(squad:RosterInstance,sourceUnit=squad.uni
 
 export function assignedAgentFindings(army:ArmySelection):RosterFinding[]{
  if(!assignedAgentHost(army.faction))return [];
- const name=(s:RosterInstance)=>army.faction==='Adepta Sororitas'?sororitasAgentName(s.unit):army.faction==='Astra Militarum'?astraAgentName(s.unit):s.unit;
+ const name=(s:RosterInstance)=>army.faction==='Space Marines'?spaceMarineAgentName(s.unit):army.faction==='Adepta Sororitas'?sororitasAgentName(s.unit):army.faction==='Astra Militarum'?astraAgentName(s.unit):s.unit;
  const agents=expandRoster(army).filter(s=>{const unit=name(s);return unit!==undefined&&isAssignedAgent(unit);});
  if(!agents.length)return [];
  const findings:RosterFinding[]=[];

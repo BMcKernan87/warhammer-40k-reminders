@@ -1,3 +1,4 @@
+import {spaceMarineSavedEquipment} from './space-marines-saved-equipment';
 import {aeldariJoinedBodyguard} from './aeldari-attachments';
 import {csmMarkChoices,csmMarksCompatible,type CsmMark} from './csm-muster-data';
 import {tyranidCanPromote} from './tyranid-muster-data';
@@ -27,7 +28,8 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
   const saved=squad.equipment??army.equipment?.[squad.unit];
   if(!saved)return squad;
   const equipment=currentEquipmentName(squad.unit,saved);
-  return equipment===squad.equipment?squad:{...squad,equipment};
+  const resolved=equipment===squad.equipment?squad:{...squad,equipment};
+  return army.faction==='Space Marines'?spaceMarineSavedEquipment(resolved):resolved;
  });
  const result:RosterInstance[]=[];
  for(const [unit,count] of Object.entries(army.units))for(let i=1;i<=count;i++)result.push({id:unit+'#'+i,unit,models:verifiedUnitSizes2026(army,unit)?.[0]??legalUnitSizes(army.faction,unit)?.[0],equipment:army.equipment?.[unit]??(army.faction==='Orks'?undefined:EQUIPMENT_OPTIONS[army.faction]?.find(o=>o.unit===unit)?.defaultChoice),enhancement:i===1?army.enhancements?.[unit]:undefined});
@@ -36,7 +38,7 @@ export function expandRoster(army:ArmySelection):RosterInstance[]{
   const b=result.find(x=>x.unit===bodyguard);
   if(l&&b)l.attachedTo=b.id;
  }
- return result;
+ return army.faction==='Space Marines'?result.map(s=>spaceMarineSavedEquipment(s)):result;
 }
 export function setInstanceWeaponCounts(army:ArmySelection,id:string,weaponCounts:Record<string,number>):ArmySelection{
  const instances=expandRoster(army).map(x=>({...x}));
@@ -115,6 +117,7 @@ export function setInstanceEquipment(army:ArmySelection,id:string,equipment:stri
  if(!EQUIPMENT_OPTIONS[army.faction]?.some(o=>o.unit===target.unit&&o.choices.includes(equipment)))throw Error('Invalid equipment for this squad');
  if(target.unit==='Overlord'&&target.resurrectionOrb&&equipment==='Tachyon arrow and Overlord’s blade')throw Error('Resurrection Orb cannot be equipped alongside tachyon arrow');
  target.equipment=equipment;
+ if(army.faction==='Space Marines')Object.assign(target,spaceMarineSavedEquipment(target,true));
  delete target.weaponCounts;
  if(target.modelLoadouts)target.modelLoadouts=modelLoadoutRows(target,target.modelLoadouts.length);
  return {...army,instances};
@@ -181,7 +184,7 @@ export function setInstanceAttachment(army:ArmySelection,leaderId:string,bodygua
   delete leader.keepUnattached;
  }else{
   delete leader.attachedTo;
-  if(rosterAttachmentRole(army.faction,leader.unit)==='leader')leader.keepUnattached=true;
+  if(rosterAttachmentRole(army.faction,leader.unit,army)==='leader')leader.keepUnattached=true;
  }
  const updated=reconcileRetinues({...army,instances});
  if(!validateRosterInstances(updated))throw Error('Incompatible Leader attachment or duplicate assignment');
@@ -197,7 +200,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(!x||typeof x.id!=='string'||!x.id||seen.has(x.id)||typeof x.unit!=='string'||!(x.unit in army.units))return false;
   if(x.characterPromotion!==undefined&&(x.characterPromotion!==true||!(astraCanPromote(army,x)||tyranidCanPromote(army,x))))return false;
   if(x.csmMark!==undefined&&!csmMarkChoices(army,x).includes(x.csmMark))return false;
-  if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||rosterAttachmentRole(army.faction,x.unit)!=='leader'))return false;
+  if(x.keepUnattached!==undefined&&(x.keepUnattached!==true||x.attachedTo!==undefined||rosterAttachmentRole(army.faction,x.unit,army)!=='leader'))return false;
   if(x.unit==='Overlord'&&x.resurrectionOrb&&(x.equipment||army.equipment?.['Overlord']||'Tachyon arrow and Overlord’s blade')==='Tachyon arrow and Overlord’s blade')return false;
   if(x.resurrectionOrb!==undefined&&(x.unit!=='Overlord'||typeof x.resurrectionOrb!=='boolean'))return false;
   if(x.models!==undefined&&(!Number.isInteger(x.models)||!(verifiedUnitSizes2026(army,x.unit)||legalUnitSizes(army.faction,x.unit))?.includes(x.models)))return false;
@@ -224,7 +227,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
   if(army.faction==='Death Guard'&&leaders.length===2&&deathGuardAdditionalLeaderPair(body.unit,leaders[0].unit,leaders[1].unit))continue;
   if(usesAstraAttachmentSlots(army,body)){if(!astraAttachmentSlots(body,leaders))return false;continue;}
   if(leaders.length>2)return false;
-  if(leaders.length===2&&new Set(leaders.map(l=>rosterAttachmentRole(army.faction,l.unit))).size!==2)return false;
+  if(leaders.length===2&&new Set(leaders.map(l=>rosterAttachmentRole(army.faction,l.unit,army))).size!==2)return false;
  }
  return validRetinues(army);
 }
@@ -249,7 +252,8 @@ export function removeRosterInstance(army:ArmySelection,id:string):ArmySelection
  const upgrades2026={...army.upgrades2026};
  delete upgrades2026[id];
  if(!units[target.unit])delete upgrades2026[target.unit];
- const updated=reconcileRetinues({...army,units,instances,upgrades2026,retiredSquadNumbers:retiredSquadNumbers(army,[target])});
+ const removed=reconcileRetinues({...army,units,instances,upgrades2026,retiredSquadNumbers:retiredSquadNumbers(army,[target])});
+ const updated=army.faction==='Space Marines'?reconcileInstanceAttachments(removed):removed;
  if(!validateRosterInstances(updated))throw Error('Removing squad would invalidate roster');
  return autoAttachUnambiguousInstances(reconcileWarlord(updated));
 }
@@ -261,13 +265,13 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction))return army;
- let current=army;
+ if(!army.instances||!['Space Marines','Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction))return army;
+ let current=army.faction==='Space Marines'?reconcileInstanceAttachments(army):army;
  let changed=true;
  while(changed){
   changed=false;
   const roster=expandRoster(current);
-  const unresolved=roster.filter(s=>rosterAttachmentRole(army.faction,s.unit)&&!s.attachedTo&&!s.keepUnattached);
+  const unresolved=roster.filter(s=>rosterAttachmentRole(army.faction,s.unit,army)&&!s.attachedTo&&!s.keepUnattached);
   // A unique destination is still ambiguous if two characters require the same available slot.
   const proposals=new Map<string,{leader:RosterInstance;bodyId:string}[]>();
   for(const leader of unresolved){
@@ -275,7 +279,7 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
     try{setInstanceAttachment(current,leader.id,body.id);return true;}catch{return false;}
    });
    if(legal.length!==1)continue;
-   const key=rosterAttachmentRole(army.faction,leader.unit)+'/'+legal[0].id;
+   const key=rosterAttachmentRole(army.faction,leader.unit,army)+'/'+legal[0].id;
    proposals.set(key,[...(proposals.get(key)??[]),{leader,bodyId:legal[0].id}]);
   }
   // Required Supports take precedence when upgrades on two candidates conflict across roles.
@@ -291,7 +295,7 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
     return true;
    }catch{return false;}
   }).map(group=>group[0]);
-  const forced=choices.find(choice=>rosterAttachmentRole(army.faction,choice.leader.unit)==='support')??choices[0];
+  const forced=choices.find(choice=>rosterAttachmentRole(army.faction,choice.leader.unit,army)==='support')??choices[0];
   if(forced){
    current=setInstanceAttachment(current,forced.leader.id,forced.bodyId);
    changed=true;
@@ -303,11 +307,20 @@ export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection
 /** Remove only attachments that become illegal when a detachment or upgrade is removed. */
 export function reconcileInstanceAttachments(army:ArmySelection):ArmySelection{
  if(!army.instances)return army;
- let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy)&&!tyranidCanPromote(army,copy))delete copy.characterPromotion;if(copy.csmMark&&!csmMarkChoices(army,copy).includes(copy.csmMark))delete copy.csmMark;return copy;});
+ let instances=army.instances.map(s=>{const copy={...s};if(copy.characterPromotion&&!astraCanPromote(army,copy)&&!tyranidCanPromote(army,copy))delete copy.characterPromotion;if(copy.csmMark&&!csmMarkChoices(army,copy).includes(copy.csmMark))delete copy.csmMark;if(copy.keepUnattached&&rosterAttachmentRole(army.faction,copy.unit,army)!=='leader')delete copy.keepUnattached;return copy;});
  for(const leader of instances){
   if(!leader.attachedTo)continue;
   const body=instances.find(b=>b.id===leader.attachedTo);
   if(!body||!instanceBodyguards(army,leader).includes(body.unit)||!csmMarksCompatible(army,leader,body))delete leader.attachedTo;
+ }
+ if(army.faction==='Space Marines'){
+  for(const body of instances){
+   const occupied=new Set<string>();
+   for(const member of instances.filter(m=>m.attachedTo===body.id)){
+    const role=rosterAttachmentRole(army.faction,member.unit,army);
+    if(!role||occupied.has(role))delete member.attachedTo;else occupied.add(role);
+   }
+  }
  }
  const lostTyranidWarlord=army.faction==='Tyranids'&&army.instances.some(s=>s.id===army.warlordId&&s.characterPromotion)&&!instances.some(s=>s.id===army.warlordId&&s.characterPromotion);
  return reconcileRetinues({...army,instances,...(lostTyranidWarlord?{warlordId:undefined}:{})});

@@ -1,3 +1,5 @@
+import {SM_DETACHMENTS} from './space-marines-detachments.generated';
+import {currentSpaceMarineDetachment} from './space-marines-upgrades';
 import {AELDARI_DETACHMENTS} from './aeldari-detachments.generated';
 import {currentAeldariDetachment} from './aeldari-upgrades';
 import {DRUKHARI_DETACHMENTS} from './drukhari-detachments.generated';
@@ -27,30 +29,7 @@ export type ForceDisposition='Take and Hold'|'Disruption'|'Purge the Foe'|'Prior
 export interface Detachment2026 {name:string;disposition:ForceDisposition;dp:1|2|3;additionalDispositions?:readonly ForceDisposition[]}
 export const EDITION_2026_SOURCE='https://www.warhammer-community.com/en-gb/articles/fchkklcq/new40k-download-new-xenos-faction-packs-today/';
 export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>={
- 'Space Marines':[
- {name:"Fulguris Task Force",disposition:"Disruption",dp:1},
- {name:"Librarius Conclave",disposition:"Reconnaissance",dp:1},
- {name:"Subversion Assets",disposition:"Reconnaissance",dp:1},
- {name:"1st Company Task Force",disposition:"Priority Assets",dp:2},
- {name:"Anvil Siege Force",disposition:"Take and Hold",dp:2},
- {name:"Armoured Speartip",disposition:"Take and Hold",dp:3},
- {name:"Bastion Task Force",disposition:"Take and Hold",dp:2},
- {name:"Blade of Ultramar",disposition:"Priority Assets",dp:3},
- {name:"Ceramite Sentinels",disposition:"Take and Hold",dp:3},
- {name:"Emperor's Shield",disposition:"Priority Assets",dp:2},
- {name:"Firestorm Assault Force",disposition:"Purge the Foe",dp:2},
- {name:"Forgefather's Seekers",disposition:"Purge the Foe",dp:2},
- {name:"Gladius Task Force",disposition:"Priority Assets",dp:3},
- {name:"Hammer of Avernii",disposition:"Priority Assets",dp:2},
- {name:"Headhunter Task Force",disposition:"Priority Assets",dp:2},
- {name:"Ironstorm Spearhead",disposition:"Purge the Foe",dp:2},
- {name:"Orbital Assault Force",disposition:"Take and Hold",dp:2},
- {name:"Reclamation Force",disposition:"Take and Hold",dp:2},
- {name:"Shadowmark Talon",disposition:"Disruption",dp:2},
- {name:"Spearpoint Task Force",disposition:"Disruption",dp:2},
- {name:"Stormlance Task Force",disposition:"Disruption",dp:3},
- {name:"Vanguard Spearhead",disposition:"Reconnaissance",dp:2},
- ],
+ 'Space Marines':SM_DETACHMENTS,
  'Chaos Space Marines':CSM_DETACHMENTS,
  'World Eaters':WORLD_EATERS_DETACHMENTS,
  'Emperor’s Children':EMP_CHILDREN_DETACHMENTS,
@@ -188,10 +167,10 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='Aeldari'?selected.map(currentAeldariDetachment):faction==='Drukhari'?selected.map(currentDrukhariDetachment):faction==='Chaos Space Marines'?selected.map(currentCsmDetachment):faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Space Marines'?selected.map(currentSpaceMarineDetachment):faction==='Aeldari'?selected.map(currentAeldariDetachment):faction==='Drukhari'?selected.map(currentDrukhariDetachment):faction==='Chaos Space Marines'?selected.map(currentCsmDetachment):faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Aeldari'?[['Fateful Performance','Twilight Flickers']]:faction==='Drukhari'?[['Spectacle of Spite','Exhibition of Slaughter'],['Covenite Coterie','Tools of Torment'],['Kabalite Cartel','Kabalite Agonysts']]:faction==='Chaos Space Marines'?[['Murdertalon Raiders','Nightmare Hunt']]:faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const groups=faction==='Space Marines'?[['Assault Brethren','Tactical Brethren','Devastator Brethren'],['Phobos Shadow Force','Phobos Shock Force','Shadowmark Talon'],['Tacticus Attack Force','Tacticus Firestorm Force'],['Gravis Linebreaker Force','Gravis Siege Force'],['Ironstorm Spearhead',"Medusa's Wrath"]]:faction==='Aeldari'?[['Fateful Performance','Twilight Flickers']]:faction==='Drukhari'?[['Spectacle of Spite','Exhibition of Slaughter'],['Covenite Coterie','Tools of Torment'],['Kabalite Cartel','Kabalite Agonysts']]:faction==='Chaos Space Marines'?[['Murdertalon Raiders','Nightmare Hunt']]:faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;

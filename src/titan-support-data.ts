@@ -11,8 +11,8 @@ export const FREEBLADE_SHEETS=IMPERIAL_KNIGHT_SHEETS.filter(s=>s.keywords?.inclu
 const freeblades=new Map(FREEBLADE_SHEETS.map(s=>[s.unit,s]));
 export const isFreeblade=(unit:string)=>freeblades.has(unit);
 export const isWarhound=(unit:string)=>unit==='Warhound Titan'||unit==='Chaos Warhound Titan';
-export const freebladeHost=(faction:Faction)=>faction==='Imperial Agents'||faction==='Adeptus Custodes'||faction==='Astra Militarum'||faction==='Grey Knights'||faction==='Adepta Sororitas'||faction==='Adeptus Mechanicus';
-const loyal:Faction[]=['Astra Militarum','Imperial Agents','Adeptus Custodes','Imperial Knights','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'];
+export const freebladeHost=(faction:Faction)=>faction==='Space Marines'||faction==='Imperial Agents'||faction==='Adeptus Custodes'||faction==='Astra Militarum'||faction==='Grey Knights'||faction==='Adepta Sororitas'||faction==='Adeptus Mechanicus';
+const loyal:Faction[]=['Space Marines','Astra Militarum','Imperial Agents','Adeptus Custodes','Imperial Knights','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'];
 const traitor:Faction[]=['Chaos Space Marines','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard'];
 export function alliedWarhound(faction:Faction){
  return loyal.includes(faction)?'Warhound Titan':traitor.includes(faction)?'Chaos Warhound Titan':undefined;

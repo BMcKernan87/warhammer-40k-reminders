@@ -1,3 +1,5 @@
+import {spaceMarineLoadout,resizeSpaceMarineGear,validSpaceMarineGear} from './space-marines-loadouts';
+import {spaceMarineAgentName,isNativeSpaceMarine} from './space-marines-data';
 import {aeldariLoadout,resizeAeldariGear,validAeldariGear} from './aeldari-loadouts';
 import {drukhariLoadout,resizeDrukhariGear,validDrukhariGear} from './drukhari-loadouts';
 import {csmArmyLoadout,resizeCsmArmyGear,validCsmArmyGear} from './csm-army-loadouts';
@@ -124,6 +126,8 @@ function accursedCultists(models:number):KnightEquipment {
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
+  if(faction==='Space Marines'&&isNativeSpaceMarine(squad.unit))return resizeSpaceMarineGear(squad,models);
+  if(faction==='Space Marines'&&spaceMarineAgentName(squad.unit)&&squad.knightGear)return resizeAgentGear(spaceMarineAgentName(squad.unit)!,squad.knightGear,models);
   if(faction==='Aeldari')return resizeAeldariGear(squad,models);
   if(faction==='Drukhari')return resizeDrukhariGear(squad,models);
   if(faction==='Chaos Space Marines'&&csmArmyLoadout(squad.unit,models))return resizeCsmArmyGear(squad,models);
@@ -204,6 +208,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   if(faction==='Chaos Daemons'&&isShadowMarine(unit))return shadowMarineLoadout(unit,models);
   if(faction==='Tyranids')return tyranidLoadout(unit,models);
   if(faction==='T’au Empire')return tauLoadout(unit,models);
+  if(faction==='Space Marines')return spaceMarineLoadout(unit,models)??(spaceMarineAgentName(unit)?agentLoadout(spaceMarineAgentName(unit)!,models):undefined);
   if(faction==='Adeptus Mechanicus')return mechanicusLoadout(unit,models)??agentLoadout(unit,models);
   if(faction==='Adepta Sororitas')return sororitasLoadout(unit,models)??agentLoadout(sororitasAgentName(unit)??unit,models);
   if(faction==='Grey Knights')return greyKnightsLoadout(unit,models)??agentLoadout(unit,models);
@@ -220,6 +225,7 @@ export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,mo
   return CHAOS_KNIGHT_LOADOUTS[unit];
 }
 function registeredLoadout(unit:string,models?:number) {
+  if(unit.endsWith(' (Assigned Agent)')&&spaceMarineAgentName(unit))return agentLoadout(spaceMarineAgentName(unit)!,models);
   if(unit==='Ministorum Priest (Assigned Agent)'||unit==='Sanctifiers (Assigned Agent)')return agentLoadout(sororitasAgentName(unit)!,models);
   if(unit==='Ministorum Priest (Imperial Agents)')return agentLoadout('Ministorum Priest',models);
   if(isWarhound(unit))return warhoundEquipment;
@@ -241,6 +247,8 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(faction==='Space Marines'&&isNativeSpaceMarine(squad.unit))return validSpaceMarineGear(squad.unit,gear,squad.models);
+  if(faction==='Space Marines'&&spaceMarineAgentName(squad.unit))return validAgentGear(spaceMarineAgentName(squad.unit)!,gear,squad.models);
   if(faction==='Aeldari')return validAeldariGear(squad.unit,gear,squad.models);
   if(faction==='Drukhari')return validDrukhariGear(squad.unit,gear,squad.models);
   if(faction==='Chaos Space Marines'&&csmArmyLoadout(squad.unit,squad.models))return validCsmArmyGear(squad.unit,gear,squad.models);

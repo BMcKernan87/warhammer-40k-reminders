@@ -1,3 +1,4 @@
+import {eligibleSpaceMarineUpgrades} from './space-marines-upgrades';
 import {eligibleAeldariUpgrades,aeldariUpgradeBaseName} from './aeldari-upgrades';
 import {eligibleDrukhariUpgrades} from './drukhari-upgrades';
 import {eligibleCsmUpgrades} from './csm-detachment-data';
@@ -143,6 +144,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Space Marines')return eligibleSpaceMarineUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Space Marines',source:'https://wahapedia.ru/wh40k11ed/factions/space-marines/'}));
  if(army.faction==='Aeldari')return eligibleAeldariUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Aeldari',source:'https://wahapedia.ru/wh40k11ed/factions/aeldari/'}));
  if(army.faction==='Drukhari')return eligibleDrukhariUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Drukhari',source:'https://wahapedia.ru/wh40k11ed/factions/drukhari/'}));
  if(army.faction==='Chaos Space Marines')return eligibleCsmUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Space Marines',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-space-marines/'}));

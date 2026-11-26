@@ -10,5 +10,5 @@ export const NATIVE_AGENT_SHEETS:readonly Datasheet2026[]=ASSIGNED_AGENT_DATA.ma
 });
 
 // Current matched-play Inquisitors with Authority and the MFM's Imperium Battleline Infantry eligibility.
-export const assignedAgentHost=(faction:string)=>['Imperial Knights','Adeptus Custodes','Astra Militarum','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'].includes(faction);
+export const assignedAgentHost=(faction:string)=>['Space Marines','Imperial Knights','Adeptus Custodes','Astra Militarum','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'].includes(faction);
 export const BATTLELINE_INQUISITORS=new Set(['Inquisitor','Inquisitor Coteaz','Inquisitor Draxus','Inquisitor Greyfax']);

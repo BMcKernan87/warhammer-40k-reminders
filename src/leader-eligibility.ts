@@ -1,3 +1,5 @@
+import {SM_ARMY_SHEETS} from './space-marines-data';
+import {spaceMarineAttachmentRole,spaceMarineBodyguards} from './space-marines-attachments';
 import {aeldariJoinedBodyguard} from './aeldari-attachments';
 import {AELDARI_SHEETS} from './aeldari-data';
 import {aeldariMusterUnits} from './aeldari-muster-data';
@@ -59,13 +61,7 @@ export const LEADER_BODYGUARDS:Partial<Record<ArmySelection['faction'],Record<st
  'Imperial Knights':Object.fromEntries(knightSheets.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  Orks:Object.fromEntries(ORK_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
  Tyranids:Object.fromEntries(TYRANID_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]])),
- 'Space Marines':{
-  Captain:['Intercessor Squad','Assault Intercessor Squad','Hellblaster Squad','Sternguard Veteran Squad'],
-  Lieutenant:['Intercessor Squad','Assault Intercessor Squad','Hellblaster Squad','Sternguard Veteran Squad'],
-  Judiciar:['Bladeguard Veteran Squad','Assault Intercessor Squad'],
-  'Apothecary Biologis':['Aggressor Squad','Eradicator Squad','Heavy Intercessor Squad'],
-  Chaplain:['Intercessor Squad','Assault Intercessor Squad','Bladeguard Veteran Squad']
- }
+ 'Space Marines':Object.fromEntries(SM_ARMY_SHEETS.filter(s=>s.attachmentRole).map(s=>[s.unit,s.bodyguards??[]]))
 };
 export function leaderBodyguards(faction:ArmySelection['faction'],leader:string):readonly string[]{
  return LEADER_BODYGUARDS[faction]?.[leader]||[];
@@ -81,6 +77,7 @@ export function hasMurdermind(army:ArmySelection,leader:{id:string;unit:string})
  return army.faction==='Necrons'&&!!army.detachments2026?.includes('Cursed Legion')&&MURDERMIND_BEARERS.includes(leader.unit)&&(army.upgrades2026?.[leader.id]??army.upgrades2026?.[leader.unit])==='Murdermind';
 }
 export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:string}):readonly string[]{
+ if(army.faction==='Space Marines')return spaceMarineBodyguards(army,leader);
  if(army.faction==='Chaos Daemons'&&!daemonMusterUnits(army).includes(leader.unit))return [];
  if(army.faction==='Chaos Knights'&&!isDaemonicPactUnit(leader.unit)&&!army.detachments2026?.includes('Iconoclast Fiefdom'))return [];
  const base=leaderBodyguards(army.faction,leader.unit);
@@ -134,7 +131,8 @@ export function instanceBodyguards(army:ArmySelection,leader:{id:string;unit:str
 
 // October MFM 1.6 gives the Marshal Support for Rangers and Vanguard. The
 // Tech-Priests use the separate Leader slot on those Forgepact allies.
-export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string):'leader'|'support'|null {
+export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:string,army?:ArmySelection):'leader'|'support'|null {
+ if(faction==='Space Marines')return spaceMarineAttachmentRole(unit,army);
  if(faction==='Aeldari')return AELDARI_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Drukhari')return DRUKHARI_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
  if(faction==='Chaos Space Marines')return CSM_ARMY_SHEETS.find(s=>s.unit===unit)?.attachmentRole??null;
@@ -161,7 +159,7 @@ export function rosterAttachmentRole(faction:ArmySelection['faction'],unit:strin
 
 export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):RosterInstance|undefined {
  if(army.faction==='Aeldari')return aeldariJoinedBodyguard(army,leader);
- if(!['Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction)||!leader.attachedTo)return undefined;
+ if(!['Space Marines','Astra Militarum','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction)||!leader.attachedTo)return undefined;
  const roster=expandRoster(army),body=roster.find(s=>s.id===leader.attachedTo);
  if(!body||body.attachedTo||body.retinueTo||!instanceBodyguards(army,leader).includes(body.unit))return undefined;
  if(!csmMarksCompatible(army,leader,body))return undefined;
@@ -170,6 +168,6 @@ export function knightJoinedBodyguard(army:ArmySelection,leader:RosterInstance):
  if(army.faction==='T’au Empire'&&members.length===2&&tauAdditionalLeaderPair(body,members[0].unit,members[1].unit))return body;
  if(army.faction==='Death Guard'&&members.length===2&&deathGuardAdditionalLeaderPair(body.unit,members[0].unit,members[1].unit))return body;
  if(usesAstraAttachmentSlots(army,body))return astraAttachmentSlots(body,members)?body:undefined;
- const roles=members.map(m=>rosterAttachmentRole(army.faction,m.unit));
- return roles.length<=2&&new Set(roles).size===roles.length?body:undefined;
+ const roles=members.map(m=>rosterAttachmentRole(army.faction,m.unit,army));
+ return roles.length<=2&&roles.every(Boolean)&&new Set(roles).size===roles.length?body:undefined;
 }

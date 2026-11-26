@@ -1,3 +1,4 @@
+import {SM_UNITS} from './space-marines-data';
 import {AELDARI_UNITS} from './aeldari-data';
 import {DRUKHARI_UNITS} from './drukhari-data';
 import {CSM_ARMY_UNITS} from './csm-army-data';
@@ -64,7 +65,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'World Eaters':{detachments:['Select detachment (unverified)'],units:WORLD_EATERS_UNITS,enhancements:[]},
  'Space Marines':{
   detachments:['Gladius Task Force','Firestorm Assault Force','Ironstorm Spearhead','Vanguard Spearhead','Anvil Siege Force','Stormlance Task Force','1st Company Task Force'],
-  units:['Marneus Calgar','Roboute Guilliman','Captain','Lieutenant','Judiciar','Apothecary Biologis','Chaplain','Intercessor Squad','Assault Intercessor Squad','Heavy Intercessor Squad','Bladeguard Veteran Squad','Aggressor Squad','Eradicator Squad','Infernus Squad','Terminator Squad','Sternguard Veteran Squad','Inceptor Squad','Hellblaster Squad','Ballistus Dreadnought','Redemptor Dreadnought','Brutalis Dreadnought','Land Raider','Repulsor Executioner'],
+  units:SM_UNITS,
   enhancements:[]
  }
 };
