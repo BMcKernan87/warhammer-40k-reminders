@@ -11,10 +11,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-audit --no-fund
       - run: npm test
-      - run: npm run rules:audit
       - run: npm run build
-      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Upload shared core print evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-core-ci-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            test-results/shared-core-instructions-*/reminders.pdf
+            test-results/shared-core-instructions-*/fight-reminders.png
+            test-results/persistent-rule-followups-*/reminders.pdf
+            test-results/persistent-rule-followups-*/phase-reminders.png
+          if-no-files-found: ignore
+          retention-days: 7

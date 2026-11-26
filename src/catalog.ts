@@ -1,92 +1,94 @@
-import { z } from 'zod';
-import snapshot from './data/catalog.json';
-
-export const identifier = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-export const sourceUrl = z
-  .string()
-  .url()
-  .refine(
-    (url) => url.startsWith('https://wahapedia.ru/wh40k10ed/'),
-    'Expected a 10th-edition Wahapedia source',
-  );
-export const checkedDate = z.string().date();
-const named = z.object({ id: identifier, name: z.string().trim().min(1) });
-const unitSchema = named.extend({
-  path: z
-    .string()
-    .regex(/^[\w.%’'()-]+$/u)
-    .optional(),
-  chapter: identifier.optional(),
-  exceptChapters: z.array(identifier).optional(),
-});
-const detachmentSchema = named.extend({ sourceId: z.string().min(1), chapter: identifier.optional() });
-const familySchema = named.extend({
-  source: sourceUrl,
-  sourceId: z.string().min(1),
-  units: z.array(unitSchema).nonempty(),
-  detachments: z.array(detachmentSchema).nonempty(),
-});
-export type Unit = z.infer<typeof unitSchema>;
-export type Detachment = z.infer<typeof detachmentSchema>;
-export type Faction = {
-  id: string;
-  name: string;
-  family: string;
-  source: string;
-  units: Unit[];
-  detachments: Detachment[];
+import {SM_UNITS,spaceMarineArmyUnits} from './space-marines-data';
+import {AELDARI_UNITS} from './aeldari-data';
+import {DRUKHARI_UNITS} from './drukhari-data';
+import {CSM_ARMY_UNITS} from './csm-army-data';
+import {TYRANID_UNITS} from './tyranid-data';
+import {TAU_UNITS} from './tau-data';
+import {MECHANICUS_ARMY_UNITS} from './mechanicus-army-data';
+import {SORORITAS_ARMY_UNITS} from './sororitas-army-data';
+import {GREY_KNIGHTS_UNITS} from './grey-knights-data';
+import {DEATH_GUARD_UNITS} from './death-guard-data';
+import {THOUSAND_SONS_UNITS} from './thousand-sons-data';
+import {EMPERORS_CHILDREN_UNITS} from './emperors-children-data';
+import {ASTRA_ARMY_UNITS} from './astra-army-data';
+import {GSC_UNITS} from './gsc-data';
+import {GSC_ALLIED_SHEETS} from './gsc-allies-data.generated';
+import {alliedRosterNames} from './titan-support-data';
+import {ASSIGNED_AGENT_UNITS} from './assigned-agent-data';
+import {DAEMON_UNITS} from './chaos-daemons-data';
+import {ORK_UNITS} from './ork-data';
+import {WORLD_EATERS_UNITS} from './world-eaters-data';
+import {VOTANN_UNITS} from './votann-muster-data';
+import {CUSTODES_UNITS} from './adeptus-custodes-data';
+import {CHAOS_KNIGHT_UNITS} from './chaos-knights-data';
+import {IMPERIAL_KNIGHT_UNITS} from './imperial-knights-data';
+import {reconcileRetinues} from './necron-retinues';
+import {reconcileWarlord} from './necron-muster-legality';
+import {currentEquipmentName} from './necron-wargear';
+import {BATTLE_SIZES_2026,detachmentBudget,type BattleSize2026} from './edition-2026';
+import {expandRoster,appendRosterInstances,retiredSquadNumbers,validateRosterInstances,type RosterInstance} from './roster-instances';
+import {validateUpgrades2026} from './upgrades-2026';
+import {validateEnhancements} from './enhancements';
+import {validateAttachments} from './attachments';
+import {EQUIPMENT_OPTIONS} from './equipment';
+export type Faction='Necrons'|'Space Marines'|'Orks'|'Tyranids'|'Adepta Sororitas'|'Adeptus Custodes'|'Adeptus Mechanicus'|'Aeldari'|'Astra Militarum'|'Black Templars'|'Blood Angels'|'Chaos Daemons'|'Chaos Knights'|'Chaos Space Marines'|'Dark Angels'|'Death Guard'|'Drukhari'|'Emperor’s Children'|'Genestealer Cults'|'Grey Knights'|'Imperial Agents'|'Imperial Knights'|'Leagues of Votann'|'Space Wolves'|'T’au Empire'|'Thousand Sons'|'World Eaters';
+export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonly string[];enhancements:readonly string[]}> = {
+ 'Necrons':{
+  detachments:['Awakened Dynasty','Canoptek Court','Hypercrypt Legion','Annihilation Legion','Obeisance Phalanx'],
+  units:["C’tan Shard of the Nightbringer","C’tan Shard of the Void Dragon","Imotekh the Stormlord","Orikan the Diviner","Technomancer","Plasmancer","Chronomancer","Overlord","Skorpekh Lord","Hexmark Destroyer","Necron Warriors","Immortals","Canoptek Wraiths","Canoptek Scarab Swarms","Lokhust Heavy Destroyers","Skorpekh Destroyers","Lychguard","Deathmarks","Doomsday Ark","Monolith","Canoptek Doomstalker","Canoptek Reanimator","Tomb Blades","Canoptek Tomb Crawlers","Canoptek Macrocytes","Geomancer","C’tan Shard of the Deceiver","Transcendent C’tan","Nekrosor Ammentar","Seraptek Heavy Construct","Illuminor Szeras","The Silent King","Ghost Ark","Doom Scythe","Cryptothralls","Flayed Ones","Annihilation Barge","Canoptek Spyders","Ophydian Destroyers","Lokhust Destroyers","Tesseract Vault","Catacomb Command Barge","Convergence Of Dominion","Lokhust Lord","Night Scythe","Obelisk","Overlord with translocation shroud","Psychomancer","Royal Warden","Triarch Praetorians","Triarch Stalker","Trazyn the Infinite"],
+  enhancements:[]
+ },
+ 'Orks':{detachments:['War Horde','Da Big Hunt','Bully Boyz','Green Tide','Dread Mob','Kult of Speed'],units:ORK_UNITS,enhancements:[]},
+ 'Tyranids':{detachments:['Invasion Fleet','Synaptic Nexus','Unending Swarm','Assimilation Swarm','Vanguard Onslaught','Crusher Stampede'],units:TYRANID_UNITS,enhancements:[]},
+ 'Adepta Sororitas':{detachments:['Select detachment (unverified)'],units:SORORITAS_ARMY_UNITS,enhancements:[]},
+ 'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},
+ 'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:MECHANICUS_ARMY_UNITS,enhancements:[]},
+ 'Aeldari':{detachments:['Select detachment (unverified)'],units:AELDARI_UNITS,enhancements:[]},
+ 'Astra Militarum':{detachments:['Select detachment (unverified)'],units:ASTRA_ARMY_UNITS,enhancements:[]},
+ 'Black Templars':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Black Templars'),enhancements:[]},
+ 'Blood Angels':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Blood Angels'),enhancements:[]},
+ 'Chaos Daemons':{detachments:['Select detachment (unverified)'],units:DAEMON_UNITS,enhancements:[]},
+ 'Chaos Knights':{detachments:['Select detachment (unverified)'],units:CHAOS_KNIGHT_UNITS,enhancements:[]},
+ 'Chaos Space Marines':{detachments:['Select detachment (unverified)'],units:CSM_ARMY_UNITS,enhancements:[]},
+ 'Dark Angels':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Dark Angels'),enhancements:[]},
+ 'Death Guard':{detachments:['Select detachment (unverified)'],units:DEATH_GUARD_UNITS,enhancements:[]},
+ 'Drukhari':{detachments:['Select detachment (unverified)'],units:DRUKHARI_UNITS,enhancements:[]},
+ 'Emperor’s Children':{detachments:['Select detachment (unverified)'],units:EMPERORS_CHILDREN_UNITS,enhancements:[]},
+ 'Genestealer Cults':{detachments:['Select detachment (unverified)'],units:[...GSC_UNITS,...GSC_ALLIED_SHEETS.map(s=>s.unit)],enhancements:[]},
+ 'Grey Knights':{detachments:['Select detachment (unverified)'],units:GREY_KNIGHTS_UNITS,enhancements:[]},
+ 'Imperial Agents':{detachments:['Select detachment (unverified)'],units:ASSIGNED_AGENT_UNITS,enhancements:[]},
+ 'Imperial Knights':{detachments:['Select detachment (unverified)'],units:IMPERIAL_KNIGHT_UNITS,enhancements:[]},
+ 'Leagues of Votann':{detachments:['Select detachment (unverified)'],units:VOTANN_UNITS,enhancements:[]},
+ 'Space Wolves':{detachments:['Select detachment (unverified)'],units:spaceMarineArmyUnits('Space Wolves'),enhancements:[]},
+ 'T’au Empire':{detachments:['Select detachment (unverified)'],units:TAU_UNITS,enhancements:[]},
+ 'Thousand Sons':{detachments:['Select detachment (unverified)'],units:THOUSAND_SONS_UNITS,enhancements:[]},
+ 'World Eaters':{detachments:['Select detachment (unverified)'],units:WORLD_EATERS_UNITS,enhancements:[]},
+ 'Space Marines':{
+  detachments:['Gladius Task Force','Firestorm Assault Force','Ironstorm Spearhead','Vanguard Spearhead','Anvil Siege Force','Stormlance Task Force','1st Company Task Force'],
+  units:SM_UNITS,
+  enhancements:[]
+ }
 };
-export function uniqueIds(items: { id: string }[], label: string) {
-  if (new Set(items.map((item) => item.id)).size !== items.length) throw Error('Duplicate ID in ' + label);
+for(const faction of ['Chaos Space Marines','Adeptus Custodes','Imperial Agents','Imperial Knights','Chaos Daemons','Chaos Knights','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus'] as const){
+ CATALOG[faction].units=[...new Set([...CATALOG[faction].units,...alliedRosterNames(faction)])];
 }
-const index = z
-  .object({
-    edition: z.literal('10e'),
-    indexedOn: checkedDate,
-    families: z.array(familySchema),
-    chapters: z.array(named),
-  })
-  .parse(snapshot);
-export const indexedOn = index.indexedOn;
-const chapters = new Set(index.chapters.map((chapter) => chapter.id));
-export const factions: Faction[] = [];
-for (const family of index.families) {
-  uniqueIds(family.units, family.name + ' datasheets');
-  uniqueIds(family.detachments, family.name + ' detachments');
-  for (const entry of [...family.units, ...family.detachments]) {
-    if (entry.chapter && (family.id !== 'space-marines' || !chapters.has(entry.chapter)))
-      throw Error('Unknown chapter on ' + entry.id);
-  }
-  const options = family.id === 'space-marines' ? [family, ...index.chapters] : [family];
-  for (const option of options) {
-    factions.push({
-      id: option.id,
-      name: option.name,
-      family: family.id,
-      source: family.source,
-      units: family.units.filter(
-        (u) => (!u.chapter || u.chapter === option.id) && !u.exceptChapters?.includes(option.id),
-      ),
-      detachments: family.detachments.filter((d) => !d.chapter || d.chapter === option.id),
-    });
-  }
+
+export interface ArmySelection {faction:Faction;detachment:string;units:Record<string,number>;equipment?:Record<string,string>;attachments?:Record<string,string>;enhancements?:Record<string,string>;instances?:RosterInstance[];retiredSquadNumbers?:Record<string,number>;battleSize2026?:BattleSize2026;detachments2026?:string[];upgrades2026?:Record<string,string>;warlordId?:string;chaosWarDogCharacterIds?:string[]}
+export function newSelection(faction:Faction='Necrons'):ArmySelection{return {faction,detachment:CATALOG[faction].detachments[0],units:{}}}
+export function addSelectionUnit(s:ArmySelection,name:string,count=1):ArmySelection{
+ if(!CATALOG[s.faction].units.includes(name)||!Number.isInteger(count)||count<1)throw Error('Invalid unit selection');
+ const instances=s.instances?appendRosterInstances(s,name,count):undefined;
+ return reconcileWarlord({...s,units:{...s.units,[name]:(s.units[name]||0)+count},...(instances?{instances}:{})});
 }
-uniqueIds(factions, 'factions');
-factions.sort((a, b) => a.name.localeCompare(b.name));
-export const factionsById = new Map(factions.map((f) => [f.id, f]));
-export function getFaction(id: string): Faction {
-  const faction = factionsById.get(id);
-  if (!faction) throw Error('Unknown faction ' + id);
-  return faction;
+export function removeSelectionUnit(s:ArmySelection,name:string):ArmySelection{
+ const units={...s.units};delete units[name];const equipment={...s.equipment};delete equipment[name];const attachments=Object.fromEntries(Object.entries(s.attachments||{}).filter(([leader,bodyguard])=>leader!==name&&bodyguard!==name));const enhancements={...s.enhancements};delete enhancements[name];const removedIds=new Set(expandRoster(s).filter(x=>x.unit===name).map(x=>x.id));const instances=s.instances?.filter(x=>x.unit!==name).map(x=>x.attachedTo&&removedIds.has(x.attachedTo)?{...x,attachedTo:undefined}:x);const upgrades2026=Object.fromEntries(Object.entries(s.upgrades2026||{}).filter(([key])=>key!==name&&!removedIds.has(key)));return reconcileWarlord(reconcileRetinues({...s,units,equipment,attachments,enhancements,upgrades2026,...(instances?{instances,retiredSquadNumbers:retiredSquadNumbers(s,s.instances!.filter(x=>x.unit===name))}:{})}));
 }
-export function datasheetUrl(faction: Faction, unit: Unit) {
-  return unit.path ? faction.source + unit.path : undefined;
-}
-export function normalizedName(text: string) {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/['’]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+export function validateSelection(x:unknown):x is ArmySelection{
+ if(!x||typeof x!=='object')return false;
+ const s=x as Partial<ArmySelection>;
+ const dogIds=s.chaosWarDogCharacterIds;
+ if(dogIds!==undefined&&(s.faction!=='Chaos Knights'||!Array.isArray(dogIds)||dogIds.length>3||new Set(dogIds).size!==dogIds.length||dogIds.some(id=>typeof id!=='string')))return false;
+ if(s.warlordId!==undefined&&typeof s.warlordId!=='string')return false;
+ if(s.retiredSquadNumbers!==undefined&&(!s.retiredSquadNumbers||typeof s.retiredSquadNumbers!=='object'||Array.isArray(s.retiredSquadNumbers)||Object.values(s.retiredSquadNumbers).some(n=>!Number.isSafeInteger(n)||n<0||n>1000000000)))return false;
+ return (typeof s.faction==='string'&&Object.prototype.hasOwnProperty.call(CATALOG,s.faction))&&CATALOG[s.faction].detachments.includes(s.detachment||'')&&!!s.units&&typeof s.units==='object'&&!Array.isArray(s.units)&&Object.entries(s.units).every(([name,count])=>(CATALOG[s.faction!].units.includes(name)||(s.faction==='Imperial Agents'&&name==='Arbites')||(s.faction==='Genestealer Cults'&&name==='Acolyte Hybrids'))&&Number.isInteger(count)&&count>0&&count<=30)&&(!s.equipment||(typeof s.equipment==='object'&&!Array.isArray(s.equipment)&&Object.entries(s.equipment).every(([name,choice])=>typeof choice==='string'&&!!s.units?.[name]&&!!EQUIPMENT_OPTIONS[s.faction!]?.find(option=>option.unit===name&&option.choices.includes(currentEquipmentName(name,choice))))))&&(!s.battleSize2026||Object.prototype.hasOwnProperty.call(BATTLE_SIZES_2026,s.battleSize2026))&&(!s.detachments2026||(Array.isArray(s.detachments2026)&&s.detachments2026.every(d=>typeof d==='string')&&detachmentBudget(s.faction!,s.detachments2026,s.battleSize2026||'Strike Force').valid))&&validateUpgrades2026(s as ArmySelection)&&validateAttachments(s as ArmySelection)&&validateEnhancements(s as ArmySelection)&&validateRosterInstances(s as ArmySelection);
 }

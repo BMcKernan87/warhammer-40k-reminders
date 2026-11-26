@@ -1,0 +1,883 @@
+{
+  "revision": "2026-11-23 01:43:36",
+  "rules": {
+    "smokescreen": {
+      "id": "000010810010",
+      "detachment": null,
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "start"
+        ]
+      }
+    },
+    "command re-roll": {
+      "id": "000010810002",
+      "detachment": null,
+      "windows": {
+        "Command": [
+          "either",
+          "during"
+        ],
+        "Movement": [
+          "either",
+          "during"
+        ],
+        "Shooting": [
+          "either",
+          "during"
+        ],
+        "Charge": [
+          "either",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "epic challenge": {
+      "id": "000010810003",
+      "detachment": null,
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "insane bravery": {
+      "id": "000010810004",
+      "detachment": null,
+      "windows": {
+        "Command": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "counteroffensive": {
+      "id": "000010810012",
+      "detachment": null,
+      "windows": {
+        "Fight": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "heroic intervention": {
+      "id": "000010810011",
+      "detachment": null,
+      "windows": {
+        "Charge": [
+          "opponent",
+          "end"
+        ]
+      }
+    },
+    "explosives": {
+      "id": "000010810005",
+      "detachment": null,
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "crushing impact": {
+      "id": "000010810006",
+      "detachment": null,
+      "windows": {
+        "Charge": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "rapid ingress": {
+      "id": "000010810007",
+      "detachment": null,
+      "windows": {
+        "Movement": [
+          "opponent",
+          "end"
+        ]
+      }
+    },
+    "fire overwatch": {
+      "id": "000010810008",
+      "detachment": null,
+      "windows": {
+        "Movement": [
+          "opponent",
+          "end"
+        ]
+      }
+    },
+    "masks of death": {
+      "id": "000008405002",
+      "detachment": "Annihilation Legion",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "insanity's ire": {
+      "id": "000008405007",
+      "detachment": "Annihilation Legion",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "blood-fuelled cruelty": {
+      "id": "000008405006",
+      "detachment": "Annihilation Legion",
+      "windows": {
+        "Movement": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "pitiless hunters": {
+      "id": "000008405005",
+      "detachment": "Annihilation Legion",
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "murderous reanimation": {
+      "id": "000008405004",
+      "detachment": "Annihilation Legion",
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "the spoor of frailty": {
+      "id": "000008405003",
+      "detachment": "Annihilation Legion",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "protocol of the conquering tyrant": {
+      "id": "000008371006",
+      "detachment": "Awakened Dynasty",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "protocol of the hungry void": {
+      "id": "000008371004",
+      "detachment": "Awakened Dynasty",
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "protocol of the eternal revenant": {
+      "id": "000008371002",
+      "detachment": "Awakened Dynasty",
+      "windows": {
+        "Command": [
+          "either",
+          "during"
+        ],
+        "Movement": [
+          "either",
+          "during"
+        ],
+        "Shooting": [
+          "either",
+          "during"
+        ],
+        "Charge": [
+          "either",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "protocol of the vengeful stars": {
+      "id": "000008371007",
+      "detachment": "Awakened Dynasty",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "protocol of the sudden storm": {
+      "id": "000008371005",
+      "detachment": "Awakened Dynasty",
+      "windows": {
+        "Movement": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "protocol of the undying legions": {
+      "id": "000008371003",
+      "detachment": "Awakened Dynasty",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "curse of the cryptek": {
+      "id": "000008547002",
+      "detachment": "Canoptek Court",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "cynosure of eradication": {
+      "id": "000008547003",
+      "detachment": "Canoptek Court",
+      "windows": {
+        "Shooting": [
+          "own",
+          "start"
+        ],
+        "Fight": [
+          "either",
+          "start"
+        ]
+      }
+    },
+    "solar pulse": {
+      "id": "000008547004",
+      "detachment": "Canoptek Court",
+      "windows": {
+        "Shooting": [
+          "own",
+          "start"
+        ]
+      }
+    },
+    "suboptimal facade": {
+      "id": "000008547007",
+      "detachment": "Canoptek Court",
+      "windows": {
+        "Charge": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "countertemporal shift": {
+      "id": "000008547006",
+      "detachment": "Canoptek Court",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "reactive subroutines": {
+      "id": "000008547005",
+      "detachment": "Canoptek Court",
+      "windows": {
+        "Movement": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "molecular targeting": {
+      "id": "000010665002",
+      "detachment": "Cryptek Conclave",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "untapped power": {
+      "id": "000010665006",
+      "detachment": "Cryptek Conclave",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "synergistic empowerment": {
+      "id": "000010665005",
+      "detachment": "Cryptek Conclave",
+      "windows": {
+        "Shooting": [
+          "own",
+          "start"
+        ]
+      }
+    },
+    "potentiality syphon": {
+      "id": "000010665007",
+      "detachment": "Cryptek Conclave",
+      "windows": {
+        "Command": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "microscarab swarm": {
+      "id": "000010665003",
+      "detachment": "Cryptek Conclave",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "animus curse": {
+      "id": "000010665004",
+      "detachment": "Cryptek Conclave",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "spreading madness": {
+      "id": "000010669006",
+      "detachment": "Cursed Legion",
+      "windows": {
+        "Charge": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "methodical murder": {
+      "id": "000010669002",
+      "detachment": "Cursed Legion",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "image of death": {
+      "id": "000010669003",
+      "detachment": "Cursed Legion",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "unnatural aggression": {
+      "id": "000010669007",
+      "detachment": "Cursed Legion",
+      "windows": {
+        "Charge": [
+          "opponent",
+          "end"
+        ]
+      }
+    },
+    "driven to butchery": {
+      "id": "000010669005",
+      "detachment": "Cursed Legion",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Charge": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "mortis protocols": {
+      "id": "000010669004",
+      "detachment": "Cursed Legion",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "dominance protocols": {
+      "id": "000010884002",
+      "detachment": "Hand of the Dynasty",
+      "windows": {
+        "Command": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "will of the conqueror": {
+      "id": "000010884003",
+      "detachment": "Hand of the Dynasty",
+      "windows": {
+        "Movement": [
+          "own",
+          "end"
+        ]
+      }
+    },
+    "nanosaturation": {
+      "id": "000010884004",
+      "detachment": "Hand of the Dynasty",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "hyperphasic recall": {
+      "id": "000008555002",
+      "detachment": "Hypercrypt Legion",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "reanimation crypts": {
+      "id": "000008555004",
+      "detachment": "Hypercrypt Legion",
+      "windows": {
+        "Command": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "cosmic precision": {
+      "id": "000008555005",
+      "detachment": "Hypercrypt Legion",
+      "windows": {
+        "Movement": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "dimensional corridor": {
+      "id": "000008555006",
+      "detachment": "Hypercrypt Legion",
+      "windows": {
+        "Charge": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "entropic damping": {
+      "id": "000008555007",
+      "detachment": "Hypercrypt Legion",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "quantum deflection": {
+      "id": "000008555003",
+      "detachment": "Hypercrypt Legion",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "nanoassembly protocols": {
+      "id": "000008551004",
+      "detachment": "Obeisance Phalanx",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "suffer no rival": {
+      "id": "000008551006",
+      "detachment": "Obeisance Phalanx",
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "enslaved artifice": {
+      "id": "000008551003",
+      "detachment": "Obeisance Phalanx",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "sentinels of eternity": {
+      "id": "000008551005",
+      "detachment": "Obeisance Phalanx",
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "your time is nigh": {
+      "id": "000008551002",
+      "detachment": "Obeisance Phalanx",
+      "windows": {
+        "Command": [
+          "either",
+          "during"
+        ],
+        "Movement": [
+          "either",
+          "during"
+        ],
+        "Shooting": [
+          "either",
+          "during"
+        ],
+        "Charge": [
+          "either",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "territorial obsession": {
+      "id": "000008551007",
+      "detachment": "Obeisance Phalanx",
+      "windows": {
+        "Command": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "chronodistortion": {
+      "id": "000010673006",
+      "detachment": "Pantheon of Woe",
+      "windows": {
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "entrophasic aura targeting": {
+      "id": "000010673005",
+      "detachment": "Pantheon of Woe",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "mass transmogrification": {
+      "id": "000010673004",
+      "detachment": "Pantheon of Woe",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "disharmonisation cascade": {
+      "id": "000010673002",
+      "detachment": "Pantheon of Woe",
+      "windows": {
+        "Command": [
+          "either",
+          "during"
+        ],
+        "Movement": [
+          "either",
+          "during"
+        ],
+        "Shooting": [
+          "either",
+          "during"
+        ],
+        "Charge": [
+          "either",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "molecular erosion": {
+      "id": "000010673003",
+      "detachment": "Pantheon of Woe",
+      "windows": {
+        "Command": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "phase melding": {
+      "id": "000010673007",
+      "detachment": "Pantheon of Woe",
+      "windows": {
+        "Movement": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "evasive protocols": {
+      "id": "000010888004",
+      "detachment": "Skyshroud Spearhead",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "swift as death": {
+      "id": "000010888003",
+      "detachment": "Skyshroud Spearhead",
+      "windows": {
+        "Movement": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "omnilocked strafing": {
+      "id": "000010888002",
+      "detachment": "Skyshroud Spearhead",
+      "windows": {
+        "Movement": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "unyielding forms": {
+      "id": "000009750003",
+      "detachment": "Starshatter Arsenal",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "merciless reclamation": {
+      "id": "000009750002",
+      "detachment": "Starshatter Arsenal",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    },
+    "dimensional tunnel": {
+      "id": "000009750005",
+      "detachment": "Starshatter Arsenal",
+      "windows": {
+        "Movement": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "chronoshift": {
+      "id": "000009750004",
+      "detachment": "Starshatter Arsenal",
+      "windows": {
+        "Movement": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "reactive reposition": {
+      "id": "000009750007",
+      "detachment": "Starshatter Arsenal",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ]
+      }
+    },
+    "endless servitude": {
+      "id": "000009750006",
+      "detachment": "Starshatter Arsenal",
+      "windows": {
+        "Fight": [
+          "own",
+          "end"
+        ]
+      }
+    },
+    "particle pulse": {
+      "id": "000010892003",
+      "detachment": "The Phaeron's Armoury",
+      "windows": {
+        "Shooting": [
+          "own",
+          "start"
+        ]
+      }
+    },
+    "cosmic storm": {
+      "id": "000010892004",
+      "detachment": "The Phaeron's Armoury",
+      "windows": {
+        "Shooting": [
+          "own",
+          "during"
+        ]
+      }
+    },
+    "subsurface quantumweave": {
+      "id": "000010892002",
+      "detachment": "The Phaeron's Armoury",
+      "windows": {
+        "Shooting": [
+          "opponent",
+          "during"
+        ],
+        "Fight": [
+          "either",
+          "during"
+        ]
+      }
+    }
+  }
+}

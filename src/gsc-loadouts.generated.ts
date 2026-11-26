@@ -1,0 +1,27 @@
+// Generated from the 11th edition export and dated MFM by scripts/import-gsc-loadouts.mjs.
+export const GSC_KITS=[
+  {"unit":"Aberrants","common":["Aberrant weapons"],"bearers":{},"ranged":[],"melee":["Aberrant weapons"]},
+  {"unit":"Abominant","common":["Power sledgehammer"],"bearers":{},"ranged":[],"melee":["Power sledgehammer"]},
+  {"unit":"Achilles Ridgerunners","common":["Heavy mining laser","Twin heavy stubber","Armoured hull","Flare Launcher"],"bearers":{},"ranged":["Achilles missile launcher","Heavy mining laser","Heavy mortar","Twin heavy stubber"],"melee":["Armoured hull"]},
+  {"unit":"Acolyte Hybrids With Autopistols","common":["Autopistol","Cult claws and knife"],"bearers":{},"ranged":["Autopistol"],"melee":["Cult claws and knife","Heavy mining tool","Leader’s bio-weapons"]},
+  {"unit":"Acolyte Hybrids With Hand Flamers","common":["Hand flamer","Cult claws and knife"],"bearers":{},"ranged":["Demolition charges","Hand flamer"],"melee":["Cult claws and knife","Leader’s bio-weapons"]},
+  {"unit":"Acolyte Iconward","common":["Autopistol","Cult claws"],"bearers":{},"ranged":["Autopistol"],"melee":["Cult claws"]},
+  {"unit":"Atalan Jackals","common":[],"bearers":{"Atalan Jackal":["Atalan small arms","Close combat weapon"],"Atalan Wolfquad":["Atalan small arms","Heavy stubber","Close combat weapon"]},"ranged":["Atalan incinerator","Atalan small arms","Grenade launcher","Heavy stubber","Mining laser"],"melee":["Atalan power weapon","Close combat weapon"]},
+  {"unit":"Benefictus","common":["Psionic Cascade","Close combat weapon"],"bearers":{},"ranged":["Psionic Cascade"],"melee":["Close combat weapon"]},
+  {"unit":"Biophagus","common":["Autopistol","Chemical vials","Injector goad","Alchemicus Familiar"],"bearers":{},"ranged":["Autopistol","Chemical vials"],"melee":["Injector goad"]},
+  {"unit":"Clamavus","common":["Autopistol","Close combat weapon"],"bearers":{},"ranged":["Autopistol"],"melee":["Close combat weapon"]},
+  {"unit":"Goliath Rockgrinder","common":["Heavy mining laser","Heavy stubber","Drilldozer blade","Demolition charge cache"],"bearers":{},"ranged":["Clearance incinerator","Demolition charge cache","Heavy mining laser","Heavy seismic cannon","Heavy stubber"],"melee":["Drilldozer blade"]},
+  {"unit":"Goliath Truck","common":["Heavy stubber","Twin autocannon","Demolition charge cache","Armoured hull"],"bearers":{},"ranged":["Demolition charge cache","Heavy stubber","Twin autocannon"],"melee":["Armoured hull"]},
+  {"unit":"Hybrid Metamorphs","common":[],"bearers":{"Metamorph Leader":["Autopistol","Leader’s bio-weapons"],"Hybrid Metamorph":["Autopistol","Metamorph mutations"]},"ranged":["Autopistol","Hand flamer"],"melee":["Leader’s bio-weapons","Metamorph mutations"]},
+  {"unit":"Jackal Alphus","common":["Autopistol","Cult sniper rifle","Close combat weapon"],"bearers":{},"ranged":["Autopistol","Cult sniper rifle"],"melee":["Close combat weapon"]},
+  {"unit":"Kelermorph","common":["Liberator autostubs","Close combat weapon"],"bearers":{},"ranged":["Liberator autostubs"],"melee":["Close combat weapon"]},
+  {"unit":"Locus","common":["Locus blades"],"bearers":{},"ranged":[],"melee":["Locus blades"]},
+  {"unit":"Magus","common":["Autopistol","Magus stave"],"bearers":{},"ranged":["Autopistol"],"melee":["Magus stave"]},
+  {"unit":"Neophyte Hybrids","common":["Autopistol","Hybrid firearm","Close combat weapon"],"bearers":{},"ranged":["Anointed pistol","Autopistol","Hybrid firearm","Flamer","Grenade launcher","Heavy stubber","Mining laser","Seismic cannon","Webber"],"melee":["Chainsword","Power weapon","Close combat weapon"]},
+  {"unit":"Nexos","common":["Autopistol","Close combat weapon"],"bearers":{},"ranged":["Autopistol"],"melee":["Close combat weapon"]},
+  {"unit":"Patriarch","common":["Patriarch’s claws"],"bearers":{},"ranged":[],"melee":["Patriarch’s claws"]},
+  {"unit":"Primus","common":["Scoped needle pistol","Cult bonesword","Toxin injector claw"],"bearers":{},"ranged":["Scoped needle pistol"],"melee":["Cult bonesword","Toxin injector claw"]},
+  {"unit":"Purestrain Genestealers","common":["Cult claws and talons"],"bearers":{},"ranged":[],"melee":["Cult claws and talons"]},
+  {"unit":"Reductus Saboteur","common":["Autopistol","Demolition charges","Remote explosives","Close combat weapon"],"bearers":{},"ranged":["Autopistol","Demolition charges","Remote explosives"],"melee":["Close combat weapon"]},
+  {"unit":"Sanctus","common":["Sanctus bio-dagger"],"bearers":{},"ranged":["Cult sniper rifle"],"melee":["Sanctus bio-dagger","Close combat weapon"]}
+] as const;

@@ -1,5 +1,7 @@
 import {describe,it,expect} from 'vitest';
-import {addUnit,advancePhase,createBattle,gainCommandCp,recordEvent,setWounds,spendCp} from '../src/engine';
+import {addUnit,advancePhase,createBattle as createFreshBattle,gainCommandCp,recordEvent,setWounds,spendCp} from '../src/engine';
+// These tests exercise in-battle mechanics after pre-battle resolution.
+const createBattle=()=>({...createFreshBattle(),prebattle:{resolved:true,decisions:{}}});
 const unit={id:'u1',name:'Necron Warriors',owner:'A' as const,wounds:10,maxWounds:10,battleShocked:false,destroyed:false};
 describe('battle engine',()=>{
  it('advances both players and battle rounds',()=>{let b=createBattle();for(let i=0;i<5;i++)b=advancePhase(b);expect(b.player).toBe('B');expect(b.round).toBe(1);for(let i=0;i<5;i++)b=advancePhase(b);expect(b.player).toBe('A');expect(b.round).toBe(2);});

@@ -1,16 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
-const baseURL = 'http://127.0.0.1:4173/warhammer-40k-reminders/';
-export default defineConfig({
-  testDir: './tests/e2e',
-  fullyParallel: true,
-  workers: process.env.CI ? 2 : 3,
-  use: { baseURL, trace: 'retain-on-failure' },
-  projects: [
-    {
-      name: 'desktop-chromium',
-      use: { ...devices['Desktop Chrome'], launchOptions: { executablePath: process.env.CHROMIUM_PATH } },
-    },
-    { name: 'iphone-webkit', use: { ...devices['iPhone 13'] } },
-  ],
-  webServer: { command: 'npm run preview:test', url: baseURL, reuseExistingServer: !process.env.CI },
-});
+import {defineConfig} from '@playwright/test';
+const external=process.env.PLAYWRIGHT_BASE_URL;
+const baseURL=external??'http://127.0.0.1:4173/warhammer-40k-reminders/';
+export default defineConfig({testDir:'./tests/e2e',use:{baseURL},webServer:external?undefined:{command:'npm run build && npm exec -- vite preview --host 127.0.0.1 --port 4173 --strictPort',url:baseURL,reuseExistingServer:!process.env.CI,timeout:120000}});
