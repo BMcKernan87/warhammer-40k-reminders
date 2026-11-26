@@ -7,14 +7,18 @@ import {parse} from 'yaml';
 // Version 1.6, effective 14 October 2026. Pin the public MFM scrape so a
 // changed remote table cannot inadvertently certify a different balance update.
 export const MFM_SNAPSHOT='https://raw.githubusercontent.com/richardsolomou/wh40k-11e-mfm/6eed7b100ae508c1faa76a42bf7b55ecabb59107/data/necrons.yaml';
+export const MFM_VERSION='1.6';
+export const MFM_EFFECTIVE_DATE='2026-10-14';
 const key=name=>name.trim().toLowerCase().replaceAll('’',"'");
 function enhancementKey(name){
  // The primary Faction Pack uses Prelocational. Wahapedia calls it Relocational.
  return key(name).replace(/ \((aura|upgrade)\)/g,'').replace(/^relocational optimiser$/,'prelocational optimiser');
 }
 function index(rows,normalize,label){
+ if(!Array.isArray(rows))throw Error('Missing '+label+' table');
  const indexed=new Map();
  for(const row of rows){
+  if(!row||typeof row.name!=='string'||!row.name.trim())throw Error('Missing '+label+' name');
   const id=normalize(row.name);
   if(indexed.has(id))throw Error('Duplicate '+label+': '+row.name);
   indexed.set(id,row);
@@ -30,12 +34,13 @@ function compareNames(actual,expected,label){
 function mfmTiers(unit){
  let next=1;
  const result={};
+ if(!Array.isArray(unit.pricing)||!unit.pricing.length)throw Error(unit.name+' missing pricing');
  for(const tier of unit.pricing){
-  const interval=tier.range.match(/^\[(\d+),(\d+\]|\))$/);
+  const interval=typeof tier.range==='string'&&tier.range.match(/^\[(\d+),(\d+\]|\))$/);
   if(!interval||Number(interval[1])!==next)throw Error(unit.name+' invalid price interval '+tier.range);
   const start=next;
   next=interval[2]===')'?Infinity:Number(interval[2].slice(0,-1))+1;
-  if(next<=start||!tier.costs.length)throw Error(unit.name+' empty price interval '+tier.range);
+  if(next<=start||!Array.isArray(tier.costs)||!tier.costs.length)throw Error(unit.name+' empty price interval '+tier.range);
   const costs={};
   for(const {models,points} of tier.costs){
    if(!Number.isSafeInteger(models)||models<1||!Number.isSafeInteger(points)||points<1||Object.hasOwn(costs,models))throw Error(unit.name+' invalid size or cost');
@@ -48,21 +53,36 @@ function mfmTiers(unit){
 }
 export function verifyMfm(snapshot,review,mfm){
  compare([snapshot.edition,snapshot.faction,review.edition,snapshot.revision],[11,'Necrons',11,'wahapedia-'+review.revision],'edition and export revision');
- if(mfm.slug!=='necrons'||!mfm.version||!mfm.firstSeen)throw Error('Expected a dated Necron MFM snapshot');
+ compare([mfm.slug,mfm.version,mfm.firstSeen],['necrons',MFM_VERSION,MFM_EFFECTIVE_DATE],'pinned Necron MFM version and effective date');
  const sheets=index(snapshot.datasheets.map(s=>({...s,name:s.unit})),key,'datasheet');
- const units=index(mfm.units.filter(u=>!u.legends),key,'MFM unit');
+ const allUnits=index(mfm.units,key,'MFM unit');
+ for(const unit of allUnits.values())if(unit.legends!==undefined&&typeof unit.legends!=='boolean')throw Error(unit.name+' invalid Legends flag');
+ const units=new Map([...allUnits].filter(([,unit])=>!unit.legends));
  compareNames(sheets,units,'matched-play datasheets');
  let costs=0,attachments=0;
  for(const [id,unit] of units){
   const sheet=sheets.get(id),tiers=mfmTiers(unit);
   compare({1:sheet.pointsBySize,...sheet.laterCopyPointsBySize},tiers,unit.name+' costs');
   costs+=Object.values(tiers).reduce((total,sizes)=>total+Object.keys(sizes).length,0);
-  const role=unit.supportTo?'support':unit.leaderTo?'leader':undefined;
-  const bodyguards=(unit.supportTo??unit.leaderTo??[]).map(key).filter(n=>units.has(n)).sort();
+  if(unit.supportTo!==undefined&&unit.leaderTo!==undefined)throw Error(unit.name+' conflicting attachment roles');
+  const role=unit.supportTo!==undefined?'support':unit.leaderTo!==undefined?'leader':undefined;
+  const targets=unit.supportTo??unit.leaderTo??[];
+  if(!Array.isArray(targets)||targets.some(n=>typeof n!=='string'||!n.trim()))throw Error(unit.name+' invalid attachment targets');
+  const namedTargets=targets.map(key);
+  if(new Set(namedTargets).size!==namedTargets.length||namedTargets.some(n=>n===id||!allUnits.has(n)))throw Error(unit.name+' duplicate, self or unknown attachment target');
+  // Known Legends permissions are excluded from matched-play comparison. A typo
+  // or missing unit is an invalid source relationship, not a Legends exclusion.
+  const bodyguards=namedTargets.filter(n=>units.has(n)).sort();
   compare([sheet.attachmentRole,(sheet.bodyguards??[]).map(key).sort()],[bodyguards.length?role:undefined,bodyguards],unit.name+' attachments');
   attachments+=bodyguards.length;
  }
  const detachments=index(review.detachments,key,'detachment'),official=index(mfm.detachments,key,'MFM detachment');
+ const detachmentIds=new Set();
+ for(const detachment of detachments.values()){
+  if(typeof detachment.id!=='string'||!detachment.id||detachmentIds.has(detachment.id))throw Error('Missing or duplicate detachment source ID');
+  detachmentIds.add(detachment.id);
+ }
+ if(!Array.isArray(review.enhancements)||review.enhancements.some(e=>!detachmentIds.has(e.detachment_id)))throw Error('Enhancement has an unknown detachment source ID');
  compareNames(detachments,official,'matched-play detachments');
  let enhancements=0;
  for(const [id,detachment] of official){

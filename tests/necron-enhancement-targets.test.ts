@@ -49,7 +49,8 @@ describe('Enhancements requiring a separately eligible unit or a Monolith', () =
     a = setInstanceAttachment(a,bearer,id(a,'Immortals'));
     a = setInstanceAttachment(a,id(a,'Royal Warden'),other);
     const rows = named(selectUpgrade2026(a,bearer,'Phasal Subjugator'),'Phasal Subjugator');
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
+    expect(rows.find(row=>row.window==='Movement')?.units).toEqual([id(a,'Deathmarks')]);
     expect(rows[0].units).toEqual([other,id(a,'Deathmarks')]);
     expect(rows[0].summary).toContain(other+' can qualify only after losing all attached Characters.');
     const lone = army('Awakened Dynasty','Overlord');

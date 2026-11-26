@@ -122,7 +122,7 @@ describe('Necron leading enhancements follow their surviving source',()=>{
  it('keeps Hyperphasic Fulcrum when its surviving Cryptek was originally attached',()=>{
   const a={...formation(),detachments2026:['Canoptek Court'],upgrades2026:{support:'Hyperphasic Fulcrum'}};
   const rows=canoptekHypercryptReminders(a,survivors(a,'support')).filter(r=>r.title.endsWith('Hyperphasic Fulcrum'));
-  expect(rows.map(r=>[r.window,r.units])).toEqual([['Shooting',['support']],['Fight',['support']]]);
+  expect(rows.map(r=>[r.window,r.units])).toEqual([['Movement',['support']],['Shooting',['support']],['Fight',['support']]]);
   expect(canoptekHypercryptReminders(a,survivors(a,'leader')).some(r=>r.title.includes('Hyperphasic Fulcrum'))).toBe(false);
  });
 
@@ -149,13 +149,13 @@ describe.each([
 
  it('retains Shooting when the legally attached Leader has a ranged weapon',()=>{
   const a=army([squad('body','Lychguard'),squad('leader','Overlord',{attachedTo:'body',equipment:'Staff of light'})],detachment,{leader:upgrade});
-  expect(named(a).map(r=>r.window)).toEqual(['Shooting','Fight']);
+  expect(named(a).map(r=>r.window)).toEqual(upgrade==='Ingrained Superiority'?['Movement','Shooting','Fight']:['Shooting','Fight']);
  });
 
  it('uses surviving armed retinues after host/Cryptek losses and stops Shooting after the retinue dies',()=>{
   const base=formation(),a={...base,detachments2026:[detachment],upgrades2026:{leader:upgrade},
    instances:expandRoster(base).map(s=>s.id==='leader'?{...s,unit:'Overlord with translocation shroud'}:s)};
-  expect(named(a,survivors(a,'leader','retinue')).map(r=>r.window)).toEqual(['Shooting','Fight']);
+  expect(named(a,survivors(a,'leader','retinue')).map(r=>r.window)).toEqual(upgrade==='Ingrained Superiority'?['Movement','Shooting','Fight']:['Shooting','Fight']);
   expect(named(a,survivors(a,'leader')).map(r=>r.window)).toEqual(['Fight']);
  });
 });

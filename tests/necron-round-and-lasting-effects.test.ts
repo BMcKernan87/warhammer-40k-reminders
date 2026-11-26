@@ -23,13 +23,13 @@ describe('army-specific timing and persistent effects',()=>{
  it('carries a timed pin and the death ray choice forward to the actual enemy moves and attacks',()=>{
   const army=roster(unit('scythe','Doom Scythe'),unit('obelisk','Obelisk'),unit('geo','Geomancer'));
   const pulse=sheets(army,'Gravitic Pulse');
-  expect(pulse.map(r=>[r.window,r.turn])).toEqual([['Movement','opponent'],['Charge','opponent'],['Fight','opponent']]);
-  expect(pulse[1].summary).toMatch(/halve the Charge roll.*can Fly.*4\+/);
-  expect(pulse[2].summary).toMatch(/each pile-in or consolidation.*until the start of your next Movement/);
-  expect(sheets(army,'Tectonic Reverberations').map(r=>[r.window,r.turn])).toEqual([['Movement','own'],['Movement','opponent'],['Charge','opponent']]);
+  expect(pulse.map(r=>[r.window,r.turn])).toEqual([['Movement','opponent'],['Movement','opponent'],['Charge','opponent'],['Fight','opponent']]);
+  expect(pulse.find(r=>r.window==='Charge')?.summary).toMatch(/halve the Charge roll.*can Fly.*4\+/);
+  expect(pulse.find(r=>r.window==='Fight')?.summary).toMatch(/each pile-in or consolidation.*until the start of your next Movement/);
+  expect(sheets(army,'Tectonic Reverberations').map(r=>[r.window,r.turn])).toEqual([['Movement','own'],['Movement','either'],['Charge','either']]);
   expect(sheets(army,'Tectonic Reverberations').find(r=>r.window==='Charge')?.summary).toContain('subtracts 2 from its Charge rolls');
   const deathRay=sheets(army,'Atavistic Instigation');
-  expect(deathRay.find(r=>r.window==='Shooting'&&r.turn==='opponent')?.summary).toMatch(/ducked for cover.*subtract 1/);
+  expect(deathRay.find(r=>r.window==='Shooting'&&r.turn==='either')?.summary).toMatch(/ducked for cover.*subtract 1/);
   expect(deathRay.find(r=>r.window==='Fight')?.summary).toMatch(/melee attacks.*start of your next Shooting phase/);
  });
  it('applies the shoot-and-move charge lock only to the formation that used it',()=>{

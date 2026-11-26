@@ -53,5 +53,11 @@ test('retinue assignment, mixed weapons and enhancement choices persist and driv
  await page.getByRole('button',{name:'Play reminders'}).click();
  await expect(panel(page).getByText(/Cryptothralls#1 · Cryptek Retinue → Immortals#1/)).toBeVisible();
  await expect(panel(page).getByText(/Bound Creation/)).toHaveCount(5);
- await expect(panel(page).getByText(/Hyperphasic Fulcrum/)).toHaveCount(2);
+ await expect(panel(page).getByText(/Hyperphasic Fulcrum/)).toHaveCount(3);
+ await panel(page).getByLabel('Show phase').selectOption('Movement');
+ const fulcrum=panel(page).locator('.check').filter({has:page.getByText(/Hyperphasic Fulcrum/)});
+ await expect(fulcrum).toHaveCount(1);
+ await expect(fulcrum).toContainText('Fire Overwatch');
+ await expect(fulcrum).toContainText('re-roll Wound rolls of 1');
+ await expect(fulcrum).toContainText('Immortals#1');
 });

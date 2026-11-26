@@ -7,6 +7,11 @@ interface WeaponCue {weapon:string; abilities:string; primary?:string; optional?
 interface WeaponPhases {shoot?:WeaponCue[]; fight?:WeaponCue[]}
 // Weapon profiles with printed keywords. Battle-selected Vault powers and the expendable tachyon arrow have separate reminders.
 const profiles:Record<string,WeaponPhases>={
+  "Chronomancer": {
+    shoot: [
+      {weapon:"Aeonstave", abilities:"Blast"},
+    ],
+  },
   "Illuminor Szeras": {
     fight: [
       {weapon:"Impaling legs", abilities:"Extra Attacks"},

@@ -28,6 +28,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
  const shooters=new Set(formations.filter(f=>f.members.some(hasNecronRangedWeapon)).map(f=>f.id));
  const armed=(ids:string[])=>ids.filter(id=>shooters.has(id));
  const bearerAttackPhases=(s:RosterInstance)=>attackPhases.filter(phase=>phase==='Fight'||shooters.has(legal.get(s.id)??s.id));
+ const bearerWoundPhases=(s:RosterInstance)=>shooters.has(legal.get(s.id)??s.id)?(['Movement','Shooting','Fight'] as const):(['Fight'] as const);
  const led=formations.filter(f=>f.members.some(s=>legal.has(s.id)&&characters.has(s.unit))).map(f=>f.id);
  const characterUnits=matching(s=>characters.has(s.unit));
  const infantryCharacters=roster.filter(s=>characters.has(s.unit)&&k.INFANTRY.has(s.unit)).map(s=>s.id);
@@ -54,7 +55,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
     case 'Veil of Darkness':
      bearer(s,'awakened-veil','Veil of Darkness','End of opponent turn','Once per battle per army: if unengaged, put this formation in Strategic Reserves and give it temporary Deep Strike.','end');
      bearer(s,'awakened-veil-ingress','Veil of Darkness · arrival','Movement','If Veil was used, the formation must arrive by ingress this Movement phase, even on your first turn. Deep Strike expires at the start of Shooting.');break;
-    case 'Nether-realm Casket':if(legal.has(s.id))bearer(s,'awakened-casket','Nether-realm Casket','Shooting','While the bearer is leading, all models in the unit gain Stealth; ranged attacks against a unit whose every surviving model has Stealth grant the Benefit of Cover.');break;
+    case 'Nether-realm Casket':if(legal.has(s.id))for(const phase of ['Movement','Shooting'] as const)bearer(s,phase==='Movement'?'awakened-casket-movement':'awakened-casket','Nether-realm Casket',phase,(phase==='Movement'?'Against permitted Movement-phase ranged attacks, including Fire Overwatch: ':'')+'while the bearer is leading, all models in the unit gain Stealth; ranged attacks against a unit whose every surviving model has Stealth grant the Benefit of Cover.');break;
     case 'Phasal Subjugator': {
      // A different Bodyguard can become eligible if its last Character is lost.
      // The bearer’s own formation cannot lose every Character while the aura is active.
@@ -62,7 +63,9 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
      const joined=targets.filter(f=>f.members.some(m=>characters.has(m.unit))).map(f=>f.id);
      const afterLoss=joined.length?' '+joined.join(', ')+' can qualify only after losing all attached Characters.':'';
      for(const phase of attackPhases)emit('awakened-subjugator-'+phase+'-'+s.id,s.id+' · Phasal Subjugator (Aura)',phase,
-      'Friendly units without the Character keyword within 6″ of the living bearer gain +1 to Hit.'+afterLoss,targets.map(f=>f.id));
+      'Friendly units without the Character keyword within 6″ of the living bearer gain +1 to Hit.'+afterLoss,phase==='Shooting'?armed(targets.map(f=>f.id)):targets.map(f=>f.id));
+     emit('awakened-subjugator-Movement-'+s.id,s.id+' · Phasal Subjugator (Aura)','Movement',
+      'During normal Hyperspace Hunters shooting, Deathmarks without the Character keyword within 6″ of the living bearer gain +1 to Hit. This modifier does not change the unmodified Hit roll required for snap shooting.',targets.filter(f=>f.members.some(m=>m.unit==='Deathmarks')).map(f=>f.id));
      break;
     }
     case 'Enaegic Dermal Bond':for(const phase of phases)bearer(s,'awakened-bond-'+phase,'Enaegic Dermal Bond',phase,'Only the bearer has Feel No Pain 4+.','during',true);break;
@@ -75,6 +78,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
   const ranged=armed(matching(destroyer));
   emit('annihilation-protocol-charge','Annihilation Protocol','Charge','Destroyer Cult and Flayed Ones units may re-roll charges; add 1 if any declared target is below half strength.',hunters);
   emit('annihilation-protocol-shoot','Annihilation Protocol','Shooting','Destroyer Cult units improve ranged AP by 1 when attacking their closest eligible target.',ranged);
+  emit('annihilation-protocol-movement','Annihilation Protocol','Movement','When making permitted ranged attacks in the Movement phase, including Fire Overwatch, Destroyer Cult units improve AP by 1 against their closest eligible target. This benefit does not itself permit shooting.',ranged);
   for(const phase of attackPhases){
    emit('annihilation-masks-'+phase,'Masks of Death · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After the enemy selects targets, impose −1 to Hit against the targeted eligible unit for the phase.',hunters);
    emit('annihilation-spoor-'+phase,'The Spoor of Frailty · 1CP',phase,(phase==='Shooting'?'Your Shooting: ':'Either Fight: ')+'Before selecting the unit to attack, gain +1 Hit against targets below starting strength; also +1 Wound if the target is below half strength, for this phase.',phase==='Shooting'?armed(hunters):hunters);
@@ -86,7 +90,7 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
   for(const s of roster.filter(s=>NECRON_CHARACTER_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Eternal Madness':bearer(s,'annihilation-madness','Eternal Madness','Fight','For each destroyed model in this formation that has not fought, roll D6; on 4+ it fights after the attacker finishes, then remove it.');break;
-    case 'Ingrained Superiority':for(const phase of bearerAttackPhases(s))bearer(s,'annihilation-superiority-'+phase,'Ingrained Superiority',phase,'Improve AP by 1 on critical wounds made by this formation.');break;
+    case 'Ingrained Superiority':for(const phase of bearerWoundPhases(s))bearer(s,'annihilation-superiority-'+phase,'Ingrained Superiority',phase,(phase==='Movement'?'When making permitted Movement-phase ranged attacks: ':'')+'improve AP by 1 on Critical Wounds made by this formation. Snap shooting cannot score Critical Hits, but can still score Critical Wounds.');break;
     case 'Soulless Reaper':if(destroyer(s))bearer(s,'annihilation-reaper','Soulless Reaper','Movement','When an enemy engaged with the bearer’s unit is selected to Fall Back, roll D6; on 3+ it cannot Fall Back and must remain stationary this phase.');break;
     case 'Eldritch Nightmare':if(destroyer(s))bearer(s,'annihilation-nightmare','Eldritch Nightmare','Fight','Each enemy unit engaged with the bearer model (not merely its Bodyguard) takes a Battle-shock test at the start of either Fight phase.','start',true);break;
    }
@@ -99,19 +103,20 @@ export function remainingNecronReminders(army:ArmySelection,roster:readonly Rost
   const vehicles=matching(s=>k.VEHICLE.has(s.unit)||s.unit==='The Silent King');
   const nonTitanic=formations.filter(f=>!f.members.some(s=>k.TITANIC.has(s.unit))).map(f=>f.id);
   emit('obeisance-worthy-command','Worthy Foes','Command','Your Command: mark one enemy unit until your next Command phase. Qualifying Noble, Lychguard and Triarch units gain +1 Wound against that marked unit.',worthy);
+  emit('obeisance-worthy-Movement','Worthy Foes','Movement','If an enemy was marked in your Command phase, qualifying Noble, Lychguard and Triarch units gain +1 to Wound against it during permitted Movement-phase attacks, including Fire Overwatch. The mark expires at the start of your next Command phase.',armed(worthy));
   for(const phase of attackPhases){
    emit('obeisance-worthy-'+phase,'Worthy Foes',phase,'Gain +1 to Wound against the marked enemy until the start of your next Command phase; the entire qualifying unit benefits, including attached models.',phase==='Shooting'?armed(worthy):worthy);
    emit('obeisance-artifice-'+phase,'Enslaved Artifice · 1CP',phase,(phase==='Shooting'?'Your Shooting: ':'Either Fight: ')+'Before attacking with a non-Titanic unit, its unmodified Hit rolls of 5+ count as critical Hits this phase.',phase==='Shooting'?armed(nonTitanic):nonTitanic);
    emit('obeisance-nano-'+phase,'Nanoassembly Protocols · 1CP',phase,(phase==='Shooting'?'Opponent’s Shooting: ':'Either Fight: ')+'After enemy target selection, reduce incoming attack Damage by 1 against the targeted Vehicle unit this phase.',vehicles);
   }
   const warlord=resolvedWarlord(army);
-  if(warlord)for(const phase of phases)emit('obeisance-time-'+phase,'Your Time Is Nigh · 1CP',phase,'Immediately after the enemy Warlord dies, target your surviving Necron Warlord. Enemy Battle-shock and Leadership tests suffer −1 for the remainder of the battle.',[warlord.id]);
+  if(warlord&&roster.some(s=>s.id===warlord.id&&s.unit===warlord.unit))for(const phase of phases)emit('obeisance-time-'+phase,'Your Time Is Nigh · 1CP',phase,'Immediately after the enemy Warlord dies, target your surviving Necron Warlord. Enemy Battle-shock and Leadership tests suffer −1 for the remainder of the battle.',[warlord.id]);
   emit('obeisance-sentinels','Sentinels of Eternity · 1CP','Fight','After enemy target selection, when any model in the targeted Lychguard or Triarch Praetorians unit dies before fighting, on 4+ it fights after the attacker finishes; then remove it. Lasts this phase.',sentinels);
   emit('obeisance-rival','Suffer No Rival · 1CP','Fight','Before a Lychguard or Triarch unit fights, its melee weapons gain Precision this phase.',guards);
   emit('obeisance-territory','Territorial Obsession · 1CP','Command','Your Command: select a Lychguard or Triarch unit; its models gain +1 OC, or +3 OC if the unit is a Vehicle, until your next Command phase.',guards);
   for(const s of roster.filter(s=>OVERLORD_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
-    case 'Honourable Combatant':for(const phase of attackPhases)bearer(s,'obeisance-combatant-'+phase,'Honourable Combatant',phase,'If this formation destroys an enemy Character unit, the opponent loses 1 CP if available.');break;
+    case 'Honourable Combatant':for(const phase of bearerWoundPhases(s))bearer(s,'obeisance-combatant-'+phase,'Honourable Combatant',phase,'If this formation destroys an enemy Character unit, including through permitted Movement-phase shooting, the opponent loses 1 CP if available.');break;
     case 'Unflinching Will':bearer(s,'obeisance-will','Unflinching Will','Fight','The bearer’s melee weapons gain Precision and Anti-Infantry 5+.','during',true);break;
     case 'Warrior Noble':bearer(s,'obeisance-noble','Warrior Noble','Fight','Incoming melee attacks against this formation suffer −1 to Hit.');break;
     case 'Eternal Conqueror':for(const phase of bearerAttackPhases(s))bearer(s,'obeisance-conqueror-'+phase,'Eternal Conqueror',phase,'Re-roll Hits when this formation attacks an enemy unit within range of an objective marker.');break;

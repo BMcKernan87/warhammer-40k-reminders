@@ -47,7 +47,7 @@ export function canoptekHypercryptReminders(army:ArmySelection,roster:readonly R
   for(const s of roster.filter(s=>COURT_BEARERS.some(u=>u===s.unit))){
    switch(upgrade(s)){
     case 'Dimensional Sanctum':bearer(s,'court-sanctum','Dimensional Sanctum','Pre-battle','The bearer’s formation gains Infiltrators.','start');break;
-    case 'Hyperphasic Fulcrum':if(attached(s))for(const phase of ['Shooting','Fight'] as const)bearer(s,'court-fulcrum-'+phase,'Hyperphasic Fulcrum',phase,'While leading a unit wholly inside the matrix, its models re-roll Wound rolls of 1.');break;
+    case 'Hyperphasic Fulcrum':if(attached(s))for(const phase of ['Movement','Shooting','Fight'] as const)if(phase==='Fight'||armedFormations.has(root(s)!.id))bearer(s,'court-fulcrum-'+phase,'Hyperphasic Fulcrum',phase,(phase==='Movement'?'When making permitted Movement-phase attacks, including Fire Overwatch: ':'')+'while leading a unit wholly inside the matrix, its models re-roll Wound rolls of 1.');break;
     case 'Autodivinator':for(const phase of ['Command','Movement','Shooting','Charge','Fight'] as const)bearer(s,'court-autodivinator-'+phase,'Autodivinator',phase,'Whenever the opponent gains CP from an ability (not an army rule or discarded mission card), roll a D6; on 2+ gain 1 CP, subject to the core CP limit.');break;
     case 'Metalodermal Tesla Weave':bearer(s,'court-weave','Metalodermal Tesla Weave','Charge','Once per phase when an enemy declares a charge targeting this formation, roll D6: 2–5 deals D3 mortal wounds; 6 deals 3.');break;
    }

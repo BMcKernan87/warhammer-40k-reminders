@@ -17,7 +17,8 @@ function source(v,label){
  let u;try{u=new URL(v);}catch{fail(label+' invalid source URL');}
  if(u.protocol!=='https:'||u.username||u.password||u.port)fail(label+' invalid source URL');
  const valid=(u.hostname==='wahapedia.ru'&&u.pathname.startsWith('/wh40k11ed/factions/necrons/'))||
- (u.hostname==='assets.warhammer-community.com'&&/warhammer40000_faction_pack_necrons.*\.pdf$/.test(u.pathname))||
+ (u.hostname==='assets.warhammer-community.com'&&(/warhammer40000_faction_pack_necrons.*\.pdf$/.test(u.pathname)||
+   u.pathname==='/eng_30-09_wh40k_faction_pack_necrons-1urphgbmpy-wbhocjbaba.pdf'))||
  (u.hostname==='tactical40k.com'&&u.pathname==='/codex/necrons');
  if(!valid)fail(label+' source not recognized as a Necron 11e reference');
 }
@@ -46,7 +47,8 @@ function composition(d){
 }
 function profile(v,label){
  keys(v,['move','toughness','save','wounds','leadership','objectiveControl'],label);
- if(!string(v.move)||!string(v.save)||!string(v.leadership)||!integer(v.toughness)||!integer(v.wounds)||(!integer(v.objectiveControl,0)&&v.objectiveControl!=='-'))fail(label+' invalid profile');
+ if(!string(v.move)||!(/^[1-9]\d*"$/.test(v.move)||v.move==='-')||!string(v.save)||!(/^[1-9]\d*\+$/.test(v.save))||
+   !string(v.leadership)||!(/^[1-9]\d*\+$/.test(v.leadership))||!integer(v.toughness)||!integer(v.wounds)||(!integer(v.objectiveControl,0)&&v.objectiveControl!=='-'))fail(label+' invalid profile');
 }
 const canonical=v=>Array.isArray(v)?v.map(canonical):object(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
 export function generateDatasheets(snapshot){
@@ -63,8 +65,9 @@ export function generateDatasheets(snapshot){
   source(d.pointsSource,d.unit+' points');
   if(d.verified!=='sizes-and-points'||!Array.isArray(d.sizes)||d.sizes.length===0||d.sizes.some(n=>!integer(n))||new Set(d.sizes).size!==d.sizes.length)fail(d.unit+' invalid or incomplete model sizes');
   if(d.sizes.some((n,i)=>i>0&&n<=d.sizes[i-1]))fail(d.unit+' unordered price brackets');
-  if(d.keywords!==undefined)keywords(d.keywords,d.unit);
-  if(d.composition!==undefined||d.modelKeywords!==undefined)composition(d);
+  keywords(d.keywords,d.unit);
+  if(!d.keywords.includes('NECRONS'))fail(d.unit+' missing faction keyword');
+  composition(d);
   if(d.bodyguards!==undefined||d.attachmentRole!==undefined){
    if(!['leader','support'].includes(d.attachmentRole)||!Array.isArray(d.bodyguards)||!d.bodyguards.length||
      new Set(d.bodyguards).size!==d.bodyguards.length||d.bodyguards.some(unit=>unit===d.unit||!snapshot.expectedUnits.includes(unit))){
@@ -79,6 +82,7 @@ export function generateDatasheets(snapshot){
     prices(table,d.sizes,d.unit+' copy '+tier);
    }
   }
+  if(d.profile===undefined&&d.modelProfiles===undefined)fail(d.unit+' missing model profile');
   if(d.profile!==undefined)profile(d.profile,d.unit);
   if(d.modelProfiles!==undefined){
    if(d.profile||!object(d.modelProfiles)||Object.keys(d.modelProfiles).length<2)fail(d.unit+' invalid model profiles');
