@@ -1,3 +1,7 @@
+import {spaceMarineAgentName} from './space-marines-data';
+import {spaceMarineMusterUnits} from './space-marines-muster-data';
+import {spaceMarineKeywords} from './space-marines-keywords';
+import {spaceMarineCargoFormations} from './space-marines-transports';
 import {mechanicusMusterUnits} from './mechanicus-army-data';
 import {mechanicusKeywords} from './mechanicus-keywords';
 import {mechanicusReactionShooting} from './mechanicus-reactions';
@@ -36,7 +40,7 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
  const roster=expandRoster(army);
  const traders=roster.filter(s=>s.unit==='Rogue Trader Entourage');
  for(const squad of roster){
-  const unit=army.faction==='Adepta Sororitas'?sororitasAgentName(squad.unit):guard?astraAgentName(squad.unit):squad.unit;
+  const unit=army.faction==='Space Marines'?spaceMarineAgentName(squad.unit):army.faction==='Adepta Sororitas'?sororitasAgentName(squad.unit):guard?astraAgentName(squad.unit):squad.unit;
   const data=ASSIGNED_AGENT_DATA.find(row=>row.sheet.unit===unit);
   if(!unit||!data)continue;
   const source=data.sheet.source;
@@ -80,9 +84,9 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    if(squad.id===traders[0]?.id){
     const led=traders.flatMap(t=>{const b=knightJoinedBodyguard(army,t);return b?[t.id,b.id]:[];});
     if(led.length)emit('deals','Backroom Deals','Pre-battle','When declaring formations, select one Rogue Trader Entourage that is leading. Its entire formation gains Infiltrators and can deploy more than 8″ horizontally from the enemy deployment zone and all enemies.','either','during',led);
-    const eligible=army.faction==='Adeptus Mechanicus'?mechanicusMusterUnits(army):army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
+    const eligible=army.faction==='Space Marines'?spaceMarineMusterUnits(army):army.faction==='Adeptus Mechanicus'?mechanicusMusterUnits(army):army.faction==='Adepta Sororitas'?sororitasMusterUnits(army):guard?astraMusterUnits(army):native?ASSIGNED_AGENT_SHEETS.map(s=>s.unit):knightMusterUnits(army);
     const battleline=roster.filter(s=>{
-     const keys=army.faction==='Adeptus Mechanicus'?[...mechanicusKeywords(army,s)]:army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
+     const keys=army.faction==='Space Marines'?[...spaceMarineKeywords(army,s)]:army.faction==='Adeptus Mechanicus'?[...mechanicusKeywords(army,s)]:army.faction==='Adepta Sororitas'?[...sororitasKeywords(army,s)]:guard?[...astraMilitarumKeywords(army,s)]:[...IMPERIAL_KNIGHT_SHEETS,...ASSIGNED_AGENT_SHEETS].find(row=>row.unit===s.unit)?.keywords;
      return eligible.includes(s.unit)&&keys?.includes('IMPERIUM')&&(keys.includes('BATTLELINE')||(keys.includes('ARMIGER')&&army.detachments2026?.includes('Spearhead-at-arms')));
     });
     if(battleline.length)emit('warrant','Warrant of Trade','Pre-battle','After both armies deploy, redeploy up to D3 friendly Imperium Battleline units. They may enter Strategic Reserves even beyond its normal allowance. Eligible units: '+battleline.map(s=>s.id).join(', ')+'.','either','during',[squad.id,...battleline.map(s=>s.id)]);
@@ -117,6 +121,7 @@ export function assignedAgentReminders(army:ArmySelection):GeneratedReminder[]{
    const targetSheet=ASSIGNED_AGENT_SHEETS.find(s=>s.unit===body.unit);
    const keys=targetSheet?.keywords??[];
    const carriers=roster.filter(s=>{
+    if(army.faction==='Space Marines'&&spaceMarineCargoFormations(army,s,roster).some(g=>g.root.id===body.id))return true;
     if(s.unit==='Imperial Rhino')return keys.includes('AGENTS OF THE IMPERIUM')&&keys.includes('INFANTRY')&&!keys.includes('TERMINATOR');
     if(s.unit==='Inquisitorial Chimera')return body.unit==='Inquisitorial Agents';
     if(s.unit==='Sisters of Battle Immolator')return keys.includes('ORDO HERETICUS')&&keys.includes('INFANTRY');
