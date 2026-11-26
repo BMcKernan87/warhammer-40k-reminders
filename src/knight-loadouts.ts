@@ -1,3 +1,4 @@
+import {aeldariLoadout,resizeAeldariGear,validAeldariGear} from './aeldari-loadouts';
 import {drukhariLoadout,resizeDrukhariGear,validDrukhariGear} from './drukhari-loadouts';
 import {csmArmyLoadout,resizeCsmArmyGear,validCsmArmyGear} from './csm-army-loadouts';
 import {tyranidLoadout,resizeTyranidGear,validTyranidGear} from './tyranid-loadouts';
@@ -123,6 +124,7 @@ function accursedCultists(models:number):KnightEquipment {
 // On resize, preserve the selected Torments when possible and change only
 // the additional Mutants, within the printed 3–6 Torment / 5–10 Mutant bounds.
 export function resizeKnightComposition(squad:RosterInstance,models:number,faction?:ArmySelection['faction']):Record<string,string>|undefined {
+  if(faction==='Aeldari')return resizeAeldariGear(squad,models);
   if(faction==='Drukhari')return resizeDrukhariGear(squad,models);
   if(faction==='Chaos Space Marines'&&csmArmyLoadout(squad.unit,models))return resizeCsmArmyGear(squad,models);
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,models))return resizeDeathGuardGear(squad,models);
@@ -190,6 +192,7 @@ export const CHAOS_KNIGHT_LOADOUTS:Readonly<Record<string,KnightEquipment>>={
 
 export function knightLoadoutFor(faction:ArmySelection['faction'],unit:string,models?:number):KnightEquipment|undefined {
   if(unit===alliedWarhound(faction))return warhoundEquipment;
+  if(faction==='Aeldari')return aeldariLoadout(unit,models);
   if(faction==='Drukhari')return drukhariLoadout(unit,models);
   if(faction==='Chaos Space Marines')return csmArmyLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:daemonLoadout(unit,models));
   if(faction==='Death Guard')return deathGuardLoadout(unit,models)??(isDreadblade(unit)?CHAOS_KNIGHT_LOADOUTS[unit]:undefined);
@@ -238,6 +241,7 @@ export function validKnightGear(squad:RosterInstance,faction?:ArmySelection['fac
   if(!gear||typeof gear!=='object'||Array.isArray(gear))return false;
   const sheet=typeof faction==='string'?knightLoadoutFor(faction,squad.unit,squad.models):registeredLoadout(squad.unit,squad.models);
   if(!sheet||!Object.entries(gear).every(([name,choice])=>sheet.slots.find(s=>s.name===name)?.choices.some(c=>c.name===choice)))return false;
+  if(faction==='Aeldari')return validAeldariGear(squad.unit,gear,squad.models);
   if(faction==='Drukhari')return validDrukhariGear(squad.unit,gear,squad.models);
   if(faction==='Chaos Space Marines'&&csmArmyLoadout(squad.unit,squad.models))return validCsmArmyGear(squad.unit,gear,squad.models);
   if(faction==='Death Guard'&&deathGuardLoadout(squad.unit,squad.models))return validDeathGuardGear(squad.unit,gear,squad.models);

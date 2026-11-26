@@ -19,7 +19,7 @@ export function formationDeploymentReminders(army:ArmySelection,formations:ArmyF
  const entries=rosterCost2026(army).entries;
  const prices=new Map(entries.map(e=>[e.id,e.points]));
  const cost=(f:ArmyFormation)=>f.members.reduce((n,s)=>n+(prices.get(s.id)??0),0);
- const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'||army.faction==='Adeptus Mechanicus'||army.faction==='T’au Empire'||army.faction==='Tyranids'||army.faction==='Drukhari'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
+ const mandatoryAircraft=army.faction==='Orks'||army.faction==='Astra Militarum'||army.faction==='Grey Knights'||army.faction==='Adeptus Mechanicus'||army.faction==='T’au Empire'||army.faction==='Tyranids'||army.faction==='Drukhari'||army.faction==='Aeldari'?formations.filter(f=>keywords(f.body.unit).includes('AIRCRAFT')):[];
  if(army.faction==='Orks'&&mandatoryAircraft.length)out.push(...aircraftCoreReminders('11e-orks-',mandatoryAircraft.map(f=>f.id),army.detachments2026?.includes('Flyboyz')));
  const tyranidReserves=army.faction==='Tyranids'?tyranidReserveAccounting(army):undefined;
  const compulsory=army.faction==='Orks'?orkMandatoryReservePoints(army,entries):tyranidReserves?.minimumAircraftPoints??mandatoryAircraft.reduce((points,f)=>points+cost(f),0);

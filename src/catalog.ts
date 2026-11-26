@@ -1,3 +1,4 @@
+import {AELDARI_UNITS} from './aeldari-data';
 import {DRUKHARI_UNITS} from './drukhari-data';
 import {CSM_ARMY_UNITS} from './csm-army-data';
 import {TYRANID_UNITS} from './tyranid-data';
@@ -41,7 +42,7 @@ export const CATALOG:Record<Faction,{detachments:readonly string[];units:readonl
  'Adepta Sororitas':{detachments:['Select detachment (unverified)'],units:SORORITAS_ARMY_UNITS,enhancements:[]},
  'Adeptus Custodes':{detachments:['Select detachment (unverified)'],units:CUSTODES_UNITS,enhancements:[]},
  'Adeptus Mechanicus':{detachments:['Select detachment (unverified)'],units:MECHANICUS_ARMY_UNITS,enhancements:[]},
- 'Aeldari':{detachments:['Select detachment (unverified)'],units:["Farseer","Guardian Defenders","Dire Avengers","Wraithguard"],enhancements:[]},
+ 'Aeldari':{detachments:['Select detachment (unverified)'],units:AELDARI_UNITS,enhancements:[]},
  'Astra Militarum':{detachments:['Select detachment (unverified)'],units:ASTRA_ARMY_UNITS,enhancements:[]},
  'Black Templars':{detachments:['Select detachment (unverified)'],units:["High Marshal Helbrecht","Primaris Crusader Squad","Sword Brethren"],enhancements:[]},
  'Blood Angels':{detachments:['Select detachment (unverified)'],units:["Commander Dante","Death Company Marines","Sanguinary Guard"],enhancements:[]},
