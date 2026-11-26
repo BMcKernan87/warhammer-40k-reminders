@@ -1,3 +1,5 @@
+import {aeldariWarlordCandidates,resolvedAeldariWarlord,selectAeldariWarlord} from './aeldari-muster';
+import {AELDARI_SUPPORT_ARTILLERY,aeldariArtilleryHosts,setAeldariArtillery} from './aeldari-artillery';
 import {drukhariWarlordCandidates,resolvedDrukhariWarlord,selectDrukhariWarlord} from './drukhari-muster';
 import {csmWarlordCandidates,resolvedCsmWarlord,selectCsmWarlord,setCsmMark} from './csm-muster';
 import {csmMarkChoices,csmChosenMark,isCsmPrince,type CsmMark} from './csm-muster-data';
@@ -44,6 +46,7 @@ export function KnightRoster({army,onChange}:Props) {
   const orks=army.faction==='Orks';
   const agents=army.faction==='Imperial Agents';
   const daemons=army.faction==='Chaos Daemons';
+  const aeldari=army.faction==='Aeldari';
   const drukhari=army.faction==='Drukhari';
   const csm=army.faction==='Chaos Space Marines';
   const tyranid=army.faction==='Tyranids';
@@ -58,9 +61,9 @@ export function KnightRoster({army,onChange}:Props) {
   const eaters=army.faction==='World Eaters';
   const cult=army.faction==='Genestealer Cults';
   const votann=army.faction==='Leagues of Votann';
-  const warlords=drukhari?drukhariWarlordCandidates(army):csm?csmWarlordCandidates(army):tyranid?tyranidWarlordCandidates(army):tau?tauWarlordCandidates(army):mechanicus?mechanicusWarlordCandidates(army):sisters?sororitasWarlordCandidates(army):grey?greyKnightsWarlordCandidates(army):deathGuard?deathGuardWarlordCandidates(army):thousand?thousandSonsWarlordCandidates(army):legion?emperorsChildrenWarlordCandidates(army):guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
-  const warlord=drukhari?resolvedDrukhariWarlord(army):csm?resolvedCsmWarlord(army):tyranid?resolvedTyranidWarlord(army):tau?resolvedTauWarlord(army):mechanicus?resolvedMechanicusWarlord(army):sisters?resolvedSororitasWarlord(army):grey?resolvedGreyKnightsWarlord(army):deathGuard?resolvedDeathGuardWarlord(army):thousand?resolvedThousandSonsWarlord(army):legion?resolvedEmperorsChildrenWarlord(army):guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
-  const selectWarlord=drukhari?selectDrukhariWarlord:csm?selectCsmWarlord:tyranid?selectTyranidWarlord:tau?selectTauWarlord:mechanicus?selectMechanicusWarlord:sisters?selectSororitasWarlord:grey?selectGreyKnightsWarlord:deathGuard?selectDeathGuardWarlord:thousand?selectThousandSonsWarlord:legion?selectEmperorsChildrenWarlord:guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
+  const warlords=aeldari?aeldariWarlordCandidates(army):drukhari?drukhariWarlordCandidates(army):csm?csmWarlordCandidates(army):tyranid?tyranidWarlordCandidates(army):tau?tauWarlordCandidates(army):mechanicus?mechanicusWarlordCandidates(army):sisters?sororitasWarlordCandidates(army):grey?greyKnightsWarlordCandidates(army):deathGuard?deathGuardWarlordCandidates(army):thousand?thousandSonsWarlordCandidates(army):legion?emperorsChildrenWarlordCandidates(army):guard?astraWarlordCandidates(army):eaters?worldEatersWarlordCandidates(army):cult?gscWarlordCandidates(army):votann?votannWarlordCandidates(army):orks?orkWarlordCandidates(army):custodes?custodesWarlordCandidates(army):agents?agentWarlordCandidates(army):daemons?daemonWarlordCandidates(army):chaos?chaosKnightWarlordCandidates(army):knightWarlordCandidates(army);
+  const warlord=aeldari?resolvedAeldariWarlord(army):drukhari?resolvedDrukhariWarlord(army):csm?resolvedCsmWarlord(army):tyranid?resolvedTyranidWarlord(army):tau?resolvedTauWarlord(army):mechanicus?resolvedMechanicusWarlord(army):sisters?resolvedSororitasWarlord(army):grey?resolvedGreyKnightsWarlord(army):deathGuard?resolvedDeathGuardWarlord(army):thousand?resolvedThousandSonsWarlord(army):legion?resolvedEmperorsChildrenWarlord(army):guard?resolvedAstraWarlord(army):eaters?resolvedWorldEatersWarlord(army):cult?resolvedGscWarlord(army):votann?resolvedVotannWarlord(army):orks?resolvedOrkWarlord(army):custodes?resolvedCustodesWarlord(army):agents?resolvedAgentWarlord(army):daemons?resolvedDaemonWarlord(army):chaos?resolvedChaosKnightWarlord(army):resolvedKnightWarlord(army);
+  const selectWarlord=aeldari?selectAeldariWarlord:drukhari?selectDrukhariWarlord:csm?selectCsmWarlord:tyranid?selectTyranidWarlord:tau?selectTauWarlord:mechanicus?selectMechanicusWarlord:sisters?selectSororitasWarlord:grey?selectGreyKnightsWarlord:deathGuard?selectDeathGuardWarlord:thousand?selectThousandSonsWarlord:legion?selectEmperorsChildrenWarlord:guard?selectAstraWarlord:eaters?selectWorldEatersWarlord:cult?selectGscWarlord:votann?selectVotannWarlord:orks?selectOrkWarlord:custodes?selectCustodesWarlord:agents?selectAgentWarlord:daemons?selectDaemonWarlord:chaos?selectChaosKnightWarlord:selectKnightWarlord;
   const dogs=houndpackDogs(army);
   const promoted=resolvedWarDogCharacterIds(army,roster);
   return <>
@@ -87,6 +90,9 @@ export function KnightRoster({army,onChange}:Props) {
           </select></label>}
           {tyranid&&tyranidCanPromote(army,squad)&&<label><input type="checkbox" aria-label={'Promote '+squad.id+' to Character'} checked={!!squad.characterPromotion} disabled={!squad.characterPromotion&&roster.filter(s=>s.characterPromotion).length>=2} onChange={e=>edit(a=>setTyranidCharacter(a,squad.id,e.target.checked))}/> Subterranean Character</label>}
           {guard&&astraCanPromote(army,squad)&&<label><input type="checkbox" aria-label={'Promote '+squad.id+' to Character'} checked={!!squad.characterPromotion} onChange={e=>edit(a=>setAstraCharacter(a,squad.id,e.target.checked))}/> Steel Hammer Character</label>}
+          {aeldari&&AELDARI_SUPPORT_ARTILLERY.has(squad.unit)&&<label>Guardian unit <select aria-label={'Guardian unit for '+squad.id} value={squad.retinueTo??''} onChange={e=>edit(a=>setAeldariArtillery(a,squad.id,e.target.value||null))}>
+            <option value="">Separate unit</option>{aeldariArtilleryHosts(army,squad.id).map(s=><option key={s.id}>{s.id}</option>)}
+          </select></label>}
           {guard&&loyalProtectors.has(squad.unit)&&<label>Command Squad <select aria-label={'Command Squad for '+squad.id} value={squad.retinueTo??''} onChange={e=>edit(a=>setAstraProtector(a,squad.id,e.target.value||null))}>
             <option value="">Command Squad required</option>{astraProtectorHosts(army,squad.id).map(s=><option key={s.id}>{s.id}</option>)}
           </select></label>}

@@ -1,3 +1,5 @@
+import {AELDARI_DETACHMENTS} from './aeldari-detachments.generated';
+import {currentAeldariDetachment} from './aeldari-upgrades';
 import {DRUKHARI_DETACHMENTS} from './drukhari-detachments.generated';
 import {currentDrukhariDetachment} from './drukhari-upgrades';
 import {CSM_DETACHMENTS} from './csm-detachments.generated';
@@ -103,23 +105,7 @@ export const DETACHMENTS_2026:Partial<Record<Faction,readonly Detachment2026[]>>
   {name:"Ordo Xenos, Alien Hunters",disposition:"Purge the Foe",dp:2},
   {name:"Veiled Blade Elimination Force",disposition:"Disruption",dp:1},
  ],
- "Aeldari":[
-  {name:"Armoured Warhost",disposition:"Reconnaissance",dp:1},
-  {name:"Fateful Performance",disposition:"Disruption",dp:1},
-  {name:"Path of the Outcast",disposition:"Reconnaissance",dp:1},
-  {name:"Twilight Flickers",disposition:"Take and Hold",dp:1},
-  {name:"Aspect Host",disposition:"Disruption",dp:3},
-  {name:"Corsair Coterie",disposition:"Priority Assets",dp:2},
-  {name:"Devoted of Ynnead",disposition:"Priority Assets",dp:2},
-  {name:"Eldritch Raiders",disposition:"Disruption",dp:2},
-  {name:"Ghosts of the Webway",disposition:"Disruption",dp:2},
-  {name:"Guardian Battlehost",disposition:"Take and Hold",dp:2},
-  {name:"Seer Council",disposition:"Priority Assets",dp:2},
-  {name:"Serpent's Brood",disposition:"Purge the Foe",dp:2},
-  {name:"Spirit Conclave",disposition:"Take and Hold",dp:2},
-  {name:"Warhost",disposition:"Purge the Foe",dp:3},
-  {name:"Windrider Host",disposition:"Disruption",dp:2},
- ],
+ 'Aeldari':AELDARI_DETACHMENTS,
  'Drukhari':DRUKHARI_DETACHMENTS,
  'Genestealer Cults':GSC_DETACHMENTS,
  'Leagues of Votann':VOTANN_DETACHMENTS,
@@ -202,10 +188,10 @@ export const BATTLE_SIZES_2026:Record<BattleSize2026,{points:number;dp:number;en
 export function detachmentBudget(faction:Faction,selected:readonly string[],size:BattleSize2026){
  const available=DETACHMENTS_2026[faction];
  if(!available)return {supported:false,spent:0,limit:BATTLE_SIZES_2026[size].dp,valid:false,dispositions:[] as ForceDisposition[]};
- const names=faction==='Drukhari'?selected.map(currentDrukhariDetachment):faction==='Chaos Space Marines'?selected.map(currentCsmDetachment):faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
+ const names=faction==='Aeldari'?selected.map(currentAeldariDetachment):faction==='Drukhari'?selected.map(currentDrukhariDetachment):faction==='Chaos Space Marines'?selected.map(currentCsmDetachment):faction==='Tyranids'?selected.map(currentTyranidDetachment):faction==='T’au Empire'?selected.map(currentTauDetachment):faction==='Adeptus Mechanicus'?selected.map(currentMechanicusDetachment):faction==='Death Guard'?selected.map(currentDeathGuardDetachment):faction==='Emperor’s Children'?selected.map(currentEcDetachment):faction==='Genestealer Cults'?selected.map(currentGscDetachment):selected;
  const entries=names.map(name=>available.find(d=>d.name===name));
  const spent=entries.reduce((sum,d)=>sum+(d?.dp||0),0);
- const groups=faction==='Drukhari'?[['Spectacle of Spite','Exhibition of Slaughter'],['Covenite Coterie','Tools of Torment'],['Kabalite Cartel','Kabalite Agonysts']]:faction==='Chaos Space Marines'?[['Murdertalon Raiders','Nightmare Hunt']]:faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
+ const groups=faction==='Aeldari'?[['Fateful Performance','Twilight Flickers']]:faction==='Drukhari'?[['Spectacle of Spite','Exhibition of Slaughter'],['Covenite Coterie','Tools of Torment'],['Kabalite Cartel','Kabalite Agonysts']]:faction==='Chaos Space Marines'?[['Murdertalon Raiders','Nightmare Hunt']]:faction==='T’au Empire'?[['Retaliation Cadre','Experimental Prototype Cadre'],['Kroot Hunting Pack','Auxiliary Cadre']]:faction==='Adeptus Mechanicus'?[['Data-Psalm Conclave','Luminen Auto-choir']]:faction==='Adepta Sororitas'?[['Champions of Faith','Sacred Champions']]:faction==='Thousand Sons'?[['Servants of Change','Warpmeld Pact']]:faction==='Astra Militarum'?[['Abhuman Auxiliaries','Grizzled Company'],['Recon Element','Designation Force']]:faction==='Genestealer Cults'?[['Host of Ascension','Xenocult Masses']]:faction==='Adeptus Custodes'?[['Aquilan Shield','Dread Host','Emissaries Imperatus','Emperor’s Chosen','Shadowkeepers','Solar Watch']]:faction==='Necrons'?[['Awakened Dynasty','Hand of the Dynasty'],['Hypercrypt Legion',"The Phaeron's Armoury"]]:faction==='Imperial Knights'?[['Spearhead-at-arms','Throne-bonded Outriders']]:[];
  const conflicts=groups.some(group=>names.filter(d=>group.includes(d)).length>1);
  const limit=BATTLE_SIZES_2026[size].dp;
  const soloThreeDP=size==='Incursion'&&entries.length===1&&entries[0]?.dp===3;

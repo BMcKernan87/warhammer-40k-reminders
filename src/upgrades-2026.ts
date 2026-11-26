@@ -1,3 +1,4 @@
+import {eligibleAeldariUpgrades,aeldariUpgradeBaseName} from './aeldari-upgrades';
 import {eligibleDrukhariUpgrades} from './drukhari-upgrades';
 import {eligibleCsmUpgrades} from './csm-detachment-data';
 import {eligibleTyranidUpgrades} from './tyranid-detachment-data';
@@ -142,6 +143,7 @@ export const UPGRADES_2026:readonly Upgrade2026[]=[
  {name:'Dread Majesty',faction:'Necrons',detachment:'Starshatter Arsenal',unit:'Overlord with translocation shroud',source:REMAINING_NECRON_SOURCE}
 ];
 export function eligibleUpgrades2026(army:ArmySelection,unit:string,id?:string):Upgrade2026[]{
+ if(army.faction==='Aeldari')return eligibleAeldariUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Aeldari',source:'https://wahapedia.ru/wh40k11ed/factions/aeldari/'}));
  if(army.faction==='Drukhari')return eligibleDrukhariUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Drukhari',source:'https://wahapedia.ru/wh40k11ed/factions/drukhari/'}));
  if(army.faction==='Chaos Space Marines')return eligibleCsmUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Chaos Space Marines',source:'https://wahapedia.ru/wh40k11ed/factions/chaos-space-marines/'}));
  if(army.faction==='Tyranids')return eligibleTyranidUpgrades(army,unit,id).map(u=>({...u,unit,faction:'Tyranids',source:'https://wahapedia.ru/wh40k11ed/factions/tyranids/'}));
@@ -188,10 +190,11 @@ export function upgradeError2026(army:ArmySelection):string|null{
   const formation=s.attachedTo??s.id;
   if(formations.has(formation))return 'Only one enhancement or Upgrade is allowed per attached formation';
   formations.add(formation);
-  const count=(counts.get(name)??0)+1;
+  const uniqueName=army.faction==='Aeldari'?aeldariUpgradeBaseName(name):name;
+  const count=(counts.get(uniqueName)??0)+1;
   if(count>((option.repeatable??REPEATABLE_NECRON_UPGRADES.has(name))?3:1))return name+' exceeds its allowed number of copies';
-  counts.set(name,count);
-  if(option.countsTowardLimit!==false)limited.add(name);
+  counts.set(uniqueName,count);
+  if(option.countsTowardLimit!==false)limited.add(uniqueName);
  }
  if(limited.size>(BATTLE_SIZES_2026[army.battleSize2026??'Strike Force']?.enhancements??0))return 'Battle-size enhancement limit exceeded';
  return null;

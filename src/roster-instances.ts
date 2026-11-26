@@ -1,3 +1,4 @@
+import {aeldariJoinedBodyguard} from './aeldari-attachments';
 import {csmMarkChoices,csmMarksCompatible,type CsmMark} from './csm-muster-data';
 import {tyranidCanPromote} from './tyranid-muster-data';
 import {tauAdditionalLeaderPair} from './tau-muster-data';
@@ -214,6 +215,7 @@ export function validateRosterInstances(army:ArmySelection):boolean{
  if(chosen.some(value=>Object.values(army.enhancements||{}).includes(value)))return false;
  for(const x of army.instances){
   if(x.attachedTo===undefined)continue;
+  if(army.faction==='Aeldari'){if(!aeldariJoinedBodyguard(army,x))return false;continue;}
   const body=army.instances.find(b=>b.id===x.attachedTo);
   if(!body||!instanceBodyguards(army,x).includes(body.unit))return false;
   if(!csmMarksCompatible(army,x,body))return false;
@@ -259,7 +261,7 @@ export function appendRosterInstances(army:ArmySelection,unit:string,count:numbe
 
 /** Assign only when the character and recipient are unambiguous for that role. */
 export function autoAttachUnambiguousInstances(army:ArmySelection):ArmySelection{
- if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari'].includes(army.faction))return army;
+ if(!army.instances||!['Astra Militarum','Necrons','Imperial Knights','Chaos Knights','Chaos Daemons','Imperial Agents','Adeptus Custodes','Orks','Leagues of Votann','Genestealer Cults','World Eaters','Emperor’s Children','Thousand Sons','Death Guard','Grey Knights','Adepta Sororitas','Adeptus Mechanicus','T’au Empire','Tyranids','Chaos Space Marines','Drukhari','Aeldari'].includes(army.faction))return army;
  let current=army;
  let changed=true;
  while(changed){

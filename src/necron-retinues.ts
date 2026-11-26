@@ -1,3 +1,4 @@
+import {aeldariJoinedArtillery,reconcileAeldariArtillery} from './aeldari-artillery';
 import {astraJoinedCommand,reconcileAstraProtectors} from './astra-protectors';
 import type {ArmySelection} from './catalog';
 import type {RosterInstance} from './roster-instances';
@@ -25,6 +26,7 @@ export function setRetinue(army:ArmySelection,id:string,bodyId:string|null):Army
  return {...army,instances:expandRoster(army).map(s=>s.id===id?{...s,retinueTo:bodyId??undefined}:s)};
 }
 export function reconcileRetinues(army:ArmySelection):ArmySelection{
+ if(army.faction==='Aeldari')return reconcileAeldariArtillery(army);
  if(army.faction==='Astra Militarum')return reconcileAstraProtectors(army);
  if(!army.instances)return army;
  const claimed=new Set<string>();
@@ -37,6 +39,7 @@ export function reconcileRetinues(army:ArmySelection):ArmySelection{
 }
 export function validRetinues(army:ArmySelection):boolean{
  const roster=expandRoster(army);
+ if(army.faction==='Aeldari')return roster.every(s=>s.retinueTo===undefined||!!aeldariJoinedArtillery(army,s));
  if(army.faction==='Astra Militarum')return roster.every(s=>s.retinueTo===undefined||!!astraJoinedCommand(army,s));
  return roster.every(s=>s.retinueTo===undefined||(typeof s.retinueTo==='string'&&eligibleRetinueBodies(army,s.id).some(b=>b.id===s.retinueTo)));
 }
