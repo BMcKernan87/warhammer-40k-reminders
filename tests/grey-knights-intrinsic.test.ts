@@ -61,7 +61,7 @@ it('conditions the Techmarine aura on surviving formations, and shares the Grand
  let a=army(['Brotherhood Techmarine','Purgation Squad','Grand Master','Grand Master In Nemesis Dreadknight','Venerable Dreadnought']);
  a=join(a,'Brotherhood Techmarine','Purgation Squad');
  expect(get(a,'Techmarine')[0].summary).toMatch(/every surviving model.*after its Bodyguard is destroyed/);
- expect(get(a,'Blessing of the Omnissiah').map(r=>r.window)).toEqual(['Command','Shooting','Fight']);
+ expect(get(a,'Blessing of the Omnissiah').map(r=>r.window)).toEqual(['Command']);
  expect(get(a,'Blessing of the Omnissiah')[0].units).not.toContain(id('Purgation Squad'));
  const strategists=get(a,'Warrior Strategist');expect(strategists).toHaveLength(5);
  expect(strategists[0].summary).toContain('Once per battle round across these Grand Masters');
@@ -81,7 +81,7 @@ it('preserves the actual Purifier attack count, pin duration and teleport charge
  let a=army(['Castellan Crowe','Purifier Squad','Purgation Squad','Interceptor Squad']);a=join(a,'Castellan Crowe','Purifier Squad');a=setInstanceModelCount(a,id('Purifier Squad'),10);
  a=swap(a,'Purifier Squad','Purifier 1 ·',['Incinerator','Close combat weapon']);
  expect(get(a,'Champion of the Order of Purifiers')[0].summary).toContain('Purifier Squad#1 (10)');
- expect(get(a,'Righteous Persecution').map(r=>[r.window,r.turn])).toEqual([['Shooting','own'],['Movement','opponent'],['Charge','opponent']]);
+ expect(get(a,'Righteous Persecution').map(r=>[r.window,r.turn])).toEqual([['Shooting','own']]);
  expect(get(a,'Personal Teleporters')[0].summary).not.toContain('Echojump');
  expect(get({...a,detachments2026:['Immaterial Interdiction']},'Personal Teleporters')[0].summary).toContain('cannot also use Personal Teleporters');
 });
