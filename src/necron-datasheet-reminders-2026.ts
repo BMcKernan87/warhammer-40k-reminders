@@ -187,6 +187,12 @@ export function naturalScoutReminders(army:ArmySelection):GeneratedReminder[]{
 
 export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
   if(army.faction!=='Necrons')return [];
+  // A zero-model entry and an omitted destroyed instance are equivalent for
+  // current abilities. Keep the raw snapshot for the prior-effect resolver:
+  // a changed or duplicated source must not look like an absent original.
+  const observed=roster;
+  const mustered=expandRoster(army);
+  roster=roster.filter(s=>(s.models??1)>0&&observed.filter(m=>m.id===s.id).length===1&&mustered.filter(m=>m.id===s.id).length<=1);
   const output:GeneratedReminder[]=[];
   const ids=new Set<string>();
   const battleRoster=necronBattleRoster(army,roster);
@@ -264,7 +270,7 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
   const arks=roster.filter(s=>s.unit==='Ghost Ark');
   if(arks.length)output.push({id:'11e-necron-ghost-ark-embark',title:'Ghost Ark · Dedicated Transport',window:'Pre-battle',timing:'start',summary:'Declare Battle Formations: each Ghost Ark must begin with at least one eligible whole unit embarked, or be destroyed without destruction triggers. Capacity: 10 Warriors and one Necrons Infantry Character. Eligible formation candidates: '+(ghostArkPassengers(army).map(s=>s.id).join(', ')||'none')+'. Do not assign the same unit to multiple transports.',source:necronSource('Ghost Ark'),origin:'unit',units:arks.map(s=>s.id)});
   output.push(...extraNecronPhaseReminders(army,roster));
-  output.push(...lastingNecronPhaseReminders(army,roster));
+  output.push(...lastingNecronPhaseReminders(army,roster,observed));
   return output;
 }
 
@@ -272,17 +278,33 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
 // These are conditional follow-ups to a prior use, never new activations. Keep
 // their source identity from the mustered army and charge locks on the original
 // surviving formation, even if its Cryptek or original Bodyguard has died.
-function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):GeneratedReminder[]{
+function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[],observed:readonly RosterInstance[]):GeneratedReminder[]{
  const out:GeneratedReminder[]=[];
- const original=expandRoster(army),originalFormations=necronBattleFormations(army),formations=necronBattleFormations(army,roster);
- // This existing projection validates the originally declared Leader/Support
- // and retinue links, without turning an invalid join into a separate target.
- const declaredFormations=necronTransportFormations(army);
- const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo;
- const survivingFormation=(start:Formation)=>formations.find(f=>f.originalBody.id===start.originalBody.id&&f.members.some(m=>start.members.some(originalMember=>sameMember(originalMember,m))));
+ const original=expandRoster(army),formations=necronBattleFormations(army,roster);
+ const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo&&Boolean(start.keepUnattached)===Boolean(current.keepUnattached);
+ // Preserve the starting formation, not just a matching root string. Invalid
+ // original joins or reused/ambiguous identities cannot supply prior selections.
+ const validOriginal=(f:Formation)=>{
+  const ids=new Set(f.members.map(m=>m.id));
+  return f.members.every(m=>(m.models??1)>0&&original.filter(s=>s.id===m.id).length===1
+   &&(!m.attachedTo||!m.keepUnattached&&f.leading.some(l=>sameMember(l,m)))
+   &&(!m.retinueTo||m.id!==f.originalBody.id&&m.retinueTo===f.originalBody.id))
+   &&!original.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??'')));
+ };
+ const originalFormations=necronBattleFormations(army).filter(validOriginal);
+ // This existing projection also checks transport/Support eligibility, rather
+ // than promoting an invalid retinue or Support to an independent recipient.
+ const declaredFormations=necronTransportFormations(army).filter(validOriginal);
+ const survivingFormation=(start:Formation)=>{
+  if(start.members.some(m=>observed.filter(s=>s.id===m.id).length>1))return;
+  return formations.find(f=>f.originalBody.id===start.originalBody.id&&f.members.length>0
+    &&f.members.every(m=>start.members.some(originalMember=>sameMember(originalMember,m))));
+ };
  for(const s of original){
-  const current=roster.find(m=>m.id===s.id);
-  if(current&&!sameMember(s,current))continue;
+  if(!originalFormations.some(f=>f.members.some(m=>sameMember(m,s))))continue;
+  const seen=observed.filter(m=>m.id===s.id);
+  if(seen.length>1||seen.some(m=>!sameMember(s,m)))continue;
+  const current=roster.find(m=>sameMember(s,m));
   const emit=(key:string,title:string,window:ReminderWindow,summary:string,units:string[]=[s.id],turn:GeneratedReminder['turn']='either',timing:GeneratedReminder['timing']='during')=>out.push({
    id:'11e-necron-extra-'+key+'-'+s.id+'-'+window,title:s.id+' · '+title,window,timing,turn,summary,source:necronSource(s.unit),origin:'unit',units});
   if(s.unit==='Chronomancer'||s.unit==='Tomb Blades'){
@@ -299,6 +321,7 @@ function lastingNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[])
   }
   if(s.unit==='Obelisk'){
    emit('gravitic-move','Gravitic Pulse · selected unit moves','Movement','If this Obelisk selected an enemy at the start of this phase, halve that unit’s Move characteristic and Advance rolls until turn end. If that unit can Fly, roll a D6 after each move it finishes; on 4+ it takes D3 mortal wounds. This movement damage lasts until the start of your next Movement phase. Both effects persist if the Obelisk is destroyed.',[s.id],'opponent');
+   emit('gravitic-shooting','Gravitic Pulse · Shooting moves','Shooting','In the opponent’s Shooting phase, only if this Obelisk selected an enemy that can Fly at the start of their Movement phase: roll a D6 each time that unit finishes any permitted move (including a move after shooting). On 4+ it suffers D3 mortal wounds. Halving its Move characteristic does not halve a fixed-distance move. The movement damage lasts until the start of your next Movement phase, even if the Obelisk is destroyed. This does not grant movement permission.',[s.id],'opponent');
    emit('gravitic-charge','Gravitic Pulse · charge','Charge','In the opponent’s turn, if this Obelisk selected an enemy at the start of their Movement phase, halve the Charge roll of that unit until turn end. If it can Fly and completes its Charge move, roll a D6. On 4+ it takes D3 mortal wounds. The movement damage lasts until the start of your next Movement phase; destroying the Obelisk does not end either effect.',[s.id],'opponent');
    emit('gravitic-fight','Gravitic Pulse · Fight moves','Fight','In the opponent’s Fight phase, if this Obelisk previously selected an enemy that can Fly, roll a D6 after each pile-in or consolidation move it finishes. Each 4+ deals D3 mortal wounds. The movement damage lasts until the start of your next Movement phase, even if the Obelisk is destroyed.',[s.id],'opponent');
   }

@@ -134,7 +134,7 @@ describe('already-applied intrinsic effects after source casualties',()=>{
   expect(pin.map(r=>[r.window,r.turn])).toEqual([['Movement','either'],['Charge','either']]);
   expect(pin.every(r=>r.units?.[0]==='geo'&&r.summary.includes('previously pinned')&&r.summary.includes('until the start of your next Movement phase')&&r.summary.includes('Geomancer is destroyed'))).toBe(true);
   const pulse=reminders.filter(r=>r.title.includes('Gravitic Pulse'));
-  expect(pulse.map(r=>r.window)).toEqual(['Movement','Charge','Fight']);
+  expect(pulse.map(r=>r.window)).toEqual(['Movement','Shooting','Charge','Fight']);
   expect(pulse.every(r=>r.timing==='during'&&r.units?.[0]==='obelisk'&&r.summary.includes('Obelisk'))).toBe(true);
   expect(pulse.find(r=>r.window==='Charge')?.summary).toMatch(/halve.*until turn end.*movement damage lasts until the start of your next Movement phase/);
   const duck=reminders.filter(r=>r.title.includes('Atavistic Instigation'));
