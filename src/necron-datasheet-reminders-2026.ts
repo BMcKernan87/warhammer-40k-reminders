@@ -24,6 +24,7 @@ const actionPhase:Partial<Record<Signal,Phase>>={
   chargeRoll:'Charge',charged:'Charge',fight:'Fight',meleeCasualty:'Fight',meleeKill:'Fight',killed:'Fight',reanimate:'Command',
 };
 function referenceWindows(rule:TriggerRule):ReminderWindow[]{
+  if(rule.id==='spyder-swarm')return ['Command'];
   if(['macro-projector','reanimation-beam','legion','nullstone','gloom','rites','amulet','nodes','fabricator','terror'].includes(rule.id))return [...PHASES];
   if(rule.id==='command-king')return ['Start of battle round'];
   if(rule.id==='murder')return ['Shooting','Fight','Movement'];
@@ -148,7 +149,7 @@ function datasheetTargets(ruleId:string,bearer:RosterInstance,formations:Formati
     case 'ghost-repair':
       return withMember(s=>s.unit==='Necron Warriors');
     case 'spyder-swarm':
-      return withMember(s=>s.unit==='Canoptek Scarab Swarms');
+      return withMember(s=>s.unit==='Canoptek Scarab Swarms'&&(s.models??1)>0);
     case 'szeras':
       return withMember(s=>necronKeywords.BATTLELINE.has(s.unit));
     case 'macro-mandible':
@@ -203,6 +204,7 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
       // Include the decision in Movement as well as its consequence in Shooting.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(retainedBody&&(!unitEffects.has(rule.id)||rule.gear))continue;
+      if((squad.models??1)<=0&&['spyder-swarm','doomsday-still','doomsday-shoot','displace','terror','tunnelling'].includes(rule.id))continue;
       if(rule.id==='guardian'&&!formation?.leading.some(leader=>['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       const targets=datasheetTargets(rule.id,squad,formations,army);
       if(targets?.length===0)continue;
@@ -380,7 +382,7 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    if(s.unit==='The Silent King')emit('damaged','Damaged profile','Movement','End of the opponent’s Movement phase, when using Fire Overwatch: while Szarekh has 1–6 wounds remaining, halve the Attacks characteristic of Szarekh’s weapons. Triarchal Menhir weapon Attacks are unchanged. Snap shooting ignores the damaged profile’s −1 Hit modifier.','end',[s.id],'opponent');
    if(['Monolith','Obelisk','Tesseract Vault','Seraptek Heavy Construct'].includes(s.unit))for(const window of controlWindows)emit('damaged-oc','Damaged profile · OC',window,'While this model has 1–'+threshold+' wounds remaining, subtract '+(s.unit==='Seraptek Heavy Construct'?5:4)+' from its OC. Use its current wounds when checking objective control at the end of each phase and turn, before resolving other end-of-phase or end-of-turn rules.','end',[s.id],'either');
   }
-  if(s.unit==='Psychomancer')emit('nightmare-shroud','Nightmare Shroud (Aura)','Command','In the Battle-shock step of the opponent’s Command phase, each enemy below Starting Strength within 6″ of this model must test with −1 to its Battle-shock result.');
+  if(s.unit==='Psychomancer'&&(s.models??1)>0)emit('nightmare-shroud','Nightmare Shroud (Aura)','Command','In the Battle-shock step of the opponent’s Command phase, each enemy below Starting Strength within 6″ of this model must test with −1 to its Battle-shock result.','during',[s.id],'opponent');
   if(s.unit==='Royal Warden')for(const window of PHASES)emit('engrammatic-logic','Engrammatic Logic',window,'Once per battle, at the start of either player’s phase, clear Battle-shock from one friendly Necron unit within 12″ of this model.','start');
   if(s.unit===CONVERGENCE_OF_DOMINION){
    emit('fortification-fallback','Fortification','Movement','When an enemy is engaged only with friendly Fortifications, being battle-shocked does not force Desperate Escape tests on Fall Back. Models moving over enemies must still test.');
@@ -406,7 +408,7 @@ function extraNecronPhaseReminders(army:ArmySelection,roster:RosterInstance[]):G
    emit('hover','Hover','Movement','When taking to the skies, do not subtract 2″ from the maximum distance.');
   }
   if(s.unit==='Canoptek Wraiths'&&army.detachments2026?.includes('Canoptek Court'))emit('wraith-form-reactive','Wraith Form · Reactive Subroutines','Movement','In the opponent’s Movement phase, if Reactive Subroutines lets this formation make a Normal move over an enemy, Wraith Form can trigger. Choose one crossed enemy and roll one D6 per surviving model in this formation, with each 4+ causing a mortal wound.','during',[f?.id??s.id]);
-  if(s.unit==='Ophydian Destroyers')emit('tunnelling-ingress','Tunnelling Horrors · ingress','Movement','If Tunnelling Horrors was used last turn, this unit must make an ingress move now, including on your first turn.');
+  if(s.unit==='Ophydian Destroyers'&&(s.models??1)>0)emit('tunnelling-ingress','Tunnelling Horrors · ingress','Movement','If Tunnelling Horrors was used at the end of your opponent’s previous turn, this unit must make an ingress move in your Movement phase, including on your first turn.','during',[s.id],'own');
   if(s.unit==='Canoptek Scarab Swarms')for(const window of controlWindows)emit('chittering','Chittering Swarm',window,'While an enemy unit is within Engagement Range of this surviving Scarab unit, subtract 1 from the OC of every model in that enemy unit (minimum 1), including models not themselves in Engagement Range. '+(roster.some(m=>necronKeywords.CRYPTEK.has(m.unit))?'While this Scarab unit is within 6″ of a surviving friendly Cryptek model, its Scarab models have OC 1. ':'')+'Apply the current conditions when checking objective control at the end of each phase and turn. Battle-shocked models retain OC “–”.','end',[s.id],'either');
   if(s.unit==='Catacomb Command Barge')for(const window of controlWindows)emit('carrier','Carrier Wave (Aura)',window,'While a friendly Necron unit is within 6″ of this surviving Barge, every model in that unit gains +1 OC. Measure the unit’s range when checking objective control at the end of each phase and turn. Battle-shocked models retain OC “–”.','end',formations.map(root=>root.id),'either');
   if(s.unit==='The Silent King'){
