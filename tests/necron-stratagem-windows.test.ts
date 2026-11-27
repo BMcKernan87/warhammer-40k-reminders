@@ -39,7 +39,7 @@ describe('matched-play Stratagem timing on an eligible Necron roster',()=>{
     const exact=new Set(expected.flatMap(([,r])=>Object.keys(r.windows).map(window=>r.id+'|'+window)));
     expect([...new Set(actual.map(r=>r.sourceRuleId+'|'+r.window))].sort()).toEqual([...exact].sort());
     const spending=sheet.filter(r=>r.origin==='detachment'&&/\b\d+\s*CP\b/i.test(r.title));
-    expect(spending.every(r=>r.sourceRuleId&&r.units?.length&&r.source.includes('wh40k11ed'))).toBe(true);
+    expect(spending.every(r=>r.sourceRuleId&&r.units?.length&&r.source.startsWith('https://')&&!r.source.includes('wh40k10ed'))).toBe(true);
     for(const [name,rule] of expected) {
       for(const [window,[turn,timing]] of Object.entries(rule.windows)) {
         const cues=actual.filter(r=>r.sourceRuleId===rule.id&&r.window===window);
@@ -95,7 +95,7 @@ describe('whole Necron detachment selection and activation contract',()=>{
  });
  it('fails closed on a wrong-phase, unselected or unknown CP-spending card without filtering a conditional follow-up',()=>{
   const r:GeneratedReminder={id:'example',title:'Omnilocked Strafing · 1CP',window:'Movement',timing:'start',summary:'When falling back.',source:'https://wahapedia.ru/wh40k11ed/factions/necrons/',origin:'detachment',units:['Tomb Blades#1']};
-  expect(applyNecronStratagemWindow(r,['Skysword Spearhead'])).toMatchObject({turn:'own',timing:'during',sourceRuleId:'000010888004'});
+  expect(applyNecronStratagemWindow(r,['Skysword Spearhead'])).toMatchObject({turn:'own',timing:'during',sourceRuleId:source.rules['omnilocked strafing'].id});
   expect(applyNecronStratagemWindow(r,['Hand of the Dynasty'])).toBeUndefined();
   expect(applyNecronStratagemWindow({...r,window:'Shooting'},['Skyshroud Spearhead'])).toBeUndefined();
   expect(applyNecronStratagemWindow({...r,title:'Invented stratagem · 1CP'},['Skyshroud Spearhead'])).toBeUndefined();

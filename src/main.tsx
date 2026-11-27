@@ -45,7 +45,7 @@ import {knightMusterUnits} from './imperial-knights-data';
 import {knightUnitLimit} from './imperial-knight-muster';
 import {NecronRoster} from './NecronRoster';
 import {necronUnitLimit} from './necron-muster-legality';
-import {reconcileInstanceAttachments,individualArmy} from './roster-instances';
+import {individualArmy} from './roster-instances';
 import {ReminderSheet} from './ReminderSheet';
 import {BATTLE_SIZES_2026,DETACHMENTS_2026,detachmentBudget,type BattleSize2026} from './edition-2026';
 import {isModeledLeader,leaderBodyguards} from './leader-eligibility';
