@@ -23,7 +23,7 @@ describe('army-specific timing and persistent effects',()=>{
  it('carries a timed pin and the death ray choice forward to the actual enemy moves and attacks',()=>{
   const army=roster(unit('scythe','Doom Scythe'),unit('obelisk','Obelisk'),unit('geo','Geomancer'));
   const pulse=sheets(army,'Gravitic Pulse');
-  expect(pulse.map(r=>[r.window,r.turn])).toEqual([['Movement','opponent'],['Movement','opponent'],['Charge','opponent'],['Fight','opponent']]);
+  expect(pulse.map(r=>[r.window,r.turn])).toEqual([['Movement','opponent'],['Movement','opponent'],['Shooting','opponent'],['Charge','opponent'],['Fight','opponent']]);
   expect(pulse.find(r=>r.window==='Charge')?.summary).toMatch(/halve the Charge roll.*can Fly.*4\+/);
   expect(pulse.find(r=>r.window==='Fight')?.summary).toMatch(/each pile-in or consolidation.*until the start of your next Movement/);
   expect(sheets(army,'Tectonic Reverberations').map(r=>[r.window,r.turn])).toEqual([['Movement','own'],['Movement','either'],['Charge','either']]);
