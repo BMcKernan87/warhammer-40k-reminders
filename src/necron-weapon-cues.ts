@@ -3,7 +3,7 @@ import type {RosterInstance} from './roster-instances';
 import {NECRON_LOADOUTS,currentEquipmentName} from './necron-wargear';
 import type {TriggerRule} from './necron-battlefield-rules';
 
-interface WeaponCue {weapon:string; abilities:string; primary?:string; optional?:string; note?:string}
+interface WeaponCue {weapon:string; abilities:string; primary?:string; optional?:string; weaponsPerBearer?:number; note?:string}
 interface WeaponPhases {shoot?:WeaponCue[]; fight?:WeaponCue[]}
 // Weapon profiles with printed keywords. Battle-selected Vault powers and the expendable tachyon arrow have separate reminders.
 const profiles:Record<string,WeaponPhases>={
@@ -140,7 +140,7 @@ const profiles:Record<string,WeaponPhases>={
   },
   "Ghost Ark": {
     shoot: [
-      {weapon:"Gauss flayer array", abilities:"Lethal Hits, Rapid Fire 5"},
+      {weapon:"Gauss flayer array", abilities:"Lethal Hits, Rapid Fire 5", weaponsPerBearer:2},
     ],
   },
   "Doom Scythe": {
@@ -210,25 +210,25 @@ const profiles:Record<string,WeaponPhases>={
   },
   "Monolith": {
     shoot: [
-      {weapon:"Death ray", abilities:"Sustained Hits D3", primary:"Four death rays"},
-      {weapon:"Gauss flux arc", abilities:"Lethal Hits, Rapid Fire 3", primary:"Four gauss flux arcs"},
+      {weapon:"Death ray", abilities:"Sustained Hits D3", primary:"Four death rays", weaponsPerBearer:4},
+      {weapon:"Gauss flux arc", abilities:"Lethal Hits, Rapid Fire 3", primary:"Four gauss flux arcs", weaponsPerBearer:4},
       {weapon:"Particle whip", abilities:"Blast, Devastating Wounds"},
     ],
   },
   "Obelisk": {
     shoot: [
-      {weapon:"Tesla sphere", abilities:"Anti-Fly 4+, Sustained Hits 2"},
+      {weapon:"Tesla sphere", abilities:"Anti-Fly 4+, Sustained Hits 2", weaponsPerBearer:4},
     ],
   },
   "Tesseract Vault": {
     shoot: [
-      {weapon:"Tesla spheres", abilities:"Sustained Hits 2"},
+      {weapon:"Tesla spheres", abilities:"Sustained Hits 2", weaponsPerBearer:4},
     ],
   },
   "Seraptek Heavy Construct": {
     shoot: [
-      {weapon:"Singularity generator", abilities:"Blast, Devastating Wounds", primary:"Two singularity generators"},
-      {weapon:"Synaptic obliterator", abilities:"Sustained Hits 2", primary:"Two synaptic obliterators and two transdimensional projectors"},
+      {weapon:"Singularity generator", abilities:"Blast, Devastating Wounds", primary:"Two singularity generators", weaponsPerBearer:2},
+      {weapon:"Synaptic obliterator", abilities:"Sustained Hits 2", primary:"Two synaptic obliterators and two transdimensional projectors", weaponsPerBearer:2},
     ],
   },
   "Night Scythe": {
@@ -245,13 +245,13 @@ const profiles:Record<string,WeaponPhases>={
   },
   "Canoptek Spyders": {
     shoot: [
-      {weapon:"Particle beamer", abilities:"Blast, Devastating Wounds", optional:"Pair of particle beamers"},
+      {weapon:"Particle beamer", abilities:"Blast, Devastating Wounds", optional:"Pair of particle beamers", weaponsPerBearer:2},
     ],
   },
   "Doomsday Ark": {
     shoot: [
       {weapon:"Doomsday cannon", abilities:"Blast, Heavy"},
-      {weapon:"Gauss flayer array", abilities:"Lethal Hits, Rapid Fire 5"},
+      {weapon:"Gauss flayer array", abilities:"Lethal Hits, Rapid Fire 5", weaponsPerBearer:2},
     ],
   },
   "Canoptek Doomstalker": {
@@ -271,6 +271,7 @@ const profiles:Record<string,WeaponPhases>={
 };
 
 function equipped(squad:RosterInstance, options:WeaponCue[]):WeaponCue[]{
+  if((squad.models??1)<=0)return [];
   return options.filter(p=>{
     if(p.optional)return (squad.wargear?.[p.optional]??0)>0;
     if(!p.primary)return true;
@@ -290,8 +291,12 @@ export function weaponSummary(squad:RosterInstance,phase:keyof WeaponPhases,snap
     else if(profile.primary&&squad.weaponCounts)count=squad.weaponCounts[profile.primary];
     else if(profile.primary&&squad.unit==='Canoptek Macrocytes')count=(squad.models??5)-(squad.wargear?.['Atomiser beam and nanoscarab projector']??0)-(squad.wargear?.['Accelerator mandible']??0);
     else if(squad.unit==='Canoptek Tomb Crawlers')count=squad.equipment==='One twin gauss reaper and one transdimensional isolator'?1:2;
+    if(count!==undefined&&count<=0)continue;
     const bearers=count===undefined?'':' ('+count+' originally equipped model'+(count===1?'':'s')+'; apply to surviving bearers)';
-    descriptions.push(profile.weapon+bearers+' — '+abilities.join(', ')+(profile.note?'. '+profile.note:'')+'.');
+    // Gun multiplicity is not the same thing as bearer count. A two-model
+    // Spyder unit can carry four particle beamers, not merely two.
+    const quantity=profile.weaponsPerBearer?' ('+profile.weaponsPerBearer+' weapons per equipped model)':'';
+    descriptions.push(profile.weapon+bearers+quantity+' — '+abilities.join(', ')+(profile.note?'. '+profile.note:'')+'.');
   }
   return descriptions.join(' ');
 }

@@ -79,7 +79,7 @@ export const NECRON_LOADOUTS: Readonly<Record<string, NecronLoadout>> = {
 const meleeOnly = new Set(['Orikan the Diviner', 'Trazyn the Infinite', 'Overlord with translocation shroud',
   'Flayed Ones', 'Lychguard', 'Ophydian Destroyers', 'Skorpekh Destroyers', 'Canoptek Scarab Swarms']);
 export function hasNecronRangedWeapon(squad: RosterInstance): boolean {
-  if (!Object.prototype.hasOwnProperty.call(NECRON_LOADOUTS, squad.unit) || meleeOnly.has(squad.unit)) return false;
+  if ((squad.models??1)<=0 || !Object.prototype.hasOwnProperty.call(NECRON_LOADOUTS, squad.unit) || meleeOnly.has(squad.unit)) return false;
   if (squad.unit === 'Overlord') return squad.equipment !== 'Voidscythe';
   if (squad.unit === 'Lokhust Lord') return squad.equipment !== 'Lord’s blade';
   if (squad.unit === 'Canoptek Spyders') return (squad.wargear?.['Pair of particle beamers'] ?? 0) > 0;

@@ -110,7 +110,7 @@ function referenceText(rule:TriggerRule,squad:RosterInstance,roster:RosterInstan
   if(rule.id==='ghost-repair')return 'Once per turn for this Ark, immediately after an enemy unit finishes its attacks, choose one friendly Warriors formation within 3″ that lost wounds to those attacks. Activate its Reanimation Protocols. Each Warriors formation can benefit from Repair Barge only once per turn across all Arks.';
   if(rule.id==='hex-hits')return 'Whenever this Hexmark uses Fire Overwatch, its snap shots hit on unmodified 2+; hits are not critical hits and Hit rolls cannot be re-rolled.';
   if(rule.id==='hex-overwatch')return 'Once per turn across your army, one unit with Inescapable Death may use Fire Overwatch for 0 CP, even if you already used it on a different unit this phase.';
-  if(rule.id==='hex-return')return 'Once per turn across your army: after an enemy finishes ranged attacks that targeted a friendly Necron unit within 3″ of this Hexmark model, one eligible Hexmark within 3″ of that friendly target may shoot the attacker only, if it is an eligible target.';
+  if(rule.id==='hex-return')return 'Once per turn across your army: after an enemy finishes ranged attacks that targeted a friendly Necron unit within 3″ of this Hexmark model, one eligible Hexmark within 3″ of that friendly target may shoot the attacker only, if it is an eligible target. This is normal reactive shooting with the enmitic disintegrator pistols, not snap shooting; apply Ignores Cover. Do not use Inescapable Death’s 2+ snap-shot rule or other phase-locked rules.';
   if(rule.id==='doomsday-still')return 'Your Movement phase: if this model remains stationary, its doomsday cannon gains Devastating Wounds until turn end.';
   if(rule.id==='timesplinter-mantle')text='This formation has Stealth (Benefit of Cover against ranged attacks if every model has Stealth); incoming melee attacks suffer −1 to Hit.';
   if(rule.id==='szeras')text='While the friendly Battleline unit is within the aura, improve the AP of its outgoing attacks by 1 and worsen AP of incoming attacks by 1. The aura starts at 3″; both effects apply when their respective conditions occur.';
@@ -204,6 +204,7 @@ export function necronDatasheetReminders2026(army:ArmySelection,roster:RosterIns
       // Include the decision in Movement as well as its consequence in Shooting.
       if(!rule.units.includes(squad.unit)||(rule.gear&&!rule.gear(squad))||(rule.scope==='leading'&&!body))continue;
       if(retainedBody&&(!unitEffects.has(rule.id)||rule.gear))continue;
+      if((squad.models??1)<=0&&['hex-return','hex-hits','hex-overwatch','tachyon','nebuloscope','tomb-shield-move','tomb-shield-save','tomb-shadowloom','gloom','fabricator','macro-projector','macro-mandible'].includes(rule.id))continue;
       if((squad.models??1)<=0&&['spyder-swarm','doomsday-still','doomsday-shoot','displace','terror','tunnelling'].includes(rule.id))continue;
       if(rule.id==='guardian'&&!formation?.leading.some(leader=>['Overlord','Overlord with translocation shroud','Imotekh the Stormlord','Trazyn the Infinite'].includes(leader.unit)))continue;
       const targets=datasheetTargets(rule.id,squad,formations,army);
