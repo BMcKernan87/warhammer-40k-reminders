@@ -3,7 +3,7 @@ import type {GeneratedReminder,ReminderWindow} from './generated-reminders';
 import {expandRoster,type RosterInstance} from './roster-instances';
 import {GREY_KNIGHTS_GATE_UNITS,GREY_KNIGHTS_REVISION} from './grey-knights-data.generated';
 import {greyKnightsKeywords,greyKnightsMusterUnits} from './grey-knights-data';
-import {greyKnightsCargoFormations,greyKnightsFormations} from './grey-knights-transports';
+import {greyKnightsCargoFormations,greyKnightsFormations,greyKnightsOriginalFormationResolver} from './grey-knights-transports';
 import {greyKnightsHasRangedWeapon,greyKnightsWeaponCount} from './grey-knights-loadouts';
 import {assignedAgentHasRanged} from './knight-assigned-agents';
 import {ASSIGNED_AGENT_DATA} from './knight-assigned-agents.generated';
@@ -152,7 +152,7 @@ export function greyKnightsDetachmentReminders(army:ArmySelection,roster:readonl
    case '000010352002':cue('Charge','opponent','during','This formation can use Heroic Intervention for 1CP less, even if another unit already used it this phase. This use does not prevent other units from using it. Normal Heroic Intervention eligibility and charge restrictions still apply.',unit);break;
    case '000010928002':cue('Movement','own','during','In your first Movement phase, this Interceptor formation may make an ingress move. Use the arrival method available to its actual models.',unit);break;
    case '000010348002':if(allDeep(f))cue('Movement','either','during','Whenever this formation is set up using Deep Strike, roll a D6 for each enemy within 12″ of the bearer model. On 2–5 that enemy suffers one mortal wound; on 6 it suffers D3.',unit);break;
-   case '000010364003':cue('Start of battle round','either','start','Once per battle, give every model in the bearer’s formation +2 Toughness until this battle round ends.',unit);break;
+   case '000010364003':break; // Activation and prior-use follow-ups use the original formation below.
    case '000010924003':
     if(f.ranged){
      for(const [p,turn,t] of [['Shooting','own','during'],['Movement','opponent','end']] as const)cue(p,turn,t,'This Purgation formation’s ranged attacks have +2 Strength.',unit);
@@ -176,6 +176,31 @@ export function greyKnightsDetachmentReminders(army:ArmySelection,roster:readonl
    case '000010348005':break; // Printed with the actual army-wide cap by greyKnightsGateReminders.
    case '000010356005':cue('Shooting','own','start','Select one enemy within 24″ of and visible to the bearer model. It suffers D3 mortal wounds.');break;
    case '000010352005':if(rangedHitRoll(f))cue('Movement','opponent','end','When this formation uses Fire Overwatch, its shots hit on unmodified Hit rolls of 5+. Snap shots still cannot score Critical Hits or re-roll Hit rolls.',unit);break;
+  }
+ }
+ // Shield of Prophecy is a once-per-battle selection, not a passive aura.
+ // The printed duration is the whole battle round (Appendix 01.02.02).
+ // Do not infer that the player activated it or confer a new use after loss.
+ if(has('Augurium Task Force')){
+  const declared=expandRoster(army);
+  const bearers=declared.filter(s=>selected(s)==='Shield of Prophecy');
+  // Ordinary enhancements are unique. Ambiguous/invalid saved selections
+  // must not create two activations or a transferable prior-use effect.
+  if(bearers.length===1){
+   const bearer=bearers[0],up=eligibleGreyKnightsUpgrades(army,bearer.unit,bearer.id).find(u=>u.id==='000010364003');
+   const original=up?greyKnightsOriginalFormationResolver(army,roster,declared)(bearer):undefined;
+   if(up&&original?.survivors.length){
+    const live=original.survivors.find(s=>s.id===bearer.id);
+    const title=bearer.id+' · '+up.name,key=up.id+'-'+bearer.id;
+    // Keep the prior round-start ID and root label for legal saved armies.
+    if(live&&selected(live)===up.name)emit(key,title,'Start of battle round','either','start',
+     'Once per battle, at the start of the battle round, the living eligible bearer can give every model in its unit +2 Toughness until this battle round ends.',
+     original.bodyguardSurvives?[original.original.root]:original.survivors,up.id);
+    for(const [p,turn] of [['Movement','own'],['Movement','opponent'],['Shooting','own'],['Shooting','opponent'],['Fight','either']] as const)
+     emit(key+'-active',title+' · active',p,turn,'during',
+      'Only if this bearer activated Shield of Prophecy at the start of this battle round: add 2 to the Toughness of each surviving model in the original affected formation until the end of this battle round, even if the bearer is destroyed. Use the highest Toughness among surviving Bodyguard models while attached, or the highest Toughness of the remaining models if no Bodyguard survives. A unit returning from Reserves or a Transport retains the effect for its remaining duration. This is not another use.',
+      original.survivors,up.id);
+   }
   }
  }
  return rows;
