@@ -131,7 +131,7 @@ import {votannArmyReminders} from './votann-army';
 import {shadowLegionHasRangedWeapon, shadowMarineReminders} from './shadow-legion-cards';
 import {alliedTitanAndKnightReminders,applyWarhoundStratagemCost} from './titan-support';
 import {isWarhound} from './titan-support-data';
-import {applyStratagemWindow} from './stratagem-windows';
+import {applyStratagemWindow,applyNecronStratagemWindow} from './stratagem-windows';
 import {targetedNecronEnhancements} from './necron-targeted-enhancements';
 import {necronPersistentStratagemReminders} from './necron-persistent-stratagems';
 import {necronDeploymentReminders} from './necron-deployment';
@@ -504,7 +504,10 @@ export function generate11thReminders(_army:ArmySelection):GeneratedReminder[]{
  result.push(...eligibleScoutReminders(_army));
  result.push(...necronDatasheetReminders2026(_army));
  const warhounds=new Set(roster.filter(s=>isWarhound(s.unit)).map(s=>s.id));
- return result.map(rule=>applyWarhoundStratagemCost(_army.faction==='Necrons'||rule.id.startsWith('11e-core-')?applyStratagemWindow(rule):rule,warhounds));
+ return result.flatMap(rule=>{
+  const resolved=_army.faction==='Necrons'?applyNecronStratagemWindow(rule,_army.detachments2026??[]):rule.id.startsWith('11e-core-')?applyStratagemWindow(rule):rule;
+  return resolved?[applyWarhoundStratagemCost(resolved,warhounds)]:[];
+ });
 }
 export function grouped11thReminders(army:ArmySelection):{window:ReminderWindow;reminders:GeneratedReminder[]}[]{
  const all=generate11thReminders(army);
