@@ -5,7 +5,7 @@ import {greyKnightsFormationHasDeepStrike} from './gk-datasheet-core';
 import {GREY_KNIGHTS_SHEETS,greyKnightsKeywords,greyKnightsMusterUnits} from './grey-knights-data';
 import {GREY_KNIGHTS_REVISION} from './grey-knights-data.generated';
 import {greyKnightsHasRangedWeapon,greyKnightsWeaponCount} from './grey-knights-loadouts';
-import {greyKnightsCargoFormations,greyKnightsFormations} from './grey-knights-transports';
+import {greyKnightsCargoFormations,greyKnightsFormations,greyKnightsOriginalFormationResolver} from './grey-knights-transports';
 import {expandRoster,type RosterInstance} from './roster-instances';
 
 type Step=readonly [ReminderWindow,NonNullable<GeneratedReminder['turn']>,GeneratedReminder['timing'],GeneratedReminder['timing']?];
@@ -24,29 +24,7 @@ export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly
  const legal=new Set(greyKnightsMusterUnits(army)),native=roster.filter(s=>cards.has(s.unit)&&legal.has(s.unit));
  const groups=greyKnightsFormations(army,roster).filter(g=>g.members.every(s=>legal.has(s.unit)));
  const groupOf=(s:RosterInstance)=>groups.find(g=>g.members.some(m=>m.id===s.id));
- const declared=expandRoster(army),originalGroups=greyKnightsFormations(army,declared);
- const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo&&Boolean(start.keepUnattached)===Boolean(current.keepUnattached);
- // Validate the original formation even when the source has since died. A
- // previous selection is not a new activation by a surviving source.
- function originalFormation(s:RosterInstance){
-  const original=originalGroups.find(g=>g.members.some(m=>sameMember(m,s)));
-  if(!original||original.root.attachedTo||original.root.retinueTo)return;
-  if(original.members.some(m=>!legal.has(m.unit)||(m.models??1)<=0||m.retinueTo||(m.attachedTo&&m.keepUnattached)||declared.filter(d=>d.id===m.id).length!==1))return;
-  const ids=new Set(original.members.map(m=>m.id)),survivors:RosterInstance[]=[];
-  // An invalid original join must not turn into a valid standalone source just
-  // because formation resolution rejected that join or the Bodyguard died.
-  if(declared.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return;
-  for(const member of original.members){
-   const current=roster.filter(m=>m.id===member.id);
-   if(current.length>1)return;
-   const live=current[0];
-   if(!live)continue;
-   if(!sameMember(member,live))return;
-   if((live.models??1)>0)survivors.push(live);
-  }
-  if(roster.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return;
-  return {original,survivors,leading:original.root.id!==s.id,bodyguardSurvives:survivors.some(m=>m.id===original.root.id)};
- }
+ const declared=expandRoster(army),originalFormation=greyKnightsOriginalFormationResolver(army,roster,declared);
  function defensiveFormation(s:RosterInstance){
   const original=originalFormation(s);
   if(original?.survivors.some(m=>m.id===s.id))return original;
