@@ -22,12 +22,13 @@ const unique=(ids:string[])=>[...new Set(ids)];
 export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly RosterInstance[]=expandRoster(army)):GeneratedReminder[]{
  if(army.faction!=='Grey Knights')return [];
  const legal=new Set(greyKnightsMusterUnits(army)),native=roster.filter(s=>cards.has(s.unit)&&legal.has(s.unit));
- if(!native.length)return [];
  const groups=greyKnightsFormations(army,roster).filter(g=>g.members.every(s=>legal.has(s.unit)));
  const groupOf=(s:RosterInstance)=>groups.find(g=>g.members.some(m=>m.id===s.id));
  const declared=expandRoster(army),originalGroups=greyKnightsFormations(army,declared);
  const sameMember=(start:RosterInstance,current:RosterInstance)=>start.id===current.id&&start.unit===current.unit&&start.attachedTo===current.attachedTo&&start.retinueTo===current.retinueTo&&Boolean(start.keepUnattached)===Boolean(current.keepUnattached);
- function defensiveFormation(s:RosterInstance){
+ // Validate the original formation even when the source has since died. A
+ // previous selection is not a new activation by a surviving source.
+ function originalFormation(s:RosterInstance){
   const original=originalGroups.find(g=>g.members.some(m=>sameMember(m,s)));
   if(!original||original.root.attachedTo||original.root.retinueTo)return;
   if(original.members.some(m=>!legal.has(m.unit)||(m.models??1)<=0||m.retinueTo||(m.attachedTo&&m.keepUnattached)||declared.filter(d=>d.id===m.id).length!==1))return;
@@ -43,13 +44,21 @@ export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly
    if(!sameMember(member,live))return;
    if((live.models??1)>0)survivors.push(live);
   }
-  if(!survivors.some(m=>m.id===s.id)||roster.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return;
-  return {survivors,leading:original.root.id!==s.id,bodyguardSurvives:survivors.some(m=>m.id===original.root.id)};
+  if(roster.some(m=>!ids.has(m.id)&&(ids.has(m.attachedTo??'')||ids.has(m.retinueTo??''))))return;
+  return {original,survivors,leading:original.root.id!==s.id,bodyguardSurvives:survivors.some(m=>m.id===original.root.id)};
  }
+ function defensiveFormation(s:RosterInstance){
+  const original=originalFormation(s);
+  if(original?.survivors.some(m=>m.id===s.id))return original;
+ }
+ const liveOriginal=roster.filter(s=>legal.has(s.unit)&&defensiveFormation(s));
+ if(!liveOriginal.length)return [];
  const vehicles=native.filter(s=>greyKnightsKeywords(army,s).has('VEHICLE')).map(s=>s.id);
  const defensiveVehicles=native.filter(s=>greyKnightsKeywords(army,s).has('VEHICLE')&&defensiveFormation(s)).map(s=>s.id);
  const gk=groups.filter(g=>g.members.some(s=>cards.has(s.unit))).map(g=>g.root.id);
- const gunners=native.filter(greyKnightsHasRangedWeapon).map(s=>s.id);
+ const gunners=liveOriginal.filter(s=>cards.has(s.unit)&&greyKnightsHasRangedWeapon(s)).map(s=>s.id);
+ const originalVehicles=declared.filter(s=>cards.has(s.unit)&&legal.has(s.unit)&&greyKnightsKeywords(army,s).has('VEHICLE')).map(s=>s.id);
+ const rangedVehicles=defensiveVehicles.filter(id=>liveOriginal.some(s=>s.id===id&&greyKnightsHasRangedWeapon(s)));
  const result:GeneratedReminder[]=[];
  function emit(key:string,title:string,steps:readonly Step[],summary:string,units:string[],source:string){
   if(units.length)for(const [window,turn,timing,identityTiming=timing] of steps)result.push({id:['11e-gk-card',key,title,window,turn,identityTiming].join(':'),title,window,turn,timing,summary,units:unique(units),source,origin:'unit'});
@@ -115,8 +124,7 @@ export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly
     add('Personal Teleporters',[['Charge','own','during']],'If this formation moved using Personal Teleporters in your Shooting phase, it cannot declare a charge this turn.',formation);break;
    }
    case 'Purgation Squad':
-    add('Righteous Persecution',[shoot],'After shooting, select one enemy unit this formation hit that is neither a Monster nor a Vehicle. It is pinned until your next turn starts, giving its models −2″ Move and the unit −2 to Charge rolls.',formation);
-    add('Righteous Persecution',[['Movement','opponent','during'],['Charge','opponent','during']],'The enemy pinned by this formation has −2″ Move and −2 to Charge rolls until your next turn starts.',formation);break;
+    if(defensiveFormation(squad)?.survivors.some(greyKnightsHasRangedWeapon))add('Righteous Persecution',[shoot],'After shooting, select one enemy unit this formation hit that is neither a Monster nor a Vehicle. It is pinned until your next turn starts, giving its models −2″ Move and the unit −2 to Charge rolls.',formation);break;
    case 'Nemesis Dreadknight':
     add('Indomitable Spirit',hasGun?[move,shoot,['Charge','own','during']]:[move,['Charge','own','during']],'If this Dreadknight Advanced or Fell Back this turn, it remains eligible to '+(hasGun?'shoot and declare a charge.':'declare a charge.'));break;
    case 'Land Raider':case 'Land Raider Crusader':case 'Land Raider Redeemer':case 'Grey Knights Thunderhawk Gunship':{
@@ -130,8 +138,7 @@ export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly
    }
    case 'Razorback':{
     const cargo=greyKnightsCargoFormations(army,squad,roster).map(g=>g.root.id);
-    add('Fire Focus',[shoot],'After this Razorback shoots, mark an enemy unit it hit. Until the turn ends, models that disembarked from this particular Razorback this turn improve AP by 1 on attacks against that enemy. Each enemy can be affected once per turn.',cargo);
-    add('Fire Focus',[['Fight','own','during']],'Models that disembarked from this Razorback this turn improve melee AP by 1 against the enemy marked by that vehicle’s Fire Focus.',cargo);break;
+    if(defensiveFormation(squad)&&hasGun)add('Fire Focus',[shoot],'After this Razorback shoots, mark an enemy unit it hit. Until the turn ends, models that disembarked from this particular Razorback this turn improve AP by 1 on attacks against that enemy. Each enemy can be affected once per turn.',cargo);break;
    }
    case 'Rhino':
     add('Truesilver Aegis',eachPhase,'Models in a friendly Grey Knights unit wholly within 6″ of this Rhino have Feel No Pain 6+ against mortal wounds.',gk);break;
@@ -139,11 +146,10 @@ export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly
     if(defensiveFormation(squad))add('Armoured Resilience',defence,'Each time an attack is allocated to this Stormraven model, subtract 1 from that attack’s Damage. This personal protection does not extend to other models or its passengers.');break;
    case 'Brotherhood Techmarine':
     if(defensiveFormation(squad))add('Techmarine',rangedDefence,'While this surviving Techmarine model is within 3″ of a friendly Grey Knights Vehicle unit with a surviving model, only the Techmarine has Lone Operative; this does not grant it to Bodyguard or other attached models. The targeting protection becomes active only when every surviving model in its formation has Lone Operative, including after its Bodyguard is destroyed. Enemy models outside 12″ cannot see the protected unit or target it with Indirect Fire. Eligible nearby Vehicle candidates: '+defensiveVehicles.join(', ')+'.',defensiveVehicles);
-    add('Blessing of the Omnissiah',[['Command','own','during']],'Select one friendly Grey Knights Vehicle model within 3″ of this Techmarine. It regains up to D3 lost wounds and adds 1 to its attack Hit rolls until your next Command phase starts. Each model may be selected once per turn.',vehicles);
-    add('Blessing of the Omnissiah',[shoot,fight],'A Vehicle model blessed by this Techmarine adds 1 to its attack Hit rolls until your next Command phase starts.',vehicles);
+    if(defensiveFormation(squad))add('Blessing of the Omnissiah',[['Command','own','during']],'Select one friendly Grey Knights Vehicle model within 3″ of this Techmarine. It regains up to D3 lost wounds and adds 1 to its attack Hit rolls until your next Command phase starts. Each model may be selected once per turn.',defensiveVehicles);
     add('Guardians of the Machine',[['Charge','opponent','during']],'When an enemy ends a charge engaged with a friendly Grey Knights Vehicle and within 6″ of this Techmarine’s unit, you may target the Techmarine’s eligible unit with Heroic Intervention for 1CP less. Other units can use it before or after this use in the same phase.',vehicles.length?[...formation,...vehicles]:[]);break;
    case 'Venerable Dreadnought':
-    add('Guidance of the Ancients',[shoot],'After this Dreadnought shoots in your Shooting phase, choose one enemy unit it hit. Friendly Grey Knights models add 1 to their attack Hit rolls against that unit for the rest of this phase.',gunners);break;
+    if(defensiveFormation(squad)&&hasGun)add('Guidance of the Ancients',[shoot],'After this Dreadnought shoots in your Shooting phase, choose one enemy unit it hit. Friendly Grey Knights models add 1 to their attack Hit rolls against that unit for the rest of this phase.',gunners);break;
    case 'Grand Master In Nemesis Dreadknight':
     add('Surge of Wrath',[fight],'Against a Monster or Vehicle unit, the Grand Master in Nemesis Dreadknight may re-roll melee Hit, Wound and Damage rolls.');break;
    case 'Brotherhood Librarian':
@@ -157,6 +163,50 @@ export function greyKnightsIntrinsicReminders(army:ArmySelection,roster:readonly
    case 'Stormtalon Gunship':
     add('Strafing Run',[shoot],'Add 1 to this Stormtalon’s ranged attack Hit rolls against a unit that cannot Fly.');break;
   }
+ }
+ // Persisting rules (reproduced Appendix 01.02.02) and these card clauses
+ // prescribe duration, not continuing source survival. Keep old follow-up
+ // IDs where they existed and give additional windows independent IDs.
+ for(const source of declared.filter(s=>cards.has(s.unit)&&legal.has(s.unit)&&(s.models??1)>0)){
+  const original=originalFormation(source);
+  if(!original)continue;
+  function lasting(title:string,suffix:string,steps:readonly Step[],summary:string,targets:string[],legacy:(step:Step)=>boolean=()=>false,oldTargets=targets){
+   if(!targets.length)return;
+   const units=unique([source.id,...targets]),previousUnits=unique([source.id,...oldTargets]);
+   for(const step of steps){
+    const [window,turn,timing]=step;
+    const isLegacy=legacy(step);
+    result.push({id:[isLegacy?'11e-gk-card':'11e-gk-lasting',source.id,title,window,turn,timing].join(':'),title:title+' · '+suffix,window,turn,timing,summary,units,origin:'unit',source:cards.get(source.unit)!.source,...(isLegacy&&units.join('|')!==previousUnits.join('|')?{previousSheetEntry:{window,units:previousUnits}}:{})});
+   }
+  }
+  if(source.unit==='Purgation Squad'&&original.original.members.some(greyKnightsHasRangedWeapon)){
+   const labels=original.original.members.map(m=>m.id);
+   lasting('Righteous Persecution','pinned enemy',[shoot,['Charge','own','during'],fight,incomingArrival,incoming,['Charge','opponent','during']],
+    'If this Purgation formation already hit and selected a non-Monster, non-Vehicle enemy in your Shooting phase, that enemy has −2″ Move and −2 to its Charge rolls until your next turn starts, even if the Purgation Squad is destroyed. The Move penalty only affects moves that use its Move characteristic, not fixed-distance moves, Pile Ins or Consolidations. This is not a new selection.',
+    labels,([window,turn])=>turn==='opponent'&&(window==='Movement'||window==='Charge'));
+  }
+  if(source.unit==='Brotherhood Techmarine'){
+   const summary='Only the surviving physical Grey Knights Vehicle model previously selected within 3″ of this Techmarine in your Command phase gains +1 to Hit rolls on its attacks until your next Command phase starts, even if the Techmarine is destroyed. Fixed snap-shot Hit rolls cannot be modified. Do not heal or select another model now.';
+   lasting('Blessing of the Omnissiah','blessed vehicle',[shoot,move,incomingArrival,incoming],summary,rangedVehicles,([window,turn])=>window==='Shooting'&&turn==='own',originalVehicles);
+   lasting('Blessing of the Omnissiah','blessed vehicle',[fight],summary,defensiveVehicles,()=>true,originalVehicles);
+  }
+  if(source.unit==='Razorback'&&greyKnightsHasRangedWeapon(source)){
+   // Original transport candidates are not assertions of actual embarkation.
+   // A surviving member keeps a previously earned effect after source loss;
+   // a newly joined or substituted model must not inherit it.
+   const initialCargo=greyKnightsCargoFormations(army,source,declared);
+   const cargo=initialCargo.flatMap(g=>{
+    const valid=originalFormation(g.root);
+    if(!valid)return [];
+    return valid.bodyguardSurvives?[g.root.id]:valid.survivors.map(m=>m.id);
+   });
+   lasting('Fire Focus','marked enemy',[shoot,['Fight','own','during']],
+    'Only if this Razorback already hit and marked an enemy in your Shooting phase, surviving original friendly models that actually disembarked from this exact Razorback this turn improve AP by 1 against that marked enemy until this turn ends, even if the Razorback is destroyed. Each enemy may be affected once per turn; the benefit is not granted to a newly joined model that did not disembark.',
+    cargo,([window])=>window==='Fight',initialCargo.map(g=>g.root.id));
+  }
+  if(source.unit==='Venerable Dreadnought'&&greyKnightsHasRangedWeapon(source))lasting('Guidance of the Ancients','marked enemy',[shoot],
+   'If this Dreadnought already hit and selected an enemy in your Shooting phase, friendly Grey Knights models gain +1 to Hit rolls on attacks against that enemy for the rest of this Shooting phase, even if the Dreadnought is destroyed. Fixed snap-shot Hit rolls cannot be modified. No new enemy selection is made here.',
+   gunners);
  }
  return result;
 }
